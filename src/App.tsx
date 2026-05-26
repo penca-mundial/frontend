@@ -1,10 +1,8 @@
+import { RouterProvider } from 'react-router-dom'
+import { router } from '@/router'
+
 function App() {
-  return (
-    <main>
-      <h1>Penca Mundial</h1>
-      <p>Plataforma de predicciones del Mundial 2026.</p>
-    </main>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App
