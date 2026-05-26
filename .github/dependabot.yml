@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: "/"
+    directory: '/'
     schedule:
       interval: weekly
       day: monday
@@ -11,20 +11,20 @@ updates:
     groups:
       react:
         patterns:
-          - "react"
-          - "react-*"
-          - "@types/react*"
+          - 'react'
+          - 'react-*'
+          - '@types/react*'
       tanstack:
         patterns:
-          - "@tanstack/*"
+          - '@tanstack/*'
       tailwind:
         patterns:
-          - "tailwindcss"
-          - "@tailwindcss/*"
-          - "tailwind-*"
+          - 'tailwindcss'
+          - '@tailwindcss/*'
+          - 'tailwind-*'
 
   - package-ecosystem: github-actions
-    directory: "/"
+    directory: '/'
     schedule:
       interval: monthly
     labels:
