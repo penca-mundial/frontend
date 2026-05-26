@@ -5,6 +5,8 @@ import axios, {
 } from 'axios'
 
 const LOGIN_PATH = '/login'
+// A 401 from the auth probe just means "logged out" — it must not redirect.
+const AUTH_PROBE_PATH = '/auth/me'
 const CSRF_COOKIE = 'CSRF-TOKEN'
 const CSRF_HEADER = 'X-CSRF-Token'
 const MUTATING_METHODS = new Set(['post', 'put', 'patch', 'delete'])
@@ -66,7 +68,10 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     const status = error.response?.status
     if (status === 401) {
-      navigation.redirectToLogin()
+      const url = error.config?.url ?? ''
+      if (!url.includes(AUTH_PROBE_PATH)) {
+        navigation.redirectToLogin()
+      }
     } else if (status !== undefined && status >= 500) {
       notifyServerError(error)
     }
