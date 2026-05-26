@@ -1,0 +1,9 @@
+dist
+build
+coverage
+node_modules
+pnpm-lock.yaml
+
+# Local agent config / project instructions (not formatted by the toolchain)
+.claude
+CLAUDE.md
