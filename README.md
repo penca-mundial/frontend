@@ -81,7 +81,28 @@ Conventions:
 
 ## Deployment
 
-Pushes to `main` auto-deploy to Vercel. PRs get preview deployments.
+The app deploys to [Vercel](https://vercel.com), which auto-detects Vite
+(build `pnpm build`, output `dist/`).
+
+### One-time setup
+
+1. In the Vercel dashboard: **Add New → Project** and import this GitHub repo.
+2. Framework preset **Vite** is auto-detected (build command `pnpm build`,
+   output directory `dist`).
+3. Add the **`VITE_API_URL`** environment variable with a value per
+   environment:
+   - **Production** → the production backend, e.g. `https://api.penca.app/api/v1`
+   - **Preview** → the staging backend, e.g. `https://staging-api.penca.app/api/v1`
+4. Deploy.
+
+After this one-time setup, pushes to `main` auto-deploy to production and every
+PR gets a preview deployment.
+
+### SPA routing
+
+`vercel.json` rewrites all unmatched paths to `index.html` so client-side
+routes (React Router) resolve correctly on deep links and page refreshes.
+Static assets are served first, so the rewrite only affects app routes.
 
 ## Environment variables
 
