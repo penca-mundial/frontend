@@ -4,6 +4,7 @@ import { LoginPage } from '@/pages/public/LoginPage'
 import { SignupPage } from '@/pages/public/SignupPage'
 import { ForgotPasswordPage } from '@/pages/public/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage'
+import { ConfirmEmailPage } from '@/pages/public/ConfirmEmailPage'
 
 /**
  * Placeholder page. Real pages and layouts arrive in their feature tickets;
@@ -62,6 +63,9 @@ export const routes: RouteObject[] = [
       </PublicOnlyRoute>
     ),
   },
+  // /confirm-email is reachable by anyone landing from the email link — not
+  // gated behind PublicOnlyRoute.
+  { path: '/confirm-email', element: <ConfirmEmailPage /> },
 
   // Onboarding
   {
