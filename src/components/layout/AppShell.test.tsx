@@ -13,6 +13,10 @@ const member: CurrentUser = {
   email: 'm@b.dev',
   username: 'member',
   isAdmin: false,
+  avatarUrl: null,
+  timezone: null,
+  confirmedAt: '2026-01-01T00:00:00Z',
+  needsUsername: false,
 }
 
 function renderShell(path = '/app/home', user: CurrentUser | null = member) {

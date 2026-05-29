@@ -1,15 +1,14 @@
 import { createContext, useCallback, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { isAxiosError } from 'axios'
-import { del, get } from '@/api/client'
+import { authApi } from '@/api/auth.api'
+import type { AuthUser } from '@/features/auth/types'
 
-/** Minimal shape of the authenticated user; refined by feature tickets. */
-export interface CurrentUser {
-  id: string
-  email: string
-  username: string | null
-  isAdmin: boolean
-}
+/**
+ * The authenticated user as exposed to the app: the mapped `AuthUser` returned
+ * by `authApi.getMe()` (camelCase, with `needsUsername`). `CurrentUser` is kept
+ * as an alias for the call sites that already import it.
+ */
+export type CurrentUser = AuthUser
 
 export interface AuthContextValue {
   currentUser: CurrentUser | null
@@ -24,24 +23,14 @@ export const AuthContext = createContext<AuthContextValue | undefined>(
   undefined,
 )
 
-async function fetchCurrentUser(): Promise<CurrentUser | null> {
-  try {
-    return await get<CurrentUser>('/auth/me')
-  } catch (error) {
-    // A 401 simply means there is no active session.
-    if (isAxiosError(error) && error.response?.status === 401) {
-      return null
-    }
-    throw error
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
 
   const query = useQuery({
     queryKey: AUTH_ME_KEY,
-    queryFn: fetchCurrentUser,
+    // getMe() resolves to null on a 401 (no active session) and only throws on
+    // unexpected errors, so the query data is `AuthUser | null`.
+    queryFn: () => authApi.getMe(),
     retry: false,
     staleTime: Infinity,
   })
@@ -51,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [query])
 
   const logout = useCallback(async () => {
-    await del('/auth/logout')
+    await authApi.logout()
     queryClient.setQueryData(AUTH_ME_KEY, null)
   }, [queryClient])
 

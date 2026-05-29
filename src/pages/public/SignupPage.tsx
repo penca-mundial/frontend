@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { SignupForm } from '@/features/auth/components/SignupForm'
+import { GoogleSignInButton } from '@/features/auth/components/GoogleSignInButton'
 
 export function SignupPage() {
   return (
@@ -24,6 +25,16 @@ export function SignupPage() {
               <p className="text-text-secondary mt-1.5 text-sm leading-relaxed">
                 Sumate y armá tu penca para el Mundial 2026.
               </p>
+            </div>
+
+            <GoogleSignInButton label="Registrarte con Google" />
+
+            <div className="text-text-disabled my-4 flex items-center gap-3">
+              <span className="bg-border h-px flex-1" />
+              <span className="font-mono text-[11px] whitespace-nowrap">
+                o con email
+              </span>
+              <span className="bg-border h-px flex-1" />
             </div>
 
             <SignupForm />
