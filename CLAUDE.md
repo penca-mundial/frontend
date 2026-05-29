@@ -163,3 +163,23 @@ Devise + omniauth-rails_csrf_protection (loaded by the backend) requires that OA
 - GET   `/users/auth/google_oauth2/callback`  → handles Google's redirect back
 
 The GoogleSignInButton must therefore use a `<form method="POST">` pointing at the backend, not an `<a href>` link. The browser handles the POST natively and follows the redirect to Google.
+
+## Local environment setup
+
+The repo ships with `.env.example`. Every developer (and Claude Code sandbox) must copy it to `.env` before running `pnpm dev`:
+
+```bash
+cp .env.example .env
+```
+
+Without `.env`, Vite leaves `VITE_API_URL` undefined and axios falls back to same-origin requests (which hit the frontend dev server itself, returning 404). This is the most common cause of unexplained 404s during local development.
+
+## Backend not running — symptoms
+
+If signup, login, or any auth request returns a generic error like "Algo salió mal":
+1. Check the browser DevTools → Network tab for the actual status code.
+2. If status is 404 to `localhost:5173/...`, your `.env` is missing or `VITE_API_URL` is wrong.
+3. If status is 500, look at the backend logs (`docker compose logs -f app`).
+4. If status is network error (no response), the backend is not running. Start it with `docker compose up -d` in the backend folder.
+
+The "Algo salió mal" generic toast is a known UX issue — backend errors should surface their specific message. Tracked for Phase 9 (Polish).
