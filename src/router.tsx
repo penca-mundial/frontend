@@ -1,6 +1,8 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom'
 import { PublicOnlyRoute } from '@/components/layout/PublicOnlyRoute'
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { LoginPage } from '@/pages/public/LoginPage'
+import { ChooseUsernamePage } from '@/pages/onboarding/ChooseUsernamePage'
 import { SignupPage } from '@/pages/public/SignupPage'
 import { ForgotPasswordPage } from '@/pages/public/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage'
@@ -74,7 +76,11 @@ export const routes: RouteObject[] = [
   // Onboarding
   {
     path: '/onboarding/username',
-    element: <Placeholder title="Elegí tu nombre de usuario" />,
+    element: (
+      <ProtectedRoute>
+        <ChooseUsernamePage />
+      </ProtectedRoute>
+    ),
   },
 
   // App (authenticated)
