@@ -1,84 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 @config '../../tailwind.config.ts';
 
-/* shadcn/ui theme tokens (new-york, base color: slate). Dark mode is
- * class-based (configured in tailwind.config.ts as darkMode: 'class'). */
+/* ───────────────────────────────────────────────────────────────────────────
+ * Penca Mundial — Cancha preset
+ *
+ * tokens-light.css (raw CSS variables) live in :root below and are the source
+ * of truth. The @theme block maps them to Tailwind v4 utilities. shadcn/ui
+ * semantic tokens (--primary, --background, --card, ...) are aliased to Cancha
+ * tokens so the generated primitives adopt the Cancha look automatically.
+ *
+ * Dark mode (docs/design/tokens-dark.css) is intentionally NOT enabled for the
+ * MVP — see the commented block at the end of this file for the v2 reference.
+ * ─────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  /* ─── Brand ─── */
+  --brand-primary: #0f766e; /* verde cancha */
+  --brand-primary-hover: #115e59;
+  --brand-primary-soft: #d7ede9; /* fondo claro de chips/cards primary */
+  --brand-accent: #f59e0b; /* ámbar */
+  --brand-accent-soft: #fef3c7;
+
+  /* ─── Neutrales (light mode) ─── */
+  --background: #fafaf9;
+  --surface: #ffffff;
+  --surface-muted: #f5f5f4;
+  --surface-sunken: #efeeec;
+  --text-primary: #1c1917;
+  --text-secondary: #57534e;
+  --text-disabled: #a8a29e;
+  --border: #e7e5e4;
+  --border-strong: #d6d3d1;
+
+  /* ─── Semánticos ─── */
+  --success: #16a34a;
+  --success-soft: #dcfce7;
+  --warning: #eab308;
+  --warning-soft: #fef9c3;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+  --info: #0ea5e9;
+  --live: #ef4444;
+
+  /* ─── Tipografía ─── */
+  --font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-serif: 'Instrument Serif', Georgia, serif; /* acento editorial */
+
+  /* ─── Radios ─── */
+  --radius-sm: 6px; /* chips finos */
+  --radius: 10px; /* default — botones, inputs, cards chicas */
+  --radius-lg: 14px; /* cards principales */
+  --radius-xl: 18px; /* contenedores grandes */
+  --radius-pill: 9999px;
+
+  /* ─── Sombras ─── */
+  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04), 0 1px 1px rgba(28, 25, 23, 0.02);
+  --shadow-md: 0 4px 12px rgba(28, 25, 23, 0.06), 0 1px 3px rgba(28, 25, 23, 0.03);
+  --shadow-lg: 0 12px 32px rgba(28, 25, 23, 0.1), 0 2px 8px rgba(28, 25, 23, 0.04);
+
+  /* ─── Espaciado (sistema de 4px) ─── */
+  --space-0: 0;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px; /* unidad base */
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ─── Densidad de cards (Cancha = regular) ─── */
+  --density-card-pad: 16px;
+  --density-row-gap: 12px;
+  --density-base: 14px;
+
+  /* ─── Animación ─── */
+  --transition-base: 150ms ease-out;
+
+  /* ─── shadcn/ui semantic aliases → Cancha ───
+   * The shadcn primitives in src/components/ui consume these names. Pointing
+   * them at Cancha tokens makes buttons/inputs/cards/etc. inherit the preset. */
+  --foreground: var(--text-primary);
+  --card: var(--surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--brand-primary);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-muted);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--surface-muted);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--surface-muted);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--danger);
+  --destructive-foreground: #ffffff;
+  --input: var(--border);
+  --ring: var(--brand-primary);
 }
 
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
-}
+@theme {
+  /* ─── Brand colors ─── */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-brand-primary-soft: var(--brand-primary-soft);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-soft: var(--brand-accent-soft);
 
-@theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* ─── Neutrales / surfaces ─── */
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-disabled: var(--text-disabled);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  /* ─── Semánticos ─── */
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-live: var(--live);
+
+  /* ─── shadcn/ui semantic tokens (aliased to Cancha in :root) ─── */
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -93,22 +150,116 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
-  --color-border: var(--border);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* ─── Fonts (literal to avoid self-referential cycles with :root) ─── */
+  --font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+
+  /* ─── Border radius ─── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-full: 9999px;
+
+  /* ─── Shadows ─── */
+  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04), 0 1px 1px rgba(28, 25, 23, 0.02);
+  --shadow-md: 0 4px 12px rgba(28, 25, 23, 0.06), 0 1px 3px rgba(28, 25, 23, 0.03);
+  --shadow-lg: 0 12px 32px rgba(28, 25, 23, 0.1), 0 2px 8px rgba(28, 25, 23, 0.04);
+
+  /* ─── Spacing tokens custom (la escala base de Tailwind sigue disponible) ─── */
+  --spacing-density-card: 16px;
+  --spacing-density-row: 12px;
+
+  /* ─── Transitions ─── */
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: ease-out;
+}
+
+/* ─── Tipo: tamaños canónicos (mobile / desktop) ─── */
+.text-display-2xl {
+  font-size: 36px;
+  line-height: 40px;
+} /* hero — desktop: 48/56 */
+.text-display-xl {
+  font-size: 30px;
+  line-height: 36px;
+} /* h1 — desktop: 36/44 */
+.text-display-lg {
+  font-size: 24px;
+  line-height: 32px;
+} /* h2 — desktop: 30/36 */
+.text-display-md {
+  font-size: 20px;
+  line-height: 28px;
+} /* h3 — desktop: 24/32 */
+.text-body-lg {
+  font-size: 16px;
+  line-height: 24px;
+} /* desktop: 18/28 */
+.text-body {
+  font-size: 14px;
+  line-height: 20px;
+} /* desktop: 16/24 */
+.text-body-sm {
+  font-size: 12px;
+  line-height: 16px;
+} /* desktop: 14/20 */
+.text-mono-score {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  line-height: 36px;
+  font-variant-numeric: tabular-nums;
+}
+.text-mono-mini {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+}
+
+@media (min-width: 768px) {
+  .text-display-2xl {
+    font-size: 48px;
+    line-height: 56px;
+  }
+  .text-display-xl {
+    font-size: 36px;
+    line-height: 44px;
+  }
+  .text-display-lg {
+    font-size: 30px;
+    line-height: 36px;
+  }
+  .text-display-md {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .text-body-lg {
+    font-size: 18px;
+    line-height: 28px;
+  }
+  .text-body {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .text-body-sm {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .text-mono-score {
+    font-size: 40px;
+    line-height: 44px;
+  }
+  .text-mono-mini {
+    font-size: 16px;
+    line-height: 20px;
+  }
 }
 
 @layer base {
@@ -118,12 +269,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family:
-      system-ui,
-      -apple-system,
-      'Segoe UI',
-      Roboto,
-      sans-serif;
+    font-family: var(--font-body);
   }
 
   html,
@@ -132,3 +278,39 @@
     min-height: 100vh;
   }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Dark mode — Cancha (docs/design/tokens-dark.css)
+ * NOT enabled for MVP. Kept here as the v2 reference. To enable, uncomment and
+ * the .dark class on <html>/<body> (tailwind.config darkMode: 'class') will
+ * override the light tokens above.
+ *
+ * .dark {
+ *   color-scheme: dark;
+ *   --brand-primary: #14b8a6;
+ *   --brand-primary-hover: #2dd4bf;
+ *   --brand-primary-soft: #134e4a;
+ *   --brand-accent: #fbbf24;
+ *   --brand-accent-soft: #422006;
+ *   --background: #0c0a09;
+ *   --surface: #1c1917;
+ *   --surface-muted: #292524;
+ *   --surface-sunken: #1c1917;
+ *   --text-primary: #fafaf9;
+ *   --text-secondary: #a8a29e;
+ *   --text-disabled: #57534e;
+ *   --border: #44403c;
+ *   --border-strong: #57534e;
+ *   --success: #22c55e;
+ *   --success-soft: #14532d;
+ *   --warning: #fbbf24;
+ *   --warning-soft: #422006;
+ *   --danger: #f87171;
+ *   --danger-soft: #450a0a;
+ *   --info: #38bdf8;
+ *   --live: #f87171;
+ *   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+ *   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.25);
+ *   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+ * }
+ * ─────────────────────────────────────────────────────────────────────────── */
