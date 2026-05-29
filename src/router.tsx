@@ -5,6 +5,7 @@ import { SignupPage } from '@/pages/public/SignupPage'
 import { ForgotPasswordPage } from '@/pages/public/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage'
 import { ConfirmEmailPage } from '@/pages/public/ConfirmEmailPage'
+import { OAuthCallbackPage } from '@/pages/public/OAuthCallbackPage'
 
 /**
  * Placeholder page. Real pages and layouts arrive in their feature tickets;
@@ -66,6 +67,9 @@ export const routes: RouteObject[] = [
   // /confirm-email is reachable by anyone landing from the email link — not
   // gated behind PublicOnlyRoute.
   { path: '/confirm-email', element: <ConfirmEmailPage /> },
+  // OAuth return: the user is already authenticated here, so it must not sit
+  // behind PublicOnlyRoute — the page resolves the session and routes itself.
+  { path: '/auth/google/callback', element: <OAuthCallbackPage /> },
 
   // Onboarding
   {

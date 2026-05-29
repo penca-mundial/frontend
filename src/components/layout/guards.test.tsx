@@ -48,6 +48,10 @@ const admin: CurrentUser = {
   email: 'a@b.dev',
   username: 'admin',
   isAdmin: true,
+  avatarUrl: null,
+  timezone: null,
+  confirmedAt: '2026-01-01T00:00:00Z',
+  needsUsername: false,
 }
 const member: CurrentUser = { ...admin, isAdmin: false, username: 'member' }
 
