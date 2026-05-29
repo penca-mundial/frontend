@@ -18,9 +18,16 @@ function googleOauthUrl(): string {
 }
 
 /**
- * Kicks off the Google OAuth flow with a full-page navigation to the backend.
- * A redirect (not fetch) is required: the backend sets the session cookie and
- * bounces the browser back to `/auth/google/callback`.
+ * Kicks off the Google OAuth flow by POSTing to the backend.
+ *
+ * Devise + omniauth-rails_csrf_protection only accept POST on the omniauth
+ * initiate route (a GET 404s) to prevent CSRF on OAuth initiation. A native
+ * `<form method="post">` submit does the right thing: the browser POSTs to the
+ * backend (cross-origin top-level navigation, so cookies flow) and follows the
+ * backend's redirect to Google — no manual JS redirect needed. No explicit
+ * authenticity_token: the /api/v1 namespace disables token verification
+ * (see the backend `ApiCsrfHandling` concern) and CSRF is covered by the
+ * SameSite cookie + CORS allowlist.
  */
 export function GoogleSignInButton({
   label = 'Continuar con Google',
@@ -28,18 +35,17 @@ export function GoogleSignInButton({
   label?: string
 }) {
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="lg"
-      className="border-border-strong w-full gap-2.5"
-      onClick={() => {
-        window.location.href = googleOauthUrl()
-      }}
-    >
-      <GoogleIcon />
-      {label}
-    </Button>
+    <form method="post" action={googleOauthUrl()} className="w-full">
+      <Button
+        type="submit"
+        variant="outline"
+        size="lg"
+        className="border-border-strong w-full gap-2.5"
+      >
+        <GoogleIcon />
+        {label}
+      </Button>
+    </form>
   )
 }
 
