@@ -7,7 +7,9 @@ import tseslint from 'typescript-eslint'
 import prettier from 'eslint-config-prettier'
 
 export default tseslint.config(
-  { ignores: ['dist', 'build', 'coverage', 'node_modules'] },
+  // `docs/design` holds exported visual references (pseudo-Next.js), not app
+  // source — re-implemented under src/ per its README, so it isn't linted.
+  { ignores: ['dist', 'build', 'coverage', 'node_modules', 'docs'] },
 
   js.configs.recommended,
   ...tseslint.configs.recommended,
