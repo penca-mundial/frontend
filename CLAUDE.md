@@ -155,3 +155,11 @@ Translations from enum to Spanish (rioplatense):
 - semi_final    → "Semifinal"
 - third_place   → "Tercer puesto"
 - final         → "Final"
+
+## OAuth initiate — must be POST, not GET
+
+Devise + omniauth-rails_csrf_protection (loaded by the backend) requires that OAuth initiation requests be POST, not GET. Routes:
+- POST  `/users/auth/google_oauth2`           → starts the flow
+- GET   `/users/auth/google_oauth2/callback`  → handles Google's redirect back
+
+The GoogleSignInButton must therefore use a `<form method="POST">` pointing at the backend, not an `<a href>` link. The browser handles the POST natively and follows the redirect to Google.
