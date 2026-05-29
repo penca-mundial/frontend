@@ -1,4 +1,6 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom'
+import { PublicOnlyRoute } from '@/components/layout/PublicOnlyRoute'
+import { LoginPage } from '@/pages/public/LoginPage'
 
 /**
  * Placeholder page. Real pages and layouts arrive in their feature tickets;
@@ -25,7 +27,14 @@ function NotFound() {
 export const routes: RouteObject[] = [
   // Public
   { path: '/', element: <Placeholder title="Penca Mundial" /> },
-  { path: '/login', element: <Placeholder title="Iniciar sesión" /> },
+  {
+    path: '/login',
+    element: (
+      <PublicOnlyRoute>
+        <LoginPage />
+      </PublicOnlyRoute>
+    ),
+  },
   { path: '/signup', element: <Placeholder title="Crear cuenta" /> },
 
   // Onboarding
