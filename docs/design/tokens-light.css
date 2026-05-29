@@ -1,0 +1,106 @@
+/* Penca Mundial — Cancha preset
+   Tokens canónicos. Pegá en globals.css. Las custom properties también pueden
+   exponerse a Tailwind v4 vía @theme { --color-brand-primary: ... } o en
+   tailwind.config como theme.extend.colors/fontFamily/etc. */
+
+   @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+   :root {
+     /* ─── Brand ─── */
+     --brand-primary:       #0F766E;   /* verde cancha */
+     --brand-primary-hover: #115E59;
+     --brand-primary-soft:  #D7EDE9;   /* fondo claro de chips/cards primary */
+     --brand-accent:        #F59E0B;   /* ámbar */
+     --brand-accent-soft:   #FEF3C7;
+   
+     /* ─── Neutrales (light mode) ─── */
+     --background:     #FAFAF9;
+     --surface:        #FFFFFF;
+     --surface-muted:  #F5F5F4;
+     --surface-sunken: #EFEEEC;
+     --text-primary:   #1C1917;
+     --text-secondary: #57534E;
+     --text-disabled:  #A8A29E;
+     --border:         #E7E5E4;
+     --border-strong:  #D6D3D1;
+   
+     /* ─── Semánticos ─── */
+     --success:      #16A34A;
+     --success-soft: #DCFCE7;
+     --warning:      #EAB308;
+     --warning-soft: #FEF9C3;
+     --danger:       #DC2626;
+     --danger-soft:  #FEE2E2;
+     --info:         #0EA5E9;
+     --live:         #EF4444;
+   
+     /* ─── Tipografía ─── */
+     --font-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+     --font-body:    "Inter", system-ui, sans-serif;
+     --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+     --font-serif:   "Instrument Serif", Georgia, serif;   /* acento editorial: cursiva en titulares */
+   
+     /* Pesos
+        display: 700 (default) · 800 para hero/scores grandes
+        body:    400 base · 500 medio · 600 énfasis · 700 fuerte
+        mono:    600 para números clave (puntos, códigos)
+     */
+   
+     /* ─── Radios ─── */
+     --radius-sm:  6px;    /* chips finos */
+     --radius:     10px;   /* default — botones, inputs, cards chicas */
+     --radius-lg:  14px;   /* cards principales */
+     --radius-xl:  18px;   /* contenedores grandes */
+     --radius-pill: 9999px;
+   
+     /* ─── Sombras ─── */
+     --shadow-sm: 0 1px 2px rgba(28,25,23,0.04), 0 1px 1px rgba(28,25,23,0.02);
+     --shadow-md: 0 4px 12px rgba(28,25,23,0.06), 0 1px 3px rgba(28,25,23,0.03);
+     --shadow-lg: 0 12px 32px rgba(28,25,23,0.10), 0 2px 8px rgba(28,25,23,0.04);
+   
+     /* ─── Espaciado (sistema de 4px) ─── */
+     --space-0:   0;
+     --space-0-5: 2px;
+     --space-1:   4px;
+     --space-2:   8px;
+     --space-3:   12px;
+     --space-4:   16px;   /* unidad base */
+     --space-5:   20px;
+     --space-6:   24px;
+     --space-8:   32px;
+     --space-10:  40px;
+     --space-12:  48px;
+     --space-16:  64px;
+     --space-20:  80px;
+   
+     /* ─── Densidad de cards (lo usa el Tweak de densidad — Cancha = regular) ─── */
+     --density-card-pad: 16px;
+     --density-row-gap:  12px;
+     --density-base:     14px;
+   
+     /* ─── Animación ─── */
+     --transition-base: 150ms ease-out;
+   }
+   
+   /* ─── Tipo: tamaños canónicos (mobile / desktop) ─── */
+   .text-display-2xl { font-size: 36px; line-height: 40px; }       /* hero — desktop: 48/56 */
+   .text-display-xl  { font-size: 30px; line-height: 36px; }       /* h1   — desktop: 36/44 */
+   .text-display-lg  { font-size: 24px; line-height: 32px; }       /* h2   — desktop: 30/36 */
+   .text-display-md  { font-size: 20px; line-height: 28px; }       /* h3   — desktop: 24/32 */
+   .text-body-lg     { font-size: 16px; line-height: 24px; }       /* desktop: 18/28 */
+   .text-body        { font-size: 14px; line-height: 20px; }       /* desktop: 16/24 */
+   .text-body-sm     { font-size: 12px; line-height: 16px; }       /* desktop: 14/20 */
+   .text-mono-score  { font-family: var(--font-mono); font-size: 32px; line-height: 36px; font-variant-numeric: tabular-nums; }
+   .text-mono-mini   { font-family: var(--font-mono); font-size: 14px; line-height: 16px; letter-spacing: 0.04em; }
+   
+   @media (min-width: 768px) {
+     .text-display-2xl { font-size: 48px; line-height: 56px; }
+     .text-display-xl  { font-size: 36px; line-height: 44px; }
+     .text-display-lg  { font-size: 30px; line-height: 36px; }
+     .text-display-md  { font-size: 24px; line-height: 32px; }
+     .text-body-lg     { font-size: 18px; line-height: 28px; }
+     .text-body        { font-size: 16px; line-height: 24px; }
+     .text-body-sm     { font-size: 14px; line-height: 20px; }
+     .text-mono-score  { font-size: 40px; line-height: 44px; }
+     .text-mono-mini   { font-size: 16px; line-height: 20px; }
+   }

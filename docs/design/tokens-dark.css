@@ -1,0 +1,92 @@
+/* Penca Mundial — Cancha · dark mode
+   Activa el preset oscuro cuando el usuario o el sistema lo prefiere.
+   El primario/acento bajan un toque en saturación para no quemar pantallas OLED.
+   Convención: aplicalo en el mismo file que el light tokens, después del :root. */
+
+/* Activación por preferencia del sistema */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* ─── Brand (ligeramente más claros para mantener contraste sobre fondos oscuros) ─── */
+    --brand-primary:       #14B8A6;   /* teal-500 — verde cancha lifted */
+    --brand-primary-hover: #2DD4BF;   /* teal-400 — hover sube en luminosidad en dark */
+    --brand-primary-soft:  #134E4A;   /* fondo de chips primary en dark */
+    --brand-accent:        #FBBF24;   /* amber-400 — ámbar levantado */
+    --brand-accent-soft:   #422006;   /* fondo de chips accent en dark */
+
+    /* ─── Neutrales ─── */
+    --background:     #0C0A09;   /* stone-950 */
+    --surface:        #1C1917;   /* stone-900 — cards, dialogs */
+    --surface-muted:  #292524;   /* stone-800 — backgrounds secundarios */
+    --surface-sunken: #1C1917;   /* mismo que surface — sunken visualmente = quieto */
+    --text-primary:   #FAFAF9;   /* stone-50 */
+    --text-secondary: #A8A29E;   /* stone-400 */
+    --text-disabled:  #57534E;   /* stone-600 */
+    --border:         #44403C;   /* stone-700 */
+    --border-strong:  #57534E;   /* stone-600 */
+
+    /* ─── Semánticos (versiones lifted para contraste) ─── */
+    --success:      #22C55E;   /* green-500 */
+    --success-soft: #14532D;   /* green-900 */
+    --warning:      #FBBF24;   /* amber-400 */
+    --warning-soft: #422006;   /* amber-950 */
+    --danger:       #F87171;   /* red-400 — más suave que red-500 en dark */
+    --danger-soft:  #450A0A;   /* red-950 */
+    --info:         #38BDF8;   /* sky-400 */
+    --live:         #F87171;   /* mismo que danger en dark */
+
+    /* ─── Sombras (más sutiles — en dark las sombras grandes no ayudan) ─── */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.02);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.40), 0 1px 3px rgba(0,0,0,0.25);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.50), 0 2px 8px rgba(0,0,0,0.30);
+  }
+}
+
+/* Activación manual: si tu app tiene un toggle, agrega .dark al <html> o <body>.
+   Esto pisa el media query en cualquier dirección. */
+.dark {
+  color-scheme: dark;
+
+  --brand-primary:       #14B8A6;
+  --brand-primary-hover: #2DD4BF;
+  --brand-primary-soft:  #134E4A;
+  --brand-accent:        #FBBF24;
+  --brand-accent-soft:   #422006;
+
+  --background:     #0C0A09;
+  --surface:        #1C1917;
+  --surface-muted:  #292524;
+  --surface-sunken: #1C1917;
+  --text-primary:   #FAFAF9;
+  --text-secondary: #A8A29E;
+  --text-disabled:  #57534E;
+  --border:         #44403C;
+  --border-strong:  #57534E;
+
+  --success:      #22C55E;
+  --success-soft: #14532D;
+  --warning:      #FBBF24;
+  --warning-soft: #422006;
+  --danger:       #F87171;
+  --danger-soft:  #450A0A;
+  --info:         #38BDF8;
+  --live:         #F87171;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.02);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.40), 0 1px 3px rgba(0,0,0,0.25);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.50), 0 2px 8px rgba(0,0,0,0.30);
+}
+/*
+Notas de uso:
+
+Tipografías, radios y espaciados no cambian entre modos — solo cambia color, sombras y color-scheme.
+color-scheme: dark le avisa al browser para que pinte scrollbars, selección de texto e inputs nativos en modo oscuro.
+Si usás shadcn/ui, mapeá sus tokens --background, --foreground, --card, --primary, --muted, etc. a estas variables (te paso un crosswalk si lo necesitás).
+Gradiente del Pool general (la card teal del Home/Pencas) — si lo querés en dark, cambialo a:
+background: linear-gradient(135deg, #134E4A 0%, #042F2E 100%);
+El gradiente claro queda demasiado vibrante.
+Las imágenes de banderas se ven OK en dark (los flags tienen su propio color). No requieren ajuste.
+WCAG: este dark cumple AA para body text (--text-primary sobre --background = 16.8:1) y los chips de estado (--success sobre --success-soft = 6.2:1). Validalo con la combinación primary-on-surface si vas a usar texto teal sobre cards.
+Si querés también el archivo completo (light + dark + Tailwind v4 @theme) en un solo bloque listo para reemplazar globals.css, decime.
+*/

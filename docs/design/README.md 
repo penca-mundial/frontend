@@ -1,0 +1,21 @@
+# Design references
+
+Mockups y tokens exportados desde Claude Design (preset "Cancha").
+**Esto es referencia visual, NO código a copiar directo.**
+
+## Estructura
+
+- `tokens-light.css` — tokens CSS variables para light mode. Aplicar a `src/styles/globals.css`.
+- `tokens-dark.css` — tokens dark mode. Guardado para v2 (post-MVP). NO aplicar todavía.
+- `tailwind-v4-theme.css` — bloque `@theme` para Tailwind v4. Pegar en globals.css después de los tokens.
+- `components/` — componentes visuales de referencia. Re-implementar respetando CLAUDE.md (tipos estrictos, tests, accessibility).
+- `pages/` — pantallas de referencia. Las páginas reales van en `src/pages/` con la lógica completa (RHF + Zod + API calls + guards + manejo de errores del backend).
+
+## Preset
+
+Cancha. Verde cancha `#0F766E` + ámbar `#F59E0B` + Inter/Bricolage Grotesque/JetBrains Mono. Densidad regular.
+
+## Dark mode
+
+Disponible en `tokens-dark.css` pero NO activado en MVP. Activación se decide post-launch.
+EOF

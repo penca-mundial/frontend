@@ -1,0 +1,80 @@
+/* Penca Mundial — Tailwind v4 @theme mapping
+ *
+ * Este archivo conecta las CSS custom properties de tokens-light.css (y dark)
+ * con el sistema de Tailwind v4. Una vez aplicado:
+ *   - bg-brand-primary           → background: var(--brand-primary)
+ *   - text-text-primary          → color: var(--text-primary)
+ *   - font-display               → font-family: var(--font-display)
+ *   - rounded-lg                 → border-radius: var(--radius-lg)
+ *   - shadow-md                  → box-shadow: var(--shadow-md)
+ *   etc.
+ *
+ * Uso: pegá el contenido de tokens-light.css PRIMERO, después este bloque @theme,
+ * todo dentro de src/styles/globals.css (o donde tu app importe los estilos base).
+ *
+ * Tailwind 4 requiere el @theme inline para crear las utility classes a partir
+ * de los tokens. Las CSS vars siguen disponibles para uso directo en style={{...}}.
+ */
+
+ @theme {
+  /* ─── Colors ─── */
+  --color-brand-primary:        var(--brand-primary);
+  --color-brand-primary-hover:  var(--brand-primary-hover);
+  --color-brand-primary-soft:   var(--brand-primary-soft);
+  --color-brand-accent:         var(--brand-accent);
+  --color-brand-accent-soft:    var(--brand-accent-soft);
+
+  --color-background:           var(--background);
+  --color-surface:              var(--surface);
+  --color-surface-muted:        var(--surface-muted);
+  --color-surface-sunken:       var(--surface-sunken);
+
+  --color-text-primary:         var(--text-primary);
+  --color-text-secondary:       var(--text-secondary);
+  --color-text-disabled:        var(--text-disabled);
+
+  --color-border:               var(--border);
+  --color-border-strong:        var(--border-strong);
+
+  --color-success:              var(--success);
+  --color-success-soft:         var(--success-soft);
+  --color-warning:              var(--warning);
+  --color-warning-soft:         var(--warning-soft);
+  --color-danger:               var(--danger);
+  --color-danger-soft:          var(--danger-soft);
+  --color-info:                 var(--info);
+  --color-live:                 var(--live);
+
+  /* ─── Fonts ─── */
+  --font-display:               var(--font-display);
+  --font-sans:                  var(--font-body);
+  --font-mono:                  var(--font-mono);
+  --font-serif:                 var(--font-serif);
+
+  /* ─── Border radius ─── */
+  --radius-sm:                  var(--radius-sm);
+  --radius-md:                  var(--radius);
+  --radius-lg:                  var(--radius-lg);
+  --radius-xl:                  var(--radius-xl);
+  --radius-full:                var(--radius-pill);
+
+  /* ─── Shadows ─── */
+  --shadow-sm:                  var(--shadow-sm);
+  --shadow-md:                  var(--shadow-md);
+  --shadow-lg:                  var(--shadow-lg);
+
+  /* ─── Spacing (Tailwind ya provee escala base, estos sirven para usar tokens custom) ─── */
+  --spacing-density-card:       var(--density-card-pad);
+  --spacing-density-row:        var(--density-row-gap);
+
+  /* ─── Transitions ─── */
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: ease-out;
+}
+
+/* ─── Utility presets reutilizables (opcionales, basados en text scale del spec) ───
+ *
+ * Estos no son tokens de Tailwind, sino clases utility custom que aprovechan los
+ * tamaños responsivos definidos en tokens-light.css. Útiles para titulares y scores.
+ * Se mantienen aparte para que Tailwind no las regenere mal.
+ */
