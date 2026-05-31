@@ -89,3 +89,57 @@ export interface AuthUserResponseEnvelope {
 export interface AuthMeResponse {
   user: AuthUserResponse & { needs_username: boolean }
 }
+
+// ─── Matches ──────────────────────────────────────────────────────────────
+
+/** Compact team object embedded in a match, as serialized by `MatchBlueprint`. */
+export interface MatchTeamResponse {
+  id: number
+  name: string
+  code3: string | null
+  flag_url: string | null
+}
+
+/**
+ * Wire shape of a match from `MatchBlueprint`. `my_prediction` is only present
+ * on `GET /matches/:id` when a user is signed in (null when they have none).
+ */
+export interface MatchResponse {
+  id: number
+  external_id: string | null
+  tournament_id: number
+  kickoff_at: string
+  status: string
+  phase: string
+  home_score: number | null
+  away_score: number | null
+  advancing_team_id: number | null
+  home_team: MatchTeamResponse | null
+  away_team: MatchTeamResponse | null
+  my_prediction?: PredictionResponse | null
+}
+
+// ─── Predictions ────────────────────────────────────────────────────────────
+
+/** Wire shape of a prediction from `PredictionBlueprint`. */
+export interface PredictionResponse {
+  id: number
+  match_id: number
+  predicted_home_score: number
+  predicted_away_score: number
+  predicted_advancing_team_id: number | null
+  locked_at: string | null
+  locked: boolean
+}
+
+/**
+ * Body for `PUT /predictions` (upsert). Field names match the backend's
+ * permitted params verbatim. Scores are 0–20; the advancing team is required
+ * for knockout matches and omitted for the group stage.
+ */
+export interface UpsertPredictionPayload {
+  match_id: string | number
+  predicted_home_score: number
+  predicted_away_score: number
+  predicted_advancing_team_id?: string | number | null
+}
