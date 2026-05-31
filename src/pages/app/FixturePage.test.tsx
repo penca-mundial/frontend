@@ -69,7 +69,7 @@ beforeEach(() => {
 })
 
 describe('FixturePage', () => {
-  it('shows skeletons while loading', () => {
+  it('shows skeletons while loading the calendar', () => {
     mockQuery({ isLoading: true })
     const { container } = renderPage()
     expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument()
@@ -78,16 +78,20 @@ describe('FixturePage', () => {
   it('shows an error message on failure', () => {
     mockQuery({ isError: true })
     renderPage()
-    expect(screen.getByText(/No pudimos cargar los partidos/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/No pudimos cargar los partidos/i),
+    ).toBeInTheDocument()
   })
 
   it('shows an empty-state message when there are no matches', () => {
     mockQuery({ data: { matches: [], totalCount: 0, page: 1, perPage: 100 } })
     renderPage()
-    expect(screen.getByText(/No hay partidos para estos filtros/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/No hay partidos para estos filtros/i),
+    ).toBeInTheDocument()
   })
 
-  it('renders the count banner and an inline card per match', () => {
+  it('renders the three fixture tabs and a card per match on Calendario', () => {
     mockQuery({
       data: {
         matches: [makeMatch(), makeMatch()],
@@ -97,58 +101,35 @@ describe('FixturePage', () => {
       },
     })
     renderPage()
-    expect(
-      screen.getByText('Los 2 partidos del Mundial 2026'),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Calendario' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Grupos' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Eliminación' })).toBeInTheDocument()
     expect(screen.getAllByText('Uruguay')).toHaveLength(2)
   })
 
-  it('filters the visible list by phase via the underlined tabs', async () => {
+  it('shows the placeholder on the Grupos tab', async () => {
     const user = userEvent.setup()
-    mockQuery({
-      data: {
-        matches: [
-          makeMatch(),
-          makeMatch({
-            id: 'r32',
-            phase: 'round_of_32',
-            homeTeam: { id: '3', name: 'Brasil', code3: 'BRA', flagUrl: null },
-            awayTeam: { id: '4', name: 'Francia', code3: 'FRA', flagUrl: null },
-          }),
-        ],
-        totalCount: 2,
-        page: 1,
-        perPage: 100,
-      },
-    })
-    renderPage()
-
-    // Both phases are visible before filtering.
-    expect(screen.getByText('Uruguay')).toBeInTheDocument()
-    expect(screen.getByText('Brasil')).toBeInTheDocument()
-
-    await user.click(screen.getByRole('tab', { name: 'Dieciseisavos' }))
-
-    expect(screen.queryByText('Uruguay')).not.toBeInTheDocument()
-    expect(screen.getByText('Brasil')).toBeInTheDocument()
-  })
-
-  it('only shows phase tabs for phases that have matches', () => {
     mockQuery({
       data: { matches: [makeMatch()], totalCount: 1, page: 1, perPage: 100 },
     })
     renderPage()
 
-    expect(screen.getByRole('tab', { name: 'Todas' })).toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: 'Grupos' }))
     expect(
-      screen.getByRole('tab', { name: 'Fase de grupos' }),
+      screen.getByText(/Los grupos se mostrarán cuando se publique/i),
     ).toBeInTheDocument()
-    // No knockout matches loaded → those tabs stay hidden.
+  })
+
+  it('shows the bracket empty-state on Eliminación when there are no knockout matches', async () => {
+    const user = userEvent.setup()
+    mockQuery({
+      data: { matches: [makeMatch()], totalCount: 1, page: 1, perPage: 100 },
+    })
+    renderPage()
+
+    await user.click(screen.getByRole('tab', { name: 'Eliminación' }))
     expect(
-      screen.queryByRole('tab', { name: 'Dieciseisavos' }),
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('tab', { name: 'Final' }),
-    ).not.toBeInTheDocument()
+      screen.getByText(/El cuadro de eliminación todavía no está disponible/i),
+    ).toBeInTheDocument()
   })
 })
