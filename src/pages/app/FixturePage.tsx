@@ -8,6 +8,7 @@ import { GroupStandingsCard } from '@/features/matches/components/GroupStandings
 import { EliminationView } from '@/components/matches/EliminationView'
 import { useMatches } from '@/features/matches/hooks/useMatches'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
+import { useStandings } from '@/features/matches/hooks/useStandings'
 import type { Match, MatchTeam } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
 import { matchDayKey } from '@/lib/date'
@@ -24,37 +25,25 @@ function collectTeams(matches: Match[]): MatchTeam[] {
   return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name, 'es'))
 }
 
-interface GroupMatches {
-  group: string
-  matches: Match[]
-}
-
-/**
- * Buckets matches by their `group` letter (buckets sorted alphabetically, each
- * bucket's matches kept chronological). Tournament-agnostic — renders whatever
- * group letters the data contains. Per-group teams/standings are derived inside
- * `GroupStandingsCard`.
- */
-function deriveGroupMatches(matches: Match[]): GroupMatches[] {
-  const byGroup = new Map<string, Match[]>()
+/** Buckets a group's matches by group letter, kept chronological. */
+function matchesByGroupLetter(matches: Match[]): Map<string, Match[]> {
+  const map = new Map<string, Match[]>()
   for (const match of matches) {
     if (!match.group) continue
-    const bucket = byGroup.get(match.group)
+    const bucket = map.get(match.group)
     if (bucket) bucket.push(match)
-    else byGroup.set(match.group, [match])
+    else map.set(match.group, [match])
   }
-  return [...byGroup.entries()]
-    .sort(([a], [b]) => a.localeCompare(b, 'es'))
-    .map(([group, groupMatches]) => ({
-      group,
-      matches: [...groupMatches].sort(
-        (a, b) =>
-          new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
-      ),
-    }))
+  for (const bucket of map.values()) {
+    bucket.sort(
+      (a, b) =>
+        new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
+    )
+  }
+  return map
 }
 
-/** Placeholder for the Grupos tab until matches carry group letters. */
+/** Placeholder for the Grupos tab until standings are available. */
 function GruposPlaceholder() {
   return (
     <div className="border-border bg-surface rounded-xl border border-dashed p-8 text-center">
@@ -71,8 +60,8 @@ function GruposPlaceholder() {
  * Public fixture with three views (segmented tabs):
  * - Calendario: every match grouped by day, predicted inline via
  *   `MatchCardExpandable`, with team/date filters.
- * - Grupos: one `GroupStandingsCard` per group letter (standings shell +
- *   collapsible inline-predictable matches); placeholder when no group data.
+ * - Grupos: one `GroupStandingsCard` per group from `GET /standings` (real
+ *   standings + collapsible inline-predictable matches); placeholder when none.
  * - Eliminación: knockout matches as a sub-phase-filterable, inline-predictable
  *   list (default) or the read-only bracket, toggled via `EliminationView`.
  *
@@ -132,7 +121,19 @@ export function FixturePage() {
     [allMatches, teamId, effectiveDateFrom, dateTo, timezone],
   )
 
-  const groups = useMemo(() => deriveGroupMatches(allMatches), [allMatches])
+  const hasLiveMatches = useMemo(
+    () => allMatches.some((match) => match.status === 'live'),
+    [allMatches],
+  )
+  const tournamentId = allMatches[0]?.tournamentId
+  const { data: standingsGroups } = useStandings(tournamentId, {
+    hasLiveMatches,
+    enabled: tab === 'grupos',
+  })
+  const matchesByGroup = useMemo(
+    () => matchesByGroupLetter(allMatches),
+    [allMatches],
+  )
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
@@ -177,13 +178,14 @@ export function FixturePage() {
       )}
 
       {tab === 'grupos' &&
-        (groups.length > 0 ? (
+        (standingsGroups && standingsGroups.length > 0 ? (
           <div className="flex flex-col gap-4">
-            {groups.map((g) => (
+            {standingsGroups.map((g) => (
               <GroupStandingsCard
                 key={g.group}
                 groupLetter={g.group}
-                matches={g.matches}
+                standings={g.rows}
+                matches={matchesByGroup.get(g.group) ?? []}
                 predictions={predictionsByMatch}
                 timezone={timezone}
               />

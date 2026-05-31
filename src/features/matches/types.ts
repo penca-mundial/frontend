@@ -56,3 +56,30 @@ export interface BracketRound {
   phase: MatchPhase
   matches: Match[]
 }
+
+/**
+ * A team's standing row within a group, as the app consumes it (camelCase,
+ * from `GET /standings`). Already ordered by `position` by the backend.
+ */
+export interface Standing {
+  id: string
+  group: string
+  position: number
+  playedGames: number
+  won: number
+  draw: number
+  lost: number
+  goalsFor: number
+  goalsAgainst: number
+  goalDifference: number
+  points: number
+  /** Recent form string (e.g. "WWLD"), or null when not computed. */
+  form: string | null
+  team: MatchTeam | null
+}
+
+/** A single group's standings rows (ordered by position). */
+export interface GroupStandings {
+  group: string
+  rows: Standing[]
+}
