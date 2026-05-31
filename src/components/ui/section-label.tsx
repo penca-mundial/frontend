@@ -7,8 +7,9 @@ import { cn } from '@/lib/cn'
  * labels, bracket round titles, the fixture day header).
  *
  * API:
- *   - Always renders text-body-sm + font-medium in the default body family
- *     (Inter). Purely typographic — it carries NO padding/margin.
+ *   - Renders font-medium in the default body family (Inter), sized by `size`:
+ *     `"md"` (default, text-body-sm) or `"sm"` (one notch smaller, 11px). Purely
+ *     typographic — it carries NO padding/margin.
  *   - `tone="primary"` (default) → primary text color, for the label itself.
  *     `tone="secondary"` → secondary text color, for a sub-detail shown next to
  *     a primary label (e.g. "de 72").
@@ -23,9 +24,15 @@ const TONES = {
   secondary: 'text-text-secondary',
 } as const
 
+const SIZES = {
+  md: 'text-body-sm',
+  sm: 'text-[11px]',
+} as const
+
 export interface SectionLabelProps {
   as?: ElementType
   tone?: keyof typeof TONES
+  size?: keyof typeof SIZES
   className?: string
   children?: ReactNode
 }
@@ -33,12 +40,13 @@ export interface SectionLabelProps {
 export function SectionLabel({
   as: Component = 'span',
   tone = 'primary',
+  size = 'md',
   className,
   children,
 }: SectionLabelProps) {
   return (
     <Component
-      className={cn('text-body-sm font-medium', TONES[tone], className)}
+      className={cn(SIZES[size], 'font-medium', TONES[tone], className)}
     >
       {children}
     </Component>

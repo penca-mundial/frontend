@@ -63,7 +63,7 @@ export function MatchList({
         return (
           <section key={group.key} className="flex flex-col gap-3">
             <div className="flex items-baseline justify-between gap-2">
-              <SectionLabel as="h2" className="flex items-center gap-2">
+              <SectionLabel as="h2" size="sm" className="flex items-center gap-2">
                 {group.label}
                 {group.key === todayKey && (
                   <span className="bg-brand-accent-soft text-mono-mini rounded-full px-2 py-0.5 font-semibold uppercase text-[#92400E]">
@@ -71,7 +71,7 @@ export function MatchList({
                   </span>
                 )}
               </SectionLabel>
-              <SectionLabel tone="secondary">
+              <SectionLabel tone="secondary" size="sm">
                 {count} {count === 1 ? 'partido' : 'partidos'}
               </SectionLabel>
             </div>
