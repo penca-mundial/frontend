@@ -19,7 +19,7 @@ export function FixtureTabs({ value, onChange }: FixtureTabsProps) {
     <div
       role="tablist"
       aria-label="Vista del fixture"
-      className="bg-surface-muted inline-flex w-fit gap-1 rounded-full p-1"
+      className="bg-surface-muted inline-flex w-fit gap-1 rounded-lg p-1"
     >
       {TABS.map((tab) => {
         const selected = value === tab.value
@@ -31,7 +31,7 @@ export function FixtureTabs({ value, onChange }: FixtureTabsProps) {
             aria-selected={selected}
             onClick={() => onChange(tab.value)}
             className={cn(
-              'rounded-full px-4 py-1.5 text-body-sm font-medium transition-colors',
+              'rounded-md px-4 py-1.5 text-body-sm font-medium transition-colors',
               selected
                 ? 'bg-surface text-text-primary shadow-sm'
                 : 'text-text-secondary hover:text-text-primary',

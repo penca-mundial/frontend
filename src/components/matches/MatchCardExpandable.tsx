@@ -36,22 +36,23 @@ function teamName(team: MatchTeam | null): string {
 function TeamFlag({ team }: { team: MatchTeam | null }) {
   if (team?.flagUrl) {
     return (
-      <span className="inline-flex h-[16px] w-[24px] shrink-0 overflow-hidden rounded-[3px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
+      <span className="inline-flex h-[22px] w-[30px] shrink-0 overflow-hidden rounded-[3px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
         <img src={team.flagUrl} alt="" className="block size-full object-cover" />
       </span>
     )
   }
   return (
-    <span className="bg-surface-muted text-text-secondary text-mono-mini inline-flex h-[16px] w-[24px] shrink-0 items-center justify-center rounded-[3px]">
+    <span className="bg-surface-muted text-text-secondary inline-flex h-[22px] w-[30px] shrink-0 items-center justify-center rounded-[3px] text-[10px]">
       {team?.code3 ?? '—'}
     </span>
   )
 }
 
+// Status metadata: kept deliberately small so it never out-shouts the teams.
 function StatusBadge({ match }: { match: Match }) {
   if (match.status === 'live') {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEE2E2] px-2.5 py-1 text-mono-mini font-semibold text-[#991B1B]">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEE2E2] px-2 py-0.5 text-[11px] font-semibold text-[#991B1B]">
         <span className="bg-live size-1.5 animate-pulse rounded-full" />
         EN VIVO
       </span>
@@ -59,7 +60,7 @@ function StatusBadge({ match }: { match: Match }) {
   }
   if (match.status === 'finished') {
     return (
-      <span className="bg-success-soft rounded-full px-2.5 py-1 text-mono-mini font-semibold text-[#166534]">
+      <span className="bg-success-soft rounded-full px-2 py-0.5 text-[11px] font-semibold text-[#166534]">
         FINAL
       </span>
     )
@@ -86,7 +87,7 @@ function PredictionChip({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-mono-mini font-semibold whitespace-nowrap',
+        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap',
         CHIP_CLASS[status],
       )}
     >
@@ -109,14 +110,14 @@ function TeamLine({
 }) {
   const isRight = align === 'right'
   return (
-    <div className={cn('flex items-center gap-2', isRight && 'flex-row-reverse')}>
+    <div className={cn('flex items-center gap-2.5', isRight && 'flex-row-reverse')}>
       <TeamFlag team={team} />
       <div className={cn('min-w-0 flex-1', isRight ? 'text-right' : 'text-left')}>
-        <div className="text-body-sm truncate font-semibold leading-tight">
+        <div className="truncate text-base font-bold leading-tight md:text-lg">
           {teamName(team)}
         </div>
         {score !== null && (
-          <div className="font-display text-text-primary mt-0.5 text-[22px] leading-none font-bold tabular-nums">
+          <div className="font-display text-text-primary mt-1 text-2xl leading-none font-extrabold tabular-nums md:text-3xl">
             {score}
           </div>
         )}
@@ -140,27 +141,29 @@ function CardFace({
 }) {
   const hasScore = match.status === 'live' || match.status === 'finished'
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2.5">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-text-secondary text-mono-mini font-semibold uppercase">
+        <div className="flex items-center gap-1.5">
+          <span className="text-text-secondary text-[11px] font-semibold tracking-wide uppercase">
             {getPhaseLabel(match.phase)}
           </span>
-          <span className="text-border-strong">·</span>
-          <span className="text-text-secondary text-mono-mini font-medium">
+          <span className="text-border-strong text-[11px]">·</span>
+          <span className="text-text-secondary text-[11px] font-medium tabular-nums">
             {formatKickoff(match.kickoffAt, 'time', timezone)}
           </span>
         </div>
         <StatusBadge match={match} />
       </div>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+      {/* Teams capped + centred so the "vs" stays close to the names instead of
+          drifting across the full card width. */}
+      <div className="mx-auto grid w-full max-w-md grid-cols-[1fr_auto_1fr] items-center gap-3">
         <TeamLine
           team={match.homeTeam}
           align="left"
           score={hasScore ? match.homeScore : null}
         />
-        <span className="text-text-disabled text-mono-mini">vs</span>
+        <span className="text-text-disabled px-1 text-xs">vs</span>
         <TeamLine
           team={match.awayTeam}
           align="right"
@@ -172,18 +175,18 @@ function CardFace({
         {prediction ? (
           <PredictionChip prediction={prediction} match={match} />
         ) : (
-          <span className="text-text-secondary text-body-sm">
+          <span className="text-text-secondary text-xs">
             {locked ? 'Sin pronóstico' : 'Sin pronóstico todavía'}
           </span>
         )}
         {!prediction && !locked && (
-          <span className="bg-brand-primary-soft text-brand-primary-hover inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-mono-mini font-semibold">
+          <span className="bg-brand-primary-soft text-brand-primary-hover inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold">
             <Target size={11} strokeWidth={2} />
             Predecir
           </span>
         )}
         {prediction && match.status === 'live' && (
-          <span className="bg-warning-soft rounded-full px-2.5 py-1 text-mono-mini font-semibold text-[#854D0E]">
+          <span className="bg-warning-soft rounded-full px-2 py-0.5 text-[11px] font-semibold text-[#854D0E]">
             A definir
           </span>
         )}
