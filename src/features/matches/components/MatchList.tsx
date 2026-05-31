@@ -1,7 +1,7 @@
 import { MatchCardExpandable } from '@/components/matches/MatchCardExpandable'
 import type { Match } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
-import { formatMatchDay, matchDayKey } from '@/lib/date'
+import { formatKickoff, matchDayKey } from '@/lib/date'
 
 export interface MatchListProps {
   matches: Match[]
@@ -30,7 +30,7 @@ function groupByDay(matches: Match[], timezone: string): DayGroup[] {
     } else {
       groups.set(key, {
         key,
-        label: formatMatchDay(match.kickoffAt, timezone),
+        label: formatKickoff(match.kickoffAt, 'day-header', timezone),
         matches: [match],
       })
     }

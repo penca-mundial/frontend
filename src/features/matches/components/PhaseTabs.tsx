@@ -1,32 +1,34 @@
 import type { MatchPhase } from '@/features/matches/types'
-import { KNOCKOUT_ROUND_ORDER, PHASE_LABELS } from '@/features/matches/utils'
+import { PHASE_LABELS } from '@/features/matches/utils'
 import { cn } from '@/lib/cn'
 
 export type PhaseFilter = MatchPhase | 'all'
 
-const TABS: { value: PhaseFilter; label: string }[] = [
-  { value: 'all', label: 'Todas' },
-  { value: 'group_stage', label: PHASE_LABELS.group_stage },
-  ...KNOCKOUT_ROUND_ORDER.map((phase) => ({
-    value: phase,
-    label: PHASE_LABELS[phase],
-  })),
-]
-
 export interface PhaseTabsProps {
   value: PhaseFilter
   onChange: (value: PhaseFilter) => void
+  /**
+   * Phases that have at least one match, in tournament order. A phase tab is
+   * only shown when its phase is present here, so the user never lands on an
+   * empty list (e.g. knockout tabs stay hidden until those matches are seeded).
+   */
+  phases: MatchPhase[]
 }
 
 /** Underlined tab bar for filtering the fixture by phase. */
-export function PhaseTabs({ value, onChange }: PhaseTabsProps) {
+export function PhaseTabs({ value, onChange, phases }: PhaseTabsProps) {
+  const tabs: { value: PhaseFilter; label: string }[] = [
+    { value: 'all', label: 'Todas' },
+    ...phases.map((phase) => ({ value: phase, label: PHASE_LABELS[phase] })),
+  ]
+
   return (
     <div
       role="tablist"
       aria-label="Filtrar por fase"
       className="border-border flex gap-1 overflow-x-auto border-b"
     >
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const selected = value === tab.value
         return (
           <button

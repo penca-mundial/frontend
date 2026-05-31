@@ -11,7 +11,7 @@ import {
   predictionResultStatus,
   type PredictionResultStatus,
 } from '@/features/predictions/utils'
-import { formatKickoffTime } from '@/lib/date'
+import { formatKickoff } from '@/lib/date'
 import { detectUserTimezone } from '@/lib/timezone'
 import { cn } from '@/lib/cn'
 import { toast } from '@/hooks/useToast'
@@ -61,7 +61,7 @@ function StatusBadge({ match, timezone }: { match: Match; timezone: string }) {
   }
   return (
     <span className="bg-surface-muted text-text-secondary rounded-full px-2.5 py-1 text-mono-mini font-semibold">
-      {formatKickoffTime(match.kickoffAt, timezone).replace(':', 'h')}
+      {formatKickoff(match.kickoffAt, 'time', timezone).replace(':', 'h')}
     </span>
   )
 }
@@ -146,7 +146,7 @@ function CardFace({
           </span>
           <span className="text-border-strong">·</span>
           <span className="text-text-secondary text-mono-mini font-medium">
-            {formatKickoffTime(match.kickoffAt, timezone)}
+            {formatKickoff(match.kickoffAt, 'time', timezone)}
           </span>
         </div>
         <StatusBadge match={match} timezone={timezone} />

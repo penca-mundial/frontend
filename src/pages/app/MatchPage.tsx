@@ -13,7 +13,6 @@ import { getApiError } from '@/api/auth.api'
 import { useMatch } from '@/features/matches/hooks/useMatch'
 import { useUpsertPrediction } from '@/features/matches/hooks/useUpsertPrediction'
 import { isMatchLocked } from '@/features/matches/utils'
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { detectUserTimezone } from '@/lib/timezone'
 import { toast } from '@/hooks/useToast'
 
@@ -26,8 +25,9 @@ import { toast } from '@/hooks/useToast'
 export function MatchPage() {
   const { id = '' } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { currentUser } = useCurrentUser()
-  const timezone = currentUser?.timezone ?? detectUserTimezone()
+  // Always render kickoff times in the viewer's own (browser) timezone, so the
+  // app is correct for anyone outside UTC regardless of any stored preference.
+  const timezone = detectUserTimezone()
 
   const { data: match, isLoading, isError } = useMatch(id)
   const upsert = useUpsertPrediction(id)

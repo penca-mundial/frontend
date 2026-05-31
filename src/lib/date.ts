@@ -1,6 +1,7 @@
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { formatInTimeZone } from 'date-fns-tz'
+import { detectUserTimezone } from '@/lib/timezone'
 
 /** Match statuses for which predictions are still open. */
 const OPEN_STATUSES = new Set(['scheduled', 'upcoming'])
@@ -10,14 +11,40 @@ function toDate(date: string | Date): Date {
 }
 
 /**
- * Format a match kickoff (ISO 8601 UTC from the backend, or a Date) for
- * display in the user's timezone. Never use `new Date()` to format server
- * data — always go through the provided timezone.
+ * Named output shapes for a match kickoff, so every screen renders kickoff
+ * times identically. `'day-header'` is the uppercased day heading used to
+ * group the fixture list.
  */
-export function formatMatchDate(date: string | Date, tz: string): string {
-  return formatInTimeZone(toDate(date), tz, 'EEE d MMM yyyy, HH:mm', {
-    locale: es,
-  })
+export type KickoffFormat = 'time' | 'date' | 'full' | 'day-header'
+
+const KICKOFF_PATTERNS: Record<KickoffFormat, string> = {
+  time: 'HH:mm', // 23:00
+  date: 'EEE d MMM', // mié 17 jun
+  full: 'EEE d MMM yyyy, HH:mm', // mié 17 jun 2026, 23:00
+  'day-header': 'EEE d MMM', // MIÉ 17 JUN (uppercased below)
+}
+
+/**
+ * Single source of truth for rendering a match kickoff. The backend always
+ * sends `kickoff_at` as ISO 8601 UTC (Zulu); this converts it to the user's
+ * timezone — the browser's IANA zone by default — before formatting, so a
+ * match at '2026-06-18T02:00:00Z' shows as "17 jun, 23:00" in Montevideo
+ * (UTC-3), never the raw UTC "18 jun, 02:00". Pass an explicit `tz` to format
+ * for a specific zone (used in tests). Never format server timestamps with
+ * `new Date()` / `toLocale*` — always go through here.
+ */
+export function formatKickoff(
+  isoUtc: string | Date,
+  format: KickoffFormat,
+  tz: string = detectUserTimezone(),
+): string {
+  const formatted = formatInTimeZone(
+    toDate(isoUtc),
+    tz,
+    KICKOFF_PATTERNS[format],
+    { locale: es },
+  )
+  return format === 'day-header' ? formatted.toUpperCase() : formatted
 }
 
 /** Human-friendly distance to kickoff in Spanish (e.g. "en 2 horas"). */
@@ -28,20 +55,10 @@ export function formatTimeUntilKickoff(date: string | Date): string {
 /**
  * Stable grouping key for the calendar day of a kickoff in the user's
  * timezone (e.g. "2026-06-12"). Use it to bucket matches by day; pair with
- * `formatMatchDay` for the visible heading.
+ * `formatKickoff(..., 'day-header')` for the visible heading.
  */
 export function matchDayKey(date: string | Date, tz: string): string {
   return formatInTimeZone(toDate(date), tz, 'yyyy-MM-dd')
-}
-
-/** Day heading for a match group in the user's timezone (e.g. "sáb 12 jun"). */
-export function formatMatchDay(date: string | Date, tz: string): string {
-  return formatInTimeZone(toDate(date), tz, 'EEE d MMM', { locale: es })
-}
-
-/** Just the kickoff time (HH:mm) in the user's timezone. */
-export function formatKickoffTime(date: string | Date, tz: string): string {
-  return formatInTimeZone(toDate(date), tz, 'HH:mm', { locale: es })
 }
 
 /**

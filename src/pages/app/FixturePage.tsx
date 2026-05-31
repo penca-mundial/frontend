@@ -5,11 +5,14 @@ import { MatchList } from '@/features/matches/components/MatchList'
 import { PhaseTabs, type PhaseFilter } from '@/features/matches/components/PhaseTabs'
 import { useMatches } from '@/features/matches/hooks/useMatches'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
-import type { MatchListFilters } from '@/api/matches.api'
-import type { Match, MatchTeam } from '@/features/matches/types'
+import type { Match, MatchPhase, MatchTeam } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
+import { KNOCKOUT_ROUND_ORDER } from '@/features/matches/utils'
+import { matchDayKey } from '@/lib/date'
 import { detectUserTimezone } from '@/lib/timezone'
+
+/** All phases in tournament order; tabs render only those actually present. */
+const PHASE_ORDER: readonly MatchPhase[] = ['group_stage', ...KNOCKOUT_ROUND_ORDER]
 
 /** Distinct teams appearing in a set of matches, sorted by name. */
 function collectTeams(matches: Match[]): MatchTeam[] {
@@ -22,33 +25,34 @@ function collectTeams(matches: Match[]): MatchTeam[] {
   return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name, 'es'))
 }
 
+/** Phases that have at least one match, in tournament order. */
+function collectPhases(matches: Match[]): MatchPhase[] {
+  const present = new Set(matches.map((match) => match.phase))
+  return PHASE_ORDER.filter((phase) => present.has(phase))
+}
+
 /**
- * Public fixture: all tournament matches, filterable by phase (underlined tabs,
- * server-side) and date range (server-side), plus a client-side team filter.
- * Matches are grouped by day and predicted inline via MatchCardExpandable — the
- * user's predictions are fetched separately and joined by match id, since the
- * list endpoint doesn't embed them.
+ * Public fixture: all tournament matches, filterable by phase (underlined tabs),
+ * date range and team — all client-side, since the whole fixture is a small,
+ * cacheable list. Matches are grouped by day and predicted inline via
+ * MatchCardExpandable; the user's predictions are fetched separately and joined
+ * by match id, since the list endpoint doesn't embed them. Kickoff times always
+ * render in the viewer's browser timezone.
  */
 export function FixturePage() {
-  const { currentUser } = useCurrentUser()
-  const timezone = currentUser?.timezone ?? detectUserTimezone()
+  const timezone = detectUserTimezone()
 
   const [phase, setPhase] = useState<PhaseFilter>('all')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [teamId, setTeamId] = useState<TeamFilter>('all')
 
-  const serverFilters: MatchListFilters = {
-    phase: phase === 'all' ? undefined : phase,
-    dateFrom: dateFrom || undefined,
-    dateTo: dateTo || undefined,
-  }
-
-  const { data, isLoading, isError } = useMatches(serverFilters)
+  const { data, isLoading, isError } = useMatches({})
   const { data: predictionData } = usePredictions(1, 100)
 
   const allMatches = useMemo(() => data?.matches ?? [], [data])
   const teamOptions = useMemo(() => collectTeams(allMatches), [allMatches])
+  const presentPhases = useMemo(() => collectPhases(allMatches), [allMatches])
   const predictionsByMatch = useMemo(() => {
     const map = new Map<string, Prediction>()
     for (const prediction of predictionData?.predictions ?? []) {
@@ -57,15 +61,26 @@ export function FixturePage() {
     return map
   }, [predictionData])
 
-  const visibleMatches =
-    teamId === 'all'
-      ? allMatches
-      : allMatches.filter(
-          (match) =>
-            match.homeTeam?.id === teamId || match.awayTeam?.id === teamId,
-        )
+  const visibleMatches = useMemo(
+    () =>
+      allMatches.filter((match) => {
+        if (phase !== 'all' && match.phase !== phase) return false
+        if (
+          teamId !== 'all' &&
+          match.homeTeam?.id !== teamId &&
+          match.awayTeam?.id !== teamId
+        ) {
+          return false
+        }
+        const day = matchDayKey(match.kickoffAt, timezone)
+        if (dateFrom && day < dateFrom) return false
+        if (dateTo && day > dateTo) return false
+        return true
+      }),
+    [allMatches, phase, teamId, dateFrom, dateTo, timezone],
+  )
 
-  const totalCount = data?.totalCount ?? 0
+  const totalCount = data?.totalCount ?? allMatches.length
 
   return (
     <div className="flex flex-col gap-5">
@@ -78,7 +93,7 @@ export function FixturePage() {
         )}
       </div>
 
-      <PhaseTabs value={phase} onChange={setPhase} />
+      <PhaseTabs value={phase} onChange={setPhase} phases={presentPhases} />
 
       <MatchFilters
         dateFrom={dateFrom}

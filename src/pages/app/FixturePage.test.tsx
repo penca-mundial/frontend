@@ -10,9 +10,7 @@ vi.mock('@/features/matches/hooks/useMatches', () => ({ useMatches: vi.fn() }))
 vi.mock('@/features/predictions/hooks/usePredictions', () => ({
   usePredictions: vi.fn(),
 }))
-vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
-  useCurrentUser: () => ({ currentUser: { timezone: 'UTC' } }),
-}))
+vi.mock('@/lib/timezone', () => ({ detectUserTimezone: () => 'UTC' }))
 
 import { useMatches } from '@/features/matches/hooks/useMatches'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
@@ -103,15 +101,52 @@ describe('FixturePage', () => {
     expect(screen.getAllByText('Uruguay')).toHaveLength(2)
   })
 
-  it('requests the chosen phase from the server via the underlined tabs', async () => {
+  it('filters the visible list by phase via the underlined tabs', async () => {
     const user = userEvent.setup()
-    mockQuery({ data: { matches: [], totalCount: 0, page: 1, perPage: 100 } })
+    mockQuery({
+      data: {
+        matches: [
+          makeMatch(),
+          makeMatch({
+            id: 'r32',
+            phase: 'round_of_32',
+            homeTeam: { id: '3', name: 'Brasil', code3: 'BRA', flagUrl: null },
+            awayTeam: { id: '4', name: 'Francia', code3: 'FRA', flagUrl: null },
+          }),
+        ],
+        totalCount: 2,
+        page: 1,
+        perPage: 100,
+      },
+    })
     renderPage()
+
+    // Both phases are visible before filtering.
+    expect(screen.getByText('Uruguay')).toBeInTheDocument()
+    expect(screen.getByText('Brasil')).toBeInTheDocument()
 
     await user.click(screen.getByRole('tab', { name: 'Dieciseisavos' }))
 
-    expect(useMatchesMock.mock.calls.at(-1)?.[0]).toMatchObject({
-      phase: 'round_of_32',
+    expect(screen.queryByText('Uruguay')).not.toBeInTheDocument()
+    expect(screen.getByText('Brasil')).toBeInTheDocument()
+  })
+
+  it('only shows phase tabs for phases that have matches', () => {
+    mockQuery({
+      data: { matches: [makeMatch()], totalCount: 1, page: 1, perPage: 100 },
     })
+    renderPage()
+
+    expect(screen.getByRole('tab', { name: 'Todas' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: 'Fase de grupos' }),
+    ).toBeInTheDocument()
+    // No knockout matches loaded → those tabs stay hidden.
+    expect(
+      screen.queryByRole('tab', { name: 'Dieciseisavos' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('tab', { name: 'Final' }),
+    ).not.toBeInTheDocument()
   })
 })

@@ -10,9 +10,6 @@ vi.mock('@/features/matches/hooks/useUpsertPrediction', () => ({
 }))
 vi.mock('@/hooks/useToast', () => ({ toast: vi.fn() }))
 vi.mock('@/api/auth.api', () => ({ getApiError: vi.fn(() => null) }))
-vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
-  useCurrentUser: () => ({ currentUser: { timezone: 'UTC' } }),
-}))
 
 import { useMatch } from '@/features/matches/hooks/useMatch'
 import { useUpsertPrediction } from '@/features/matches/hooks/useUpsertPrediction'
