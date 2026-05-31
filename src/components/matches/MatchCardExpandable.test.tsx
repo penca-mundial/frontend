@@ -86,7 +86,7 @@ describe('MatchCardExpandable', () => {
 
   it('shows the existing prediction chip', () => {
     renderCard({ prediction: makePrediction() })
-    expect(screen.getByText(/Tu pronóstico/).textContent).toContain('2-1')
+    expect(screen.getByText(/Tu pronóstico/).textContent).toContain('2 – 1')
   })
 
   it('translates round_of_32 as "Dieciseisavos"', () => {
@@ -117,7 +117,7 @@ describe('MatchCardExpandable', () => {
       expect.objectContaining({ title: '¡Pronóstico guardado!' }),
     )
     expect((await screen.findByText(/Tu pronóstico/)).textContent).toContain(
-      '1-0',
+      '1 – 0',
     )
   })
 

@@ -90,7 +90,7 @@ function PredictionChip({
     >
       {status === 'exact' && <Check size={11} strokeWidth={2.5} />}
       {status === 'wrong' && <X size={11} strokeWidth={2.5} />}
-      Tu pronóstico {prediction.predictedHomeScore}-
+      Tu pronóstico {prediction.predictedHomeScore} –{' '}
       {prediction.predictedAwayScore}
     </span>
   )
@@ -180,6 +180,11 @@ function CardFace({
             Predecir
           </span>
         )}
+        {prediction && match.status === 'live' && (
+          <span className="bg-warning-soft rounded-full px-2.5 py-1 text-mono-mini font-semibold text-[#854D0E]">
+            A definir
+          </span>
+        )}
       </div>
     </div>
   )
@@ -237,9 +242,26 @@ export function MatchCardExpandable({
     }
   }
 
+  const isLive = match.status === 'live'
+  const isFinished = match.status === 'finished'
+  const resultStatus = prediction
+    ? predictionResultStatus(prediction, match)
+    : 'pending'
+
   const cardClasses = cn(
-    'w-full rounded-xl border bg-surface p-3.5 shadow-sm text-left',
-    expanded && isDesktop ? 'border-brand-primary/50' : 'border-border',
+    'w-full rounded-xl border p-3.5 shadow-sm text-left transition-colors',
+    // Subtle result tint once finished: green for an exact hit, red for a miss.
+    isFinished && resultStatus === 'exact'
+      ? 'bg-[linear-gradient(180deg,#F0FDF4_0%,#FFFFFF_60%)]'
+      : isFinished && resultStatus === 'wrong'
+        ? 'bg-[linear-gradient(180deg,#FEF2F2_0%,#FFFFFF_60%)]'
+        : 'bg-surface',
+    // Live matches get a red border + glow; expanded desktop cards a brand edge.
+    isLive
+      ? 'border-live/45 shadow-[0_0_0_3px_rgba(239,68,68,0.08)]'
+      : expanded && isDesktop
+        ? 'border-brand-primary/50'
+        : 'border-border',
   )
 
   const face = (

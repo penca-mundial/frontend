@@ -97,7 +97,9 @@ describe('FixturePage', () => {
       },
     })
     renderPage()
-    expect(screen.getByText('2 partidos del Mundial 2026')).toBeInTheDocument()
+    expect(
+      screen.getByText('Los 2 partidos del Mundial 2026'),
+    ).toBeInTheDocument()
     expect(screen.getAllByText('Uruguay')).toHaveLength(2)
   })
 

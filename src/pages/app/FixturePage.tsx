@@ -85,10 +85,10 @@ export function FixturePage() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-display-lg font-display font-semibold">Partidos</h1>
+        <h1 className="text-display-lg font-display font-semibold">Fixture</h1>
         {totalCount > 0 && (
           <p className="text-text-secondary text-body-sm">
-            {totalCount} partidos del Mundial 2026
+            Los {totalCount} partidos del Mundial 2026
           </p>
         )}
       </div>

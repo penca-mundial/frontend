@@ -55,10 +55,25 @@ export function formatTimeUntilKickoff(date: string | Date): string {
 /**
  * Stable grouping key for the calendar day of a kickoff in the user's
  * timezone (e.g. "2026-06-12"). Use it to bucket matches by day; pair with
- * `formatKickoff(..., 'day-header')` for the visible heading.
+ * `formatDayHeading` for the visible heading.
  */
 export function matchDayKey(date: string | Date, tz: string): string {
   return formatInTimeZone(toDate(date), tz, 'yyyy-MM-dd')
+}
+
+/** Capitalize the first letter of every whitespace-delimited word. */
+function titleCase(value: string): string {
+  return value.replace(/(^|\s)(\p{L})/gu, (_, sep, ch) => sep + ch.toUpperCase())
+}
+
+/**
+ * Prominent day heading for the grouped fixture list, in the user's timezone
+ * and title-cased to match the design (e.g. "Lunes, 15 De Junio").
+ */
+export function formatDayHeading(date: string | Date, tz: string): string {
+  return titleCase(
+    formatInTimeZone(toDate(date), tz, "EEEE, d 'de' MMMM", { locale: es }),
+  )
 }
 
 /**

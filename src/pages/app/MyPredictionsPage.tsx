@@ -70,9 +70,14 @@ export function MyPredictionsPage() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <h1 className="text-display-lg font-display font-semibold">
-        Mis pronósticos
-      </h1>
+      <div>
+        <h1 className="text-display-lg font-display font-semibold">
+          Mis pronósticos
+        </h1>
+        <p className="text-text-secondary text-body-sm">
+          Tu historial de aciertos.
+        </p>
+      </div>
 
       <div
         role="group"
