@@ -1,91 +1,24 @@
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { MatchCardExpandable } from '@/components/matches/MatchCardExpandable'
-import type { Match, MatchTeam } from '@/features/matches/types'
+import type { Match, MatchTeam, Standing } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
 import { cn } from '@/lib/cn'
-
-/** One row of a group standings table, accumulated from finished matches. */
-interface TeamRow {
-  team: MatchTeam
-  pj: number
-  g: number
-  e: number
-  p: number
-  gf: number
-  gc: number
-  dg: number
-  pts: number
-}
 
 export interface GroupStandingsCardProps {
   /** The group's letter, e.g. "A". */
   groupLetter: string
-  /** The (up to 6) matches of this group. */
+  /** Standings rows for this group, ordered by position (from `GET /standings`). */
+  standings: Standing[]
+  /** The group's matches, for the collapsible inline-predictable list. */
   matches: Match[]
   /** User predictions keyed by match id, for the expandable match cards. */
   predictions?: Map<string, Prediction>
   timezone?: string
 }
 
-/** Build the standings from the group's finished matches (3-1-0 points). */
-function computeStandings(matches: Match[]): TeamRow[] {
-  const rows = new Map<string, TeamRow>()
-  const ensure = (team: MatchTeam): TeamRow => {
-    let row = rows.get(team.id)
-    if (!row) {
-      row = { team, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, dg: 0, pts: 0 }
-      rows.set(team.id, row)
-    }
-    return row
-  }
-
-  for (const match of matches) {
-    if (!match.homeTeam || !match.awayTeam) continue
-    const home = ensure(match.homeTeam)
-    const away = ensure(match.awayTeam)
-    if (
-      match.status !== 'finished' ||
-      match.homeScore === null ||
-      match.awayScore === null
-    ) {
-      continue
-    }
-    home.pj += 1
-    away.pj += 1
-    home.gf += match.homeScore
-    home.gc += match.awayScore
-    away.gf += match.awayScore
-    away.gc += match.homeScore
-    if (match.homeScore > match.awayScore) {
-      home.g += 1
-      home.pts += 3
-      away.p += 1
-    } else if (match.homeScore < match.awayScore) {
-      away.g += 1
-      away.pts += 3
-      home.p += 1
-    } else {
-      home.e += 1
-      away.e += 1
-      home.pts += 1
-      away.pts += 1
-    }
-  }
-
-  for (const row of rows.values()) row.dg = row.gf - row.gc
-
-  return [...rows.values()].sort(
-    (a, b) =>
-      b.pts - a.pts ||
-      b.dg - a.dg ||
-      b.gf - a.gf ||
-      a.team.name.localeCompare(b.team.name, 'es'),
-  )
-}
-
-function Flag({ team }: { team: MatchTeam }) {
-  if (team.flagUrl) {
+function Flag({ team }: { team: MatchTeam | null }) {
+  if (team?.flagUrl) {
     return (
       <span className="inline-flex h-[14px] w-[20px] shrink-0 overflow-hidden rounded-[2px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
         <img src={team.flagUrl} alt="" className="block size-full object-cover" />
@@ -94,27 +27,26 @@ function Flag({ team }: { team: MatchTeam }) {
   }
   return (
     <span className="bg-surface-muted text-text-secondary text-mono-mini inline-flex h-[14px] w-[20px] shrink-0 items-center justify-center rounded-[2px]">
-      {team.code3 ?? '—'}
+      {team?.code3 ?? '—'}
     </span>
   )
 }
 
 /**
  * A single group's standings table plus its (collapsible) matches, rendered in
- * the fixture "Grupos" tab. Matches reuse `MatchCardExpandable` (inline-
- * predictable). The standings are still derived client-side from the group's
- * finished matches as a shell — wiring them to the real standings endpoint
- * (with polling) is SCRUM-262 / Bucket B. The mobile layout keeps Equipo / DG /
- * Pts and hides the secondary columns.
+ * the fixture "Grupos" tab. Standings come from the real `GET /standings`
+ * endpoint (see `useStandings`); matches reuse `MatchCardExpandable` (inline-
+ * predictable). The mobile layout keeps Equipo / DG / Pts and hides the
+ * secondary columns via Tailwind responsive utilities.
  */
 export function GroupStandingsCard({
   groupLetter,
+  standings,
   matches,
   predictions,
   timezone,
 }: GroupStandingsCardProps) {
   const [open, setOpen] = useState(false)
-  const standings = computeStandings(matches)
   const played = matches.filter((m) => m.status === 'finished').length
 
   const numCols = 'text-text-secondary w-7 text-center text-mono-mini'
@@ -155,33 +87,33 @@ export function GroupStandingsCard({
           </tr>
         </thead>
         <tbody>
-          {standings.map((row, index) => (
-            <tr key={row.team.id} className="border-border border-t">
+          {standings.map((row) => (
+            <tr key={row.id} className="border-border border-t">
               <td className="text-text-secondary px-4 py-2 text-mono-mini tabular-nums">
-                {index + 1}
+                {row.position}
               </td>
               <td className="py-2">
                 <div className="flex items-center gap-2">
                   <Flag team={row.team} />
                   <span className="text-body-sm font-semibold">
-                    {row.team.name}
+                    {row.team?.name ?? 'Por definir'}
                   </span>
                   <span className="text-text-disabled text-mono-mini">
-                    {row.team.code3}
+                    {row.team?.code3}
                   </span>
                 </div>
               </td>
-              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.pj}</td>
-              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.g}</td>
-              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.e}</td>
-              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.p}</td>
-              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.gf}</td>
-              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.gc}</td>
+              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.playedGames}</td>
+              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.won}</td>
+              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.draw}</td>
+              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.lost}</td>
+              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.goalsFor}</td>
+              <td className={cn(numCols, secondary, 'tabular-nums')}>{row.goalsAgainst}</td>
               <td className={cn(numCols, 'tabular-nums')}>
-                {row.dg > 0 ? `+${row.dg}` : row.dg}
+                {row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}
               </td>
               <td className="text-text-primary px-4 py-2 text-center text-body-sm font-bold tabular-nums">
-                {row.pts}
+                {row.points}
               </td>
             </tr>
           ))}

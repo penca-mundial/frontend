@@ -11,12 +11,24 @@ vi.mock('@/features/predictions/hooks/usePredictions', () => ({
   usePredictions: vi.fn(),
 }))
 vi.mock('@/lib/timezone', () => ({ detectUserTimezone: () => 'UTC' }))
+vi.mock('@/features/matches/hooks/useStandings', () => ({
+  useStandings: vi.fn(),
+}))
 
 import { useMatches } from '@/features/matches/hooks/useMatches'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
+import { useStandings } from '@/features/matches/hooks/useStandings'
+import type { GroupStandings } from '@/features/matches/types'
 
 const useMatchesMock = vi.mocked(useMatches)
 const usePredictionsMock = vi.mocked(usePredictions)
+const useStandingsMock = vi.mocked(useStandings)
+
+function mockStandings(groups: GroupStandings[] | undefined) {
+  useStandingsMock.mockReturnValue({
+    data: groups,
+  } as unknown as ReturnType<typeof useStandings>)
+}
 
 function mockQuery(value: {
   data?: { matches: Match[]; totalCount: number; page: number; perPage: number }
@@ -66,6 +78,7 @@ beforeEach(() => {
   usePredictionsMock.mockReturnValue({
     data: { predictions: [], totalCount: 0, page: 1, perPage: 100 },
   } as unknown as ReturnType<typeof usePredictions>)
+  mockStandings(undefined)
 })
 
 describe('FixturePage', () => {
@@ -120,7 +133,7 @@ describe('FixturePage', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders group composition cards on the Grupos tab when matches carry a group', async () => {
+  it('renders a GroupStandingsCard per group from the standings endpoint', async () => {
     const user = userEvent.setup()
     mockQuery({
       data: {
@@ -130,6 +143,43 @@ describe('FixturePage', () => {
         perPage: 100,
       },
     })
+    mockStandings([
+      {
+        group: 'A',
+        rows: [
+          {
+            id: 's1',
+            group: 'A',
+            position: 1,
+            playedGames: 1,
+            won: 1,
+            draw: 0,
+            lost: 0,
+            goalsFor: 2,
+            goalsAgainst: 1,
+            goalDifference: 1,
+            points: 3,
+            form: 'W',
+            team: { id: '1', name: 'Uruguay', code3: 'URU', flagUrl: null },
+          },
+          {
+            id: 's2',
+            group: 'A',
+            position: 2,
+            playedGames: 1,
+            won: 0,
+            draw: 0,
+            lost: 1,
+            goalsFor: 1,
+            goalsAgainst: 2,
+            goalDifference: -1,
+            points: 0,
+            form: 'L',
+            team: { id: '2', name: 'Argentina', code3: 'ARG', flagUrl: null },
+          },
+        ],
+      },
+    ])
     renderPage()
 
     await user.click(screen.getByRole('tab', { name: 'Grupos' }))

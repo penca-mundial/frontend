@@ -25,7 +25,7 @@ export interface MatchListResult {
   perPage: number
 }
 
-function mapTeam(team: MatchTeamResponse | null): MatchTeam | null {
+export function mapTeam(team: MatchTeamResponse | null): MatchTeam | null {
   if (team === null) return null
   return {
     id: String(team.id),

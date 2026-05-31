@@ -100,6 +100,28 @@ export interface MatchTeamResponse {
   flag_url: string | null
 }
 
+/** A standings row (`StandingBlueprint`). */
+export interface StandingResponse {
+  id: number
+  group: string
+  position: number
+  played_games: number
+  won: number
+  draw: number
+  lost: number
+  goals_for: number
+  goals_against: number
+  goal_difference: number
+  points: number
+  form: string | null
+  team: MatchTeamResponse | null
+}
+
+/** `GET /standings` envelope: rows grouped by group letter, ordered by position. */
+export interface StandingsResponse {
+  groups: Record<string, StandingResponse[]>
+}
+
 /**
  * Wire shape of a match from `MatchBlueprint`. `my_prediction` is only present
  * on `GET /matches/:id` when a user is signed in (null when they have none).
