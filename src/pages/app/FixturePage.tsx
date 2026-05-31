@@ -94,7 +94,7 @@ export function FixturePage() {
   )
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
       <h1 className="text-display-lg font-display font-semibold">Fixture</h1>
 
       <FixtureTabs value={tab} onChange={setTab} />

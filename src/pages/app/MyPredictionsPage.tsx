@@ -126,7 +126,7 @@ export function MyPredictionsPage() {
   }, [filtered])
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
       <div>
         <h1 className="text-display-lg font-display font-semibold">
           Mis pronósticos

@@ -52,7 +52,7 @@ export function MatchPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
       <Link
         to="/app/matches"
         className="text-text-secondary hover:text-text-primary inline-flex w-fit items-center gap-1 text-body-sm"
