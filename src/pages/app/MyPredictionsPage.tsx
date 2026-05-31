@@ -52,10 +52,8 @@ function Stat({
       >
         {value}
       </span>
-      <span className="text-text-secondary text-mono-mini font-semibold uppercase">
-        {label}
-      </span>
-      {sub && <span className="text-text-disabled text-mono-mini">{sub}</span>}
+      <span className="text-text-primary text-body-sm font-semibold">{label}</span>
+      {sub && <span className="text-text-secondary text-body-sm">{sub}</span>}
     </div>
   )
 }
