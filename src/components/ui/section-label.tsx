@@ -7,7 +7,7 @@ import { cn } from '@/lib/cn'
  * labels, bracket round titles, the fixture day header).
  *
  * API:
- *   - Always renders text-body-sm + font-semibold in the default body family
+ *   - Always renders text-body-sm + font-medium in the default body family
  *     (Inter). Purely typographic — it carries NO padding/margin.
  *   - `tone="primary"` (default) → primary text color, for the label itself.
  *     `tone="secondary"` → secondary text color, for a sub-detail shown next to
@@ -38,7 +38,7 @@ export function SectionLabel({
 }: SectionLabelProps) {
   return (
     <Component
-      className={cn('text-body-sm font-semibold', TONES[tone], className)}
+      className={cn('text-body-sm font-medium', TONES[tone], className)}
     >
       {children}
     </Component>
