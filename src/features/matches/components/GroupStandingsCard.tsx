@@ -100,13 +100,12 @@ function Flag({ team }: { team: MatchTeam }) {
 }
 
 /**
- * A single group's standings table plus its (collapsible) matches.
- *
- * Scaffold for the "Grupos" tab: the standings are derived client-side from the
- * group's finished matches, and the matches reuse `MatchCardExpandable`. It is
- * not wired into the fixture yet because the backend doesn't expose which group
- * a match belongs to — that arrives with SCRUM-257 (the `group` field). Once it
- * does, group the matches by letter and render one card per group.
+ * A single group's standings table plus its (collapsible) matches, rendered in
+ * the fixture "Grupos" tab. Matches reuse `MatchCardExpandable` (inline-
+ * predictable). The standings are still derived client-side from the group's
+ * finished matches as a shell — wiring them to the real standings endpoint
+ * (with polling) is SCRUM-262 / Bucket B. The mobile layout keeps Equipo / DG /
+ * Pts and hides the secondary columns.
  */
 export function GroupStandingsCard({
   groupLetter,
@@ -214,7 +213,6 @@ export function GroupStandingsCard({
               match={match}
               prediction={predictions?.get(match.id) ?? null}
               timezone={timezone}
-              readOnly
             />
           ))}
         </div>

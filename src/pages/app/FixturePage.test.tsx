@@ -141,7 +141,7 @@ describe('FixturePage', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('shows the bracket empty-state on Eliminación when there are no knockout matches', async () => {
+  it('shows the elimination empty-state when there are no knockout matches', async () => {
     const user = userEvent.setup()
     mockQuery({
       data: { matches: [makeMatch()], totalCount: 1, page: 1, perPage: 100 },
@@ -150,7 +150,7 @@ describe('FixturePage', () => {
 
     await user.click(screen.getByRole('tab', { name: 'Eliminación' }))
     expect(
-      screen.getByText(/El cuadro de eliminación todavía no está disponible/i),
+      screen.getByText(/Las eliminatorias se publicarán/i),
     ).toBeInTheDocument()
   })
 })

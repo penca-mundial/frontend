@@ -9,6 +9,7 @@ import { ForgotPasswordPage } from '@/pages/public/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage'
 import { ConfirmEmailPage } from '@/pages/public/ConfirmEmailPage'
 import { OAuthCallbackPage } from '@/pages/public/OAuthCallbackPage'
+import { LandingPage } from '@/pages/public/LandingPage'
 import { FixturePage } from '@/pages/app/FixturePage'
 import { MatchPage } from '@/pages/app/MatchPage'
 import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
@@ -37,7 +38,14 @@ function NotFound() {
 
 export const routes: RouteObject[] = [
   // Public
-  { path: '/', element: <Placeholder title="Penca Mundial" /> },
+  {
+    path: '/',
+    element: (
+      <PublicOnlyRoute>
+        <LandingPage />
+      </PublicOnlyRoute>
+    ),
+  },
   {
     path: '/login',
     element: (
