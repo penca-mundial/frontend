@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SectionLabel } from '@/components/ui/section-label'
 import { MatchFilters, type TeamFilter } from '@/features/matches/components/MatchFilters'
 import { MatchList } from '@/features/matches/components/MatchList'
 import { FixtureTabs, type FixtureTab } from '@/features/matches/components/FixtureTabs'
@@ -24,7 +25,41 @@ function collectTeams(matches: Match[]): MatchTeam[] {
   return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name, 'es'))
 }
 
-/** Placeholder for the Grupos tab until the backend exposes group letters. */
+interface GroupComposition {
+  group: string
+  teams: MatchTeam[]
+}
+
+/**
+ * Group composition derived purely from match data: matches carrying a `group`
+ * letter are bucketed by it, teams deduped within each bucket, buckets sorted
+ * alphabetically. Makes no assumption about group count, letter range or team
+ * count — it renders whatever the data contains (tournament-agnostic).
+ */
+function deriveGroups(matches: Match[]): GroupComposition[] {
+  const byGroup = new Map<string, Map<string, MatchTeam>>()
+  for (const match of matches) {
+    if (!match.group) continue
+    let teams = byGroup.get(match.group)
+    if (!teams) {
+      teams = new Map<string, MatchTeam>()
+      byGroup.set(match.group, teams)
+    }
+    for (const team of [match.homeTeam, match.awayTeam]) {
+      if (team && !teams.has(team.id)) teams.set(team.id, team)
+    }
+  }
+  return [...byGroup.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, 'es'))
+    .map(([group, teams]) => ({
+      group,
+      teams: [...teams.values()].sort((a, b) =>
+        a.name.localeCompare(b.name, 'es'),
+      ),
+    }))
+}
+
+/** Placeholder for the Grupos tab until matches carry group letters. */
 function GruposPlaceholder() {
   return (
     <div className="border-border bg-surface rounded-xl border border-dashed p-8 text-center">
@@ -41,8 +76,8 @@ function GruposPlaceholder() {
  * Public fixture with three views (segmented tabs):
  * - Calendario: every match grouped by day, predicted inline via
  *   `MatchCardExpandable`, with team/date filters.
- * - Grupos: group standings — placeholder until SCRUM-257 ships the `group`
- *   field (see `GroupStandingsCard` for the prepared layout).
+ * - Grupos: group composition (teams per group) derived from match `group`
+ *   letters; falls back to a placeholder when no group data is present.
  * - Eliminación: the read-only knockout bracket (empty-state handled by
  *   `BracketView` until knockout matches are seeded).
  *
@@ -102,6 +137,8 @@ export function FixturePage() {
     [allMatches, teamId, effectiveDateFrom, dateTo, timezone],
   )
 
+  const groups = useMemo(() => deriveGroups(allMatches), [allMatches])
+
   const bracketRounds = useMemo(
     () => buildBracketRounds(allMatches),
     [allMatches],
@@ -149,7 +186,41 @@ export function FixturePage() {
         </div>
       )}
 
-      {tab === 'grupos' && <GruposPlaceholder />}
+      {tab === 'grupos' &&
+        (groups.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {groups.map((g) => (
+              <div
+                key={g.group}
+                className="border-border bg-surface rounded-xl border p-4"
+              >
+                <SectionLabel as="h3" className="mb-3 block">
+                  Grupo {g.group}
+                </SectionLabel>
+                <ul className="flex flex-col gap-2">
+                  {g.teams.map((team) => (
+                    <li key={team.id} className="flex items-center gap-2.5">
+                      {team.flagUrl ? (
+                        <img
+                          src={team.flagUrl}
+                          alt=""
+                          className="h-[18px] w-[26px] shrink-0 rounded-[3px] object-cover"
+                        />
+                      ) : (
+                        <span className="bg-surface-muted text-text-secondary inline-flex h-[18px] w-[26px] shrink-0 items-center justify-center rounded-[3px] text-[10px]">
+                          {team.code3 ?? '—'}
+                        </span>
+                      )}
+                      <span className="text-body-sm">{team.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <GruposPlaceholder />
+        ))}
 
       {tab === 'eliminacion' && (
         <BracketView
