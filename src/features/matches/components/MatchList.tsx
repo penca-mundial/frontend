@@ -1,6 +1,7 @@
 import { MatchCardExpandable } from '@/components/matches/MatchCardExpandable'
 import type { Match } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
+import { SectionLabel } from '@/components/ui/section-label'
 import { formatDayHeading, matchDayKey } from '@/lib/date'
 
 export interface MatchListProps {
@@ -62,17 +63,17 @@ export function MatchList({
         return (
           <section key={group.key} className="flex flex-col gap-3">
             <div className="flex items-baseline justify-between gap-2">
-              <h2 className="text-text-primary text-body-sm flex items-center gap-2 font-semibold">
+              <SectionLabel as="h2" className="flex items-center gap-2">
                 {group.label}
                 {group.key === todayKey && (
                   <span className="bg-brand-accent-soft text-mono-mini rounded-full px-2 py-0.5 font-semibold uppercase text-[#92400E]">
                     Hoy
                   </span>
                 )}
-              </h2>
-              <span className="text-text-secondary text-body-sm font-semibold">
+              </SectionLabel>
+              <SectionLabel tone="secondary">
                 {count} {count === 1 ? 'partido' : 'partidos'}
-              </span>
+              </SectionLabel>
             </div>
             <div className="flex flex-col gap-3">
               {group.matches.map((match) => (

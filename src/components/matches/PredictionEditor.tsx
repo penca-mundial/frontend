@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SectionLabel } from '@/components/ui/section-label'
 import { PredictionStepper } from '@/components/matches/PredictionStepper'
 import type { Match, MatchTeam } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
@@ -115,9 +116,7 @@ export function PredictionEditor({
       {isSheet ? (
         <div className="border-border mb-3.5 flex items-center justify-between border-b pb-3">
           <div>
-            <div className="text-text-primary text-body-sm font-semibold">
-              Tu pronóstico
-            </div>
+            <SectionLabel className="block">Tu pronóstico</SectionLabel>
             <div className="mt-0.5 flex items-center gap-1.5 text-body-sm font-semibold">
               <span>{teamCode(match.homeTeam)}</span>
               <span className="text-text-disabled">vs</span>
@@ -134,9 +133,7 @@ export function PredictionEditor({
           </button>
         </div>
       ) : (
-        <div className="text-text-primary text-body-sm mb-2.5 font-semibold">
-          Tu pronóstico
-        </div>
+        <SectionLabel className="mb-2.5 block">Tu pronóstico</SectionLabel>
       )}
 
       <div className="bg-surface-muted grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-xl p-3.5">
@@ -159,9 +156,9 @@ export function PredictionEditor({
 
       {knockout && (
         <fieldset className="mt-3.5">
-          <legend className="text-text-secondary text-mono-mini mb-2 font-semibold uppercase">
+          <SectionLabel as="legend" tone="secondary" className="mb-2">
             ¿Quién pasa de ronda?
-          </legend>
+          </SectionLabel>
           <div
             role="radiogroup"
             aria-label="¿Quién pasa de ronda?"

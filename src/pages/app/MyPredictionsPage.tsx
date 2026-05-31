@@ -6,6 +6,7 @@ import { useMatches } from '@/features/matches/hooks/useMatches'
 import type { Match } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
 import { predictionResultStatus } from '@/features/predictions/utils'
+import { SectionLabel } from '@/components/ui/section-label'
 import { detectUserTimezone } from '@/lib/timezone'
 import { cn } from '@/lib/cn'
 
@@ -52,8 +53,8 @@ function Stat({
       >
         {value}
       </span>
-      <span className="text-text-primary text-body-sm font-semibold">{label}</span>
-      {sub && <span className="text-text-secondary text-body-sm">{sub}</span>}
+      <SectionLabel>{label}</SectionLabel>
+      {sub && <SectionLabel tone="secondary">{sub}</SectionLabel>}
     </div>
   )
 }
