@@ -46,3 +46,9 @@ export interface Match {
   awayTeam: MatchTeam | null
   myPrediction?: Prediction | null
 }
+
+/** One column of the knockout bracket: a phase and its matches, in order. */
+export interface BracketRound {
+  phase: MatchPhase
+  matches: Match[]
+}
