@@ -26,6 +26,25 @@ export function formatTimeUntilKickoff(date: string | Date): string {
 }
 
 /**
+ * Stable grouping key for the calendar day of a kickoff in the user's
+ * timezone (e.g. "2026-06-12"). Use it to bucket matches by day; pair with
+ * `formatMatchDay` for the visible heading.
+ */
+export function matchDayKey(date: string | Date, tz: string): string {
+  return formatInTimeZone(toDate(date), tz, 'yyyy-MM-dd')
+}
+
+/** Day heading for a match group in the user's timezone (e.g. "sáb 12 jun"). */
+export function formatMatchDay(date: string | Date, tz: string): string {
+  return formatInTimeZone(toDate(date), tz, 'EEE d MMM', { locale: es })
+}
+
+/** Just the kickoff time (HH:mm) in the user's timezone. */
+export function formatKickoffTime(date: string | Date, tz: string): string {
+  return formatInTimeZone(toDate(date), tz, 'HH:mm', { locale: es })
+}
+
+/**
  * Whether predictions for a match are locked: once it is no longer in an
  * open status, or once kickoff time has passed.
  */
