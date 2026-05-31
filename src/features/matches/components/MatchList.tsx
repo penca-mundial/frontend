@@ -8,6 +8,8 @@ export interface MatchListProps {
   /** User predictions keyed by match id, for the inline prediction display. */
   predictions: Map<string, Prediction>
   timezone: string
+  /** Render every card static (history view) instead of inline-editable. */
+  readOnly?: boolean
 }
 
 interface DayGroup {
@@ -44,7 +46,12 @@ function groupByDay(matches: Match[], timezone: string): DayGroup[] {
  * heading shows the full date, a "HOY" badge for the current day, and the
  * match count.
  */
-export function MatchList({ matches, predictions, timezone }: MatchListProps) {
+export function MatchList({
+  matches,
+  predictions,
+  timezone,
+  readOnly = false,
+}: MatchListProps) {
   const groups = groupByDay(matches, timezone)
   const todayKey = matchDayKey(new Date(), timezone)
 
@@ -74,6 +81,7 @@ export function MatchList({ matches, predictions, timezone }: MatchListProps) {
                   match={match}
                   prediction={predictions.get(match.id) ?? null}
                   timezone={timezone}
+                  readOnly={readOnly}
                 />
               ))}
             </div>

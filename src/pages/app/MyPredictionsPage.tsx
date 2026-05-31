@@ -1,31 +1,75 @@
-import { useMemo, useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  MyPredictionsList,
-  type PredictionRow,
-} from '@/features/predictions/components/MyPredictionsList'
+import { MatchList } from '@/features/matches/components/MatchList'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
 import { useMatches } from '@/features/matches/hooks/useMatches'
-import type { MatchPhase } from '@/features/matches/types'
-import {
-  KNOCKOUT_ROUND_ORDER,
-  PHASE_LABELS,
-} from '@/features/matches/utils'
+import type { Match } from '@/features/matches/types'
+import type { Prediction } from '@/features/predictions/types'
+import { predictionResultStatus } from '@/features/predictions/utils'
+import { detectUserTimezone } from '@/lib/timezone'
 import { cn } from '@/lib/cn'
 
-const PAGE_SIZE = 10
-const PHASE_ORDER: MatchPhase[] = ['group_stage', ...KNOCKOUT_ROUND_ORDER]
-type PhaseFilter = MatchPhase | 'all'
+type StatusFilter = 'all' | 'upcoming' | 'live' | 'finished' | 'hits'
+
+const FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: 'all', label: 'Todos' },
+  { value: 'upcoming', label: 'Próximos' },
+  { value: 'live', label: 'En vivo' },
+  { value: 'finished', label: 'Terminados' },
+  { value: 'hits', label: 'Aciertos' },
+]
+
+/** A prediction joined with the match it belongs to. */
+interface Row {
+  prediction: Prediction
+  match: Match
+}
+
+/** Whether the prediction earned points (exact score or right outcome). */
+function isHit(row: Row): boolean {
+  const status = predictionResultStatus(row.prediction, row.match)
+  return status === 'exact' || status === 'partial'
+}
+
+function Stat({
+  value,
+  label,
+  sub,
+  valueClass,
+}: {
+  value: ReactNode
+  label: string
+  sub?: string
+  valueClass?: string
+}) {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <span
+        className={cn(
+          'font-display text-2xl font-bold tabular-nums',
+          valueClass ?? 'text-text-primary',
+        )}
+      >
+        {value}
+      </span>
+      <span className="text-text-secondary text-mono-mini font-semibold uppercase">
+        {label}
+      </span>
+      {sub && <span className="text-text-disabled text-mono-mini">{sub}</span>}
+    </div>
+  )
+}
 
 /**
  * History of the current user's predictions with their results. Predictions
  * (`GET /predictions/me`) are joined client-side with the matches list (the
- * predictions endpoint returns no match data), filtered by phase and paginated.
+ * predictions endpoint returns no match data), summarised in a stats card,
+ * filtered by match status, and rendered as the same day-grouped cards as the
+ * fixture — read-only here, since the prediction is already made.
  */
 export function MyPredictionsPage() {
-  const [phase, setPhase] = useState<PhaseFilter>('all')
-  const [page, setPage] = useState(1)
+  const timezone = detectUserTimezone()
+  const [filter, setFilter] = useState<StatusFilter>('all')
 
   const { data: predData, isLoading, isError } = usePredictions(1, 100)
   const { data: matchData } = useMatches({})
@@ -34,39 +78,52 @@ export function MyPredictionsPage() {
     () => new Map((matchData?.matches ?? []).map((m) => [m.id, m])),
     [matchData],
   )
+  const totalMatches = matchData?.totalCount ?? matchMap.size
 
-  const allRows: PredictionRow[] = useMemo(
+  // Only predictions whose match we've loaded — needed to know status/result.
+  const rows = useMemo<Row[]>(
     () =>
-      (predData?.predictions ?? []).map((prediction) => ({
-        prediction,
-        match: matchMap.get(prediction.matchId),
-      })),
+      (predData?.predictions ?? [])
+        .map((prediction) => ({
+          prediction,
+          match: matchMap.get(prediction.matchId),
+        }))
+        .filter((row): row is Row => row.match !== undefined),
     [predData, matchMap],
   )
 
-  const presentPhases = useMemo(() => {
-    const present = new Set(
-      allRows.map((row) => row.match?.phase).filter(Boolean) as MatchPhase[],
-    )
-    return PHASE_ORDER.filter((p) => present.has(p))
-  }, [allRows])
+  const stats = useMemo(() => {
+    let exact = 0
+    let partial = 0
+    for (const row of rows) {
+      const status = predictionResultStatus(row.prediction, row.match)
+      if (status === 'exact') exact += 1
+      else if (status === 'partial') partial += 1
+    }
+    return { predicted: rows.length, exact, partial }
+  }, [rows])
 
-  const filtered =
-    phase === 'all'
-      ? allRows
-      : allRows.filter((row) => row.match?.phase === phase)
+  const filtered = useMemo(() => {
+    switch (filter) {
+      case 'upcoming':
+        return rows.filter((row) => row.match.status === 'scheduled')
+      case 'live':
+        return rows.filter((row) => row.match.status === 'live')
+      case 'finished':
+        return rows.filter((row) => row.match.status === 'finished')
+      case 'hits':
+        return rows.filter(isHit)
+      default:
+        return rows
+    }
+  }, [rows, filter])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const currentPage = Math.min(page, totalPages)
-  const pageRows = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  )
-
-  const changePhase = (next: PhaseFilter) => {
-    setPhase(next)
-    setPage(1)
-  }
+  const matches = useMemo(() => filtered.map((row) => row.match), [filtered])
+  const predictionsByMatch = useMemo(() => {
+    const map = new Map<string, Prediction>()
+    for (const row of filtered) map.set(row.match.id, row.prediction)
+    return map
+  }, [filtered])
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -79,27 +136,35 @@ export function MyPredictionsPage() {
         </p>
       </div>
 
+      <div className="border-border bg-surface grid grid-cols-4 gap-2 rounded-xl border p-4">
+        <Stat value={stats.predicted} label="Pronosticados" sub={`de ${totalMatches}`} />
+        <Stat value={stats.exact} label="Exactos" valueClass="text-success" />
+        <Stat value={stats.partial} label="Parciales" valueClass="text-warning" />
+        {/* Points stay "—" until SCRUM-258 exposes points_earned in the API. */}
+        <Stat value="—" label="Puntos" />
+      </div>
+
       <div
         role="group"
-        aria-label="Filtrar por fase"
+        aria-label="Filtrar por estado"
         className="flex flex-wrap gap-2"
       >
-        {(['all', ...presentPhases] as PhaseFilter[]).map((value) => {
-          const selected = phase === value
+        {FILTERS.map(({ value, label }) => {
+          const selected = filter === value
           return (
             <button
               key={value}
               type="button"
               aria-pressed={selected}
-              onClick={() => changePhase(value)}
+              onClick={() => setFilter(value)}
               className={cn(
-                'rounded-full border px-3 py-1 text-body-sm font-medium transition-colors',
+                'rounded-full px-3.5 py-1.5 text-body-sm font-medium transition-colors',
                 selected
-                  ? 'border-brand-primary bg-brand-primary text-white'
-                  : 'border-border text-text-secondary hover:bg-surface-muted',
+                  ? 'bg-text-primary text-surface'
+                  : 'bg-surface-muted text-text-secondary hover:bg-surface',
               )}
             >
-              {value === 'all' ? 'Todas' : PHASE_LABELS[value]}
+              {label}
             </button>
           )
         })}
@@ -115,43 +180,21 @@ export function MyPredictionsPage() {
         <p className="text-danger text-body">
           No pudimos cargar tus pronósticos. Intentá de nuevo.
         </p>
-      ) : allRows.length === 0 ? (
+      ) : rows.length === 0 ? (
         <p className="text-text-secondary text-body">
           Todavía no hiciste pronósticos.
         </p>
       ) : filtered.length === 0 ? (
         <p className="text-text-secondary text-body">
-          No hay pronósticos para esta fase.
+          No hay pronósticos para este filtro.
         </p>
       ) : (
-        <>
-          <MyPredictionsList rows={pageRows} />
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={currentPage <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-              >
-                Anterior
-              </Button>
-              <span className="text-text-secondary text-body-sm">
-                Página {currentPage} de {totalPages}
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={currentPage >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              >
-                Siguiente
-              </Button>
-            </div>
-          )}
-        </>
+        <MatchList
+          matches={matches}
+          predictions={predictionsByMatch}
+          timezone={timezone}
+          readOnly
+        />
       )}
     </div>
   )

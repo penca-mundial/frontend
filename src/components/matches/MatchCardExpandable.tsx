@@ -22,6 +22,11 @@ export interface MatchCardExpandableProps {
   /** The user's prediction for this match, joined by the parent list. */
   prediction?: Prediction | null
   timezone?: string
+  /**
+   * Force the static, non-editable rendering (no expansion, no "Predecir"),
+   * regardless of lock state — used by history views like "Mis pronósticos".
+   */
+  readOnly?: boolean
 }
 
 function teamName(team: MatchTeam | null): string {
@@ -201,6 +206,7 @@ export function MatchCardExpandable({
   match,
   prediction: predictionProp = null,
   timezone = detectUserTimezone(),
+  readOnly = false,
 }: MatchCardExpandableProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const upsert = useUpsertPrediction(match.id)
@@ -215,7 +221,7 @@ export function MatchCardExpandable({
     setPrediction(predictionProp)
   }, [predictionProp])
 
-  const locked = isMatchLocked({ ...match, myPrediction: prediction })
+  const locked = readOnly || isMatchLocked({ ...match, myPrediction: prediction })
 
   const handleSave = async (input: {
     home: number
