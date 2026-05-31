@@ -94,6 +94,35 @@ describe('MatchCardExpandable', () => {
     expect(screen.getByText('Dieciseisavos')).toBeInTheDocument()
   })
 
+  it('shows the group letter as the eyebrow when present', () => {
+    renderCard({ match: makeMatch({ group: 'A' }) })
+    expect(screen.getByText('Grupo A')).toBeInTheDocument()
+  })
+
+  it('renders the live minute in the EN VIVO badge', () => {
+    renderCard({
+      match: makeMatch({
+        status: 'live',
+        minute: 67,
+        homeScore: 1,
+        awayScore: 0,
+      }),
+    })
+    expect(screen.getByText(/EN VIVO · 67'/)).toBeInTheDocument()
+  })
+
+  it('omits the minute when live but not yet synced', () => {
+    renderCard({
+      match: makeMatch({
+        status: 'live',
+        minute: null,
+        homeScore: 0,
+        awayScore: 0,
+      }),
+    })
+    expect(screen.getByText('EN VIVO')).toBeInTheDocument()
+  })
+
   it('expands inline on desktop, saves and shows the new prediction', async () => {
     const user = userEvent.setup()
     mutateAsync.mockResolvedValueOnce(

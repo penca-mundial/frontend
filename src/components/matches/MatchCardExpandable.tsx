@@ -54,7 +54,7 @@ function StatusBadge({ match }: { match: Match }) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEE2E2] px-2 py-0.5 text-[11px] font-semibold text-[#991B1B]">
         <span className="bg-live size-1.5 animate-pulse rounded-full" />
-        EN VIVO
+        EN VIVO{match.minute != null ? ` · ${match.minute}'` : ''}
       </span>
     )
   }
@@ -168,7 +168,11 @@ function CardFace({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <span className="text-text-secondary text-[11px] font-semibold tracking-wide uppercase">
-            {getPhaseLabel(match.phase)}
+            {match.group
+              ? `Grupo ${match.group}`
+              : match.phase
+                ? getPhaseLabel(match.phase)
+                : 'Fase de grupos'}
           </span>
           <span className="text-border-strong text-[11px]">·</span>
           <span className="text-text-secondary text-[11px] font-medium tabular-nums">
