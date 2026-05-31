@@ -8,6 +8,7 @@ import { ForgotPasswordPage } from '@/pages/public/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage'
 import { ConfirmEmailPage } from '@/pages/public/ConfirmEmailPage'
 import { OAuthCallbackPage } from '@/pages/public/OAuthCallbackPage'
+import { FixturePage } from '@/pages/app/FixturePage'
 
 /**
  * Placeholder page. Real pages and layouts arrive in their feature tickets;
@@ -85,6 +86,14 @@ export const routes: RouteObject[] = [
 
   // App (authenticated)
   { path: '/app', element: <Placeholder title="Inicio" /> },
+  {
+    path: '/app/matches',
+    element: (
+      <ProtectedRoute>
+        <FixturePage />
+      </ProtectedRoute>
+    ),
+  },
 
   // Admin
   { path: '/admin', element: <Placeholder title="Administración" /> },
