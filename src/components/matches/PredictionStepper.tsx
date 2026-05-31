@@ -74,7 +74,7 @@ export function PredictionStepper({
         type="button"
         variant="outline"
         size="icon"
-        className="size-11 md:size-9"
+        className="size-10 md:size-8"
         aria-label={`Restar gol: ${label}`}
         disabled={disabled || value <= min}
         onClick={() => setValue(value - 1)}
@@ -91,7 +91,7 @@ export function PredictionStepper({
         tabIndex={disabled ? -1 : 0}
         onKeyDown={handleKeyDown}
         className={cn(
-          'text-mono-score flex min-w-11 items-center justify-center rounded-md px-2 tabular-nums select-none',
+          'font-display flex min-w-11 items-center justify-center rounded-md px-2 text-2xl font-bold tabular-nums select-none md:text-3xl',
           'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
           disabled && 'text-text-disabled',
         )}
@@ -102,7 +102,7 @@ export function PredictionStepper({
         type="button"
         variant="outline"
         size="icon"
-        className="size-11 md:size-9"
+        className="size-10 md:size-8"
         aria-label={`Sumar gol: ${label}`}
         disabled={disabled || value >= max}
         onClick={() => setValue(value + 1)}

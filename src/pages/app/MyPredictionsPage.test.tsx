@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
 import type { Match } from '@/features/matches/types'
@@ -47,7 +48,11 @@ function makePrediction(id: string, matchId: string, h = 2, a = 1): Prediction {
   }
 }
 
-function mock(predictions: Prediction[], matches: Match[], state: { isLoading?: boolean; isError?: boolean } = {}) {
+function mock(
+  predictions: Prediction[],
+  matches: Match[],
+  state: { isLoading?: boolean; isError?: boolean } = {},
+) {
   usePredictionsMock.mockReturnValue({
     data: { predictions, totalCount: predictions.length, page: 1, perPage: 100 },
     isLoading: state.isLoading ?? false,
@@ -59,10 +64,15 @@ function mock(predictions: Prediction[], matches: Match[], state: { isLoading?: 
 }
 
 function renderPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
   return render(
-    <MemoryRouter>
-      <MyPredictionsPage />
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <MyPredictionsPage />
+      </MemoryRouter>
+    </QueryClientProvider>,
   )
 }
 
@@ -79,44 +89,57 @@ describe('MyPredictionsPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('joins predictions with matches and shows the exact-result status', () => {
+  it('renders a read-only card per prediction joined with its match', () => {
     mock([makePrediction('p1', '10', 2, 1)], [makeMatch('10')])
     renderPage()
-    expect(screen.getByText('Uruguay vs Argentina')).toBeInTheDocument()
-    expect(screen.getByText('Exacto')).toBeInTheDocument()
-    // The prediction and the real result are both 2-1 for an exact hit.
-    expect(screen.getAllByText('2-1')).toHaveLength(2)
+
+    expect(screen.getByText('Uruguay')).toBeInTheDocument()
+    expect(screen.getByText('Argentina')).toBeInTheDocument()
+    expect(screen.getByText(/Tu pronóstico/).textContent).toContain('2 – 1')
+    // Read-only: cards aren't buttons, so only the 5 status filters are.
+    expect(screen.getAllByRole('button')).toHaveLength(5)
   })
 
-  it('filters by phase', async () => {
+  it('summarises predictions in the stats card', () => {
+    mock([makePrediction('p1', '10', 2, 1)], [makeMatch('10')])
+    renderPage()
+
+    expect(screen.getByText('Pronosticados')).toBeInTheDocument()
+    expect(screen.getByText('de 1')).toBeInTheDocument()
+    expect(screen.getByText('Exactos')).toBeInTheDocument()
+    expect(screen.getByText('Parciales')).toBeInTheDocument()
+    // Points stay "—" until the backend exposes points_earned (SCRUM-258).
+    expect(screen.getByText('Puntos')).toBeInTheDocument()
+    expect(screen.getByText('—')).toBeInTheDocument()
+  })
+
+  it('filters by match status', async () => {
     const user = userEvent.setup()
     mock(
-      [makePrediction('p1', '10'), makePrediction('p2', '20')],
+      [makePrediction('p1', '10', 2, 1), makePrediction('p2', '20', 1, 0)],
       [
-        makeMatch('10', { phase: 'group_stage' }),
-        makeMatch('20', { phase: 'round_of_32' }),
+        makeMatch('10'), // finished, exact hit
+        makeMatch('20', {
+          status: 'scheduled',
+          homeScore: null,
+          awayScore: null,
+          kickoffAt: '2099-06-12T19:00:00Z',
+        }),
       ],
     )
     renderPage()
-    expect(screen.getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.getAllByText(/Tu pronóstico/)).toHaveLength(2)
 
-    await user.click(screen.getByRole('button', { name: 'Dieciseisavos' }))
-    expect(screen.getAllByRole('listitem')).toHaveLength(1)
-  })
+    await user.click(screen.getByRole('button', { name: 'Próximos' }))
+    expect(screen.getAllByText(/Tu pronóstico/)).toHaveLength(1)
 
-  it('paginates when there are more than a page of predictions', async () => {
-    const user = userEvent.setup()
-    const predictions = Array.from({ length: 12 }, (_, i) =>
-      makePrediction(`p${i}`, `${i}`),
-    )
-    const matches = Array.from({ length: 12 }, (_, i) => makeMatch(`${i}`))
-    mock(predictions, matches)
-    renderPage()
+    await user.click(screen.getByRole('button', { name: 'Aciertos' }))
+    expect(screen.getAllByText(/Tu pronóstico/)).toHaveLength(1)
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(10)
-    expect(screen.getByText('Página 1 de 2')).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: 'Siguiente' }))
-    expect(screen.getAllByRole('listitem')).toHaveLength(2)
+    await user.click(screen.getByRole('button', { name: 'En vivo' }))
+    expect(screen.queryByText(/Tu pronóstico/)).not.toBeInTheDocument()
+    expect(
+      screen.getByText('No hay pronósticos para este filtro.'),
+    ).toBeInTheDocument()
   })
 })

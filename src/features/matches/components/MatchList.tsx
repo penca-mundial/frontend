@@ -1,10 +1,16 @@
-import { MatchCard } from '@/features/matches/components/MatchCard'
+import { MatchCardExpandable } from '@/components/matches/MatchCardExpandable'
 import type { Match } from '@/features/matches/types'
-import { formatMatchDay, matchDayKey } from '@/lib/date'
+import type { Prediction } from '@/features/predictions/types'
+import { SectionLabel } from '@/components/ui/section-label'
+import { formatDayHeading, matchDayKey } from '@/lib/date'
 
 export interface MatchListProps {
   matches: Match[]
+  /** User predictions keyed by match id, for the inline prediction display. */
+  predictions: Map<string, Prediction>
   timezone: string
+  /** Render every card static (history view) instead of inline-editable. */
+  readOnly?: boolean
 }
 
 interface DayGroup {
@@ -27,7 +33,7 @@ function groupByDay(matches: Match[], timezone: string): DayGroup[] {
     } else {
       groups.set(key, {
         key,
-        label: formatMatchDay(match.kickoffAt, timezone),
+        label: formatDayHeading(match.kickoffAt, timezone),
         matches: [match],
       })
     }
@@ -35,24 +41,54 @@ function groupByDay(matches: Match[], timezone: string): DayGroup[] {
   return [...groups.values()]
 }
 
-/** Renders matches grouped by calendar day in the user's timezone. */
-export function MatchList({ matches, timezone }: MatchListProps) {
+/**
+ * Matches grouped by calendar day (user timezone), each rendered as a
+ * `MatchCardExpandable` so predictions happen inline from the list. Each day
+ * heading shows the full date, a "HOY" badge for the current day, and the
+ * match count.
+ */
+export function MatchList({
+  matches,
+  predictions,
+  timezone,
+  readOnly = false,
+}: MatchListProps) {
   const groups = groupByDay(matches, timezone)
+  const todayKey = matchDayKey(new Date(), timezone)
 
   return (
     <div className="flex flex-col gap-6">
-      {groups.map((group) => (
-        <section key={group.key} className="flex flex-col gap-3">
-          <h2 className="text-text-secondary text-mono-mini font-semibold tracking-wide uppercase">
-            {group.label}
-          </h2>
-          <div className="flex flex-col gap-3">
-            {group.matches.map((match) => (
-              <MatchCard key={match.id} match={match} timezone={timezone} />
-            ))}
-          </div>
-        </section>
-      ))}
+      {groups.map((group) => {
+        const count = group.matches.length
+        return (
+          <section key={group.key} className="flex flex-col gap-3">
+            <div className="flex items-baseline justify-between gap-2">
+              <SectionLabel as="h2" size="sm" className="flex items-center gap-2">
+                {group.label}
+                {group.key === todayKey && (
+                  <span className="bg-brand-accent-soft text-mono-mini rounded-full px-2 py-0.5 font-semibold uppercase text-[#92400E]">
+                    Hoy
+                  </span>
+                )}
+              </SectionLabel>
+              <SectionLabel tone="secondary" size="sm">
+                {count} {count === 1 ? 'partido' : 'partidos'}
+              </SectionLabel>
+            </div>
+            <div className="flex flex-col gap-3">
+              {group.matches.map((match) => (
+                <MatchCardExpandable
+                  key={match.id}
+                  match={match}
+                  prediction={predictions.get(match.id) ?? null}
+                  timezone={timezone}
+                  readOnly={readOnly}
+                />
+              ))}
+            </div>
+          </section>
+        )
+      })}
     </div>
   )
 }

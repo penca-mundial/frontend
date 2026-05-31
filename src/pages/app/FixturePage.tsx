@@ -1,11 +1,16 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
-import { MatchFilters, type PhaseFilter, type TeamFilter } from '@/features/matches/components/MatchFilters'
+import { MatchFilters, type TeamFilter } from '@/features/matches/components/MatchFilters'
 import { MatchList } from '@/features/matches/components/MatchList'
+import { FixtureTabs, type FixtureTab } from '@/features/matches/components/FixtureTabs'
+import { BracketView } from '@/components/matches/BracketView'
 import { useMatches } from '@/features/matches/hooks/useMatches'
-import type { MatchListFilters } from '@/api/matches.api'
+import { usePredictions } from '@/features/predictions/hooks/usePredictions'
 import type { Match, MatchTeam } from '@/features/matches/types'
-import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
+import type { Prediction } from '@/features/predictions/types'
+import { buildBracketRounds } from '@/features/matches/utils'
+import { matchDayKey } from '@/lib/date'
 import { detectUserTimezone } from '@/lib/timezone'
 
 /** Distinct teams appearing in a set of matches, sorted by name. */
@@ -19,72 +24,138 @@ function collectTeams(matches: Match[]): MatchTeam[] {
   return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name, 'es'))
 }
 
+/** Placeholder for the Grupos tab until the backend exposes group letters. */
+function GruposPlaceholder() {
+  return (
+    <div className="border-border bg-surface rounded-xl border border-dashed p-8 text-center">
+      <p className="text-text-primary text-body font-semibold">Próximamente</p>
+      <p className="text-text-secondary text-body-sm mx-auto mt-1 max-w-md">
+        Los grupos se mostrarán cuando se publique la información oficial del
+        Mundial 2026.
+      </p>
+    </div>
+  )
+}
+
 /**
- * Public fixture: all tournament matches, filterable by phase and date range
- * (server-side) and by team (client-side, since there is no team endpoint yet).
- * Matches are grouped by day in the user's timezone and link to the detail page.
+ * Public fixture with three views (segmented tabs):
+ * - Calendario: every match grouped by day, predicted inline via
+ *   `MatchCardExpandable`, with team/date filters.
+ * - Grupos: group standings — placeholder until SCRUM-257 ships the `group`
+ *   field (see `GroupStandingsCard` for the prepared layout).
+ * - Eliminación: the read-only knockout bracket (empty-state handled by
+ *   `BracketView` until knockout matches are seeded).
+ *
+ * Kickoff times always render in the viewer's browser timezone.
  */
 export function FixturePage() {
-  const { currentUser } = useCurrentUser()
-  const timezone = currentUser?.timezone ?? detectUserTimezone()
+  const timezone = detectUserTimezone()
+  const navigate = useNavigate()
 
-  const [phase, setPhase] = useState<PhaseFilter>('all')
-  const [dateFrom, setDateFrom] = useState('')
+  const [tab, setTab] = useState<FixtureTab>('calendario')
+  // null = the user hasn't touched it yet → defaults to the first matchday.
+  const [dateFrom, setDateFrom] = useState<string | null>(null)
   const [dateTo, setDateTo] = useState('')
   const [teamId, setTeamId] = useState<TeamFilter>('all')
 
-  const serverFilters: MatchListFilters = {
-    phase: phase === 'all' ? undefined : phase,
-    dateFrom: dateFrom || undefined,
-    dateTo: dateTo || undefined,
-  }
-
-  const { data, isLoading, isError } = useMatches(serverFilters)
+  const { data, isLoading, isError } = useMatches({})
+  const { data: predictionData } = usePredictions(1, 100)
 
   const allMatches = useMemo(() => data?.matches ?? [], [data])
-  // Team options come from the full server-filtered set, so picking a team
-  // doesn't shrink the option list.
   const teamOptions = useMemo(() => collectTeams(allMatches), [allMatches])
-  const visibleMatches =
-    teamId === 'all'
-      ? allMatches
-      : allMatches.filter(
-          (match) =>
-            match.homeTeam?.id === teamId || match.awayTeam?.id === teamId,
-        )
+  const predictionsByMatch = useMemo(() => {
+    const map = new Map<string, Prediction>()
+    for (const prediction of predictionData?.predictions ?? []) {
+      map.set(prediction.matchId, prediction)
+    }
+    return map
+  }, [predictionData])
+
+  // Tournament's first matchday (in the viewer's timezone), used as the default
+  // lower bound for the date filter so the fixture opens at kick-off, not on
+  // long-past test data.
+  const earliestDay = useMemo(() => {
+    if (allMatches.length === 0) return ''
+    const earliest = allMatches.reduce(
+      (min, match) => (match.kickoffAt < min ? match.kickoffAt : min),
+      allMatches[0].kickoffAt,
+    )
+    return matchDayKey(earliest, timezone)
+  }, [allMatches, timezone])
+  const effectiveDateFrom = dateFrom ?? earliestDay
+
+  const visibleMatches = useMemo(
+    () =>
+      allMatches.filter((match) => {
+        if (
+          teamId !== 'all' &&
+          match.homeTeam?.id !== teamId &&
+          match.awayTeam?.id !== teamId
+        ) {
+          return false
+        }
+        const day = matchDayKey(match.kickoffAt, timezone)
+        if (effectiveDateFrom && day < effectiveDateFrom) return false
+        if (dateTo && day > dateTo) return false
+        return true
+      }),
+    [allMatches, teamId, effectiveDateFrom, dateTo, timezone],
+  )
+
+  const bracketRounds = useMemo(
+    () => buildBracketRounds(allMatches),
+    [allMatches],
+  )
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-display-lg font-display font-semibold">Partidos</h1>
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
+      <h1 className="text-display-lg font-display font-semibold">Fixture</h1>
 
-      <MatchFilters
-        phase={phase}
-        onPhaseChange={setPhase}
-        dateFrom={dateFrom}
-        dateTo={dateTo}
-        onDateFromChange={setDateFrom}
-        onDateToChange={setDateTo}
-        teamId={teamId}
-        teamOptions={teamOptions}
-        onTeamChange={setTeamId}
-      />
+      <FixtureTabs value={tab} onChange={setTab} />
 
-      {isLoading ? (
-        <div className="flex flex-col gap-3" aria-busy="true">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-28 w-full rounded-lg" />
-          ))}
+      {tab === 'calendario' && (
+        <div className="flex flex-col gap-5">
+          <MatchFilters
+            dateFrom={effectiveDateFrom}
+            dateTo={dateTo}
+            onDateFromChange={setDateFrom}
+            onDateToChange={setDateTo}
+            teamId={teamId}
+            teamOptions={teamOptions}
+            onTeamChange={setTeamId}
+          />
+
+          {isLoading ? (
+            <div className="flex flex-col gap-3" aria-busy="true">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Skeleton key={index} className="h-24 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : isError ? (
+            <p className="text-danger text-body">
+              No pudimos cargar los partidos. Intentá de nuevo.
+            </p>
+          ) : visibleMatches.length === 0 ? (
+            <p className="text-text-secondary text-body">
+              No hay partidos para estos filtros.
+            </p>
+          ) : (
+            <MatchList
+              matches={visibleMatches}
+              predictions={predictionsByMatch}
+              timezone={timezone}
+            />
+          )}
         </div>
-      ) : isError ? (
-        <p className="text-danger text-body">
-          No pudimos cargar los partidos. Intentá de nuevo.
-        </p>
-      ) : visibleMatches.length === 0 ? (
-        <p className="text-text-secondary text-body">
-          No hay partidos para estos filtros.
-        </p>
-      ) : (
-        <MatchList matches={visibleMatches} timezone={timezone} />
+      )}
+
+      {tab === 'grupos' && <GruposPlaceholder />}
+
+      {tab === 'eliminacion' && (
+        <BracketView
+          rounds={bracketRounds}
+          onSelectMatch={(match) => navigate(`/app/matches/${match.id}`)}
+        />
       )}
     </div>
   )

@@ -1,4 +1,5 @@
 import { BracketMatch } from '@/components/matches/BracketMatch'
+import { SectionLabel } from '@/components/ui/section-label'
 import type { BracketRound, Match } from '@/features/matches/types'
 import { getPhaseLabel } from '@/features/matches/utils'
 
@@ -32,9 +33,9 @@ export function BracketView({ rounds, onSelectMatch }: BracketViewProps) {
           aria-label={getPhaseLabel(round.phase)}
           className="flex min-w-full shrink-0 snap-center flex-col gap-3 md:min-w-0 md:flex-1"
         >
-          <h3 className="text-text-secondary text-mono-mini text-center font-semibold tracking-wide uppercase">
+          <SectionLabel as="h3" tone="secondary" className="text-center">
             {getPhaseLabel(round.phase)}
-          </h3>
+          </SectionLabel>
           <div className="flex flex-1 flex-col items-center justify-around gap-3">
             {round.matches.map((match) => (
               <div key={match.id} className="relative md:after:absolute md:after:top-1/2 md:after:left-full md:after:h-px md:after:w-4 md:after:bg-border md:last:after:hidden">

@@ -10,9 +10,6 @@ vi.mock('@/features/matches/hooks/useUpsertPrediction', () => ({
 }))
 vi.mock('@/hooks/useToast', () => ({ toast: vi.fn() }))
 vi.mock('@/api/auth.api', () => ({ getApiError: vi.fn(() => null) }))
-vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
-  useCurrentUser: () => ({ currentUser: { timezone: 'UTC' } }),
-}))
 
 import { useMatch } from '@/features/matches/hooks/useMatch'
 import { useUpsertPrediction } from '@/features/matches/hooks/useUpsertPrediction'
@@ -64,6 +61,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   useUpsertPredictionMock.mockReturnValue({
     mutate: vi.fn(),
+    mutateAsync: vi.fn(),
     isPending: false,
   } as unknown as ReturnType<typeof useUpsertPrediction>)
 })
@@ -85,7 +83,7 @@ describe('MatchPage', () => {
     mockMatch({ data: makeMatch() })
     renderPage()
     expect(
-      screen.getByRole('button', { name: 'Guardar pronóstico' }),
+      screen.getByRole('button', { name: /Guardar pronóstico/ }),
     ).toBeInTheDocument()
   })
 
@@ -96,7 +94,7 @@ describe('MatchPage', () => {
     renderPage()
     expect(screen.getByText('EN VIVO')).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'Guardar pronóstico' }),
+      screen.queryByRole('button', { name: /Guardar pronóstico/ }),
     ).not.toBeInTheDocument()
   })
 

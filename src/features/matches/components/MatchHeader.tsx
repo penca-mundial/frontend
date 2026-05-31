@@ -1,6 +1,6 @@
 import { PhaseBadge } from '@/features/matches/components/PhaseBadge'
 import type { Match, MatchTeam } from '@/features/matches/types'
-import { formatMatchDate } from '@/lib/date'
+import { formatKickoff } from '@/lib/date'
 
 export interface MatchHeaderProps {
   match: Match
@@ -39,7 +39,7 @@ export function MatchHeader({ match, timezone }: MatchHeaderProps) {
         <Team team={match.awayTeam} />
       </div>
       <p className="text-text-secondary text-body-sm">
-        {formatMatchDate(match.kickoffAt, timezone)}
+        {formatKickoff(match.kickoffAt, 'full', timezone)}
       </p>
     </header>
   )

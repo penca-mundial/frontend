@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+/* Fonts are loaded via <link> tags in index.html (more reliable than a CSS
+ * @import, which is render-blocking and bundler-order sensitive). */
 @import 'tailwindcss';
 @config '../../tailwind.config.ts';
 
@@ -270,6 +271,12 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+  }
+
+  /* Always reserve the scrollbar gutter so the layout doesn't shift sideways
+   * between long (scrollable) and short pages. */
+  html {
+    scrollbar-gutter: stable;
   }
 
   html,

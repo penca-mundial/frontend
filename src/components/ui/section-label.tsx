@@ -1,0 +1,54 @@
+import type { ElementType, ReactNode } from 'react'
+import { cn } from '@/lib/cn'
+
+/**
+ * SectionLabel — the canonical "section label" typography used across the app
+ * for sub-headings and field/group labels (e.g. "Tu pronóstico", the stats-card
+ * labels, bracket round titles, the fixture day header).
+ *
+ * API:
+ *   - Renders font-medium in the default body family (Inter), sized by `size`:
+ *     `"md"` (default, text-body-sm) or `"sm"` (one notch smaller, 11px). Purely
+ *     typographic — it carries NO padding/margin.
+ *   - `tone="primary"` (default) → primary text color, for the label itself.
+ *     `tone="secondary"` → secondary text color, for a sub-detail shown next to
+ *     a primary label (e.g. "de 72").
+ *   - Does NOT transform casing: pass already-cased text ("Tu pronóstico"), not
+ *     UPPERCASE — there is no auto uppercase/sentence-case.
+ *   - Renders a <span> by default; pass `as="h2" | "h3" | "legend" | ...` when
+ *     the label is also a semantic heading/legend. Layout (flex, margins, text
+ *     alignment) goes through `className` at the call site.
+ */
+const TONES = {
+  primary: 'text-text-primary',
+  secondary: 'text-text-secondary',
+} as const
+
+const SIZES = {
+  md: 'text-body-sm',
+  sm: 'text-[11px]',
+} as const
+
+export interface SectionLabelProps {
+  as?: ElementType
+  tone?: keyof typeof TONES
+  size?: keyof typeof SIZES
+  className?: string
+  children?: ReactNode
+}
+
+export function SectionLabel({
+  as: Component = 'span',
+  tone = 'primary',
+  size = 'md',
+  className,
+  children,
+}: SectionLabelProps) {
+  return (
+    <Component
+      className={cn(SIZES[size], 'font-medium', TONES[tone], className)}
+    >
+      {children}
+    </Component>
+  )
+}
