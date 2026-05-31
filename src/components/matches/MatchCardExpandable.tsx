@@ -120,8 +120,10 @@ function TeamSide({
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-1 items-center gap-2.5',
-        isHome ? 'justify-start' : 'justify-end',
+        'flex w-full min-w-0 items-center gap-2.5',
+        // Hug the centre (toward the score), leaving the outer space empty so
+        // names aren't pushed to the card edges.
+        isHome ? 'justify-end' : 'justify-start',
       )}
     >
       {isHome ? (
@@ -141,7 +143,7 @@ function TeamSide({
 
 function Score({ value }: { value: number | null }) {
   return (
-    <span className="font-display text-text-primary text-2xl leading-none font-bold tabular-nums md:text-3xl">
+    <span className="font-display text-text-primary min-w-[2ch] text-center text-2xl leading-none font-bold tabular-nums md:text-3xl">
       {value}
     </span>
   )
@@ -176,11 +178,12 @@ function CardFace({
         <StatusBadge match={match} />
       </div>
 
-      {/* Names hug the outer edges, flags sit inward, scores form a centred
-          "1 vs 0" cluster — matching imagenes_mundial/fixture.png. */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      {/* Symmetric 1fr_auto_1fr grid: equal side columns keep the centre
+          column dead-centre, so "vs" is always at the exact card centre. Scores
+          reserve 2-digit width and sit symmetrically around "vs". */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-4 sm:gap-x-6">
         <TeamSide team={match.homeTeam} side="home" />
-        <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
+        <div className="flex shrink-0 items-center justify-center gap-2.5 sm:gap-3">
           {hasScore && match.homeScore !== null && (
             <Score value={match.homeScore} />
           )}
