@@ -1,16 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
-import { SectionLabel } from '@/components/ui/section-label'
 import { MatchFilters, type TeamFilter } from '@/features/matches/components/MatchFilters'
 import { MatchList } from '@/features/matches/components/MatchList'
 import { FixtureTabs, type FixtureTab } from '@/features/matches/components/FixtureTabs'
-import { BracketView } from '@/components/matches/BracketView'
+import { GroupStandingsCard } from '@/features/matches/components/GroupStandingsCard'
+import { EliminationView } from '@/components/matches/EliminationView'
 import { useMatches } from '@/features/matches/hooks/useMatches'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
 import type { Match, MatchTeam } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
-import { buildBracketRounds } from '@/features/matches/utils'
 import { matchDayKey } from '@/lib/date'
 import { detectUserTimezone } from '@/lib/timezone'
 
@@ -25,36 +24,32 @@ function collectTeams(matches: Match[]): MatchTeam[] {
   return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name, 'es'))
 }
 
-interface GroupComposition {
+interface GroupMatches {
   group: string
-  teams: MatchTeam[]
+  matches: Match[]
 }
 
 /**
- * Group composition derived purely from match data: matches carrying a `group`
- * letter are bucketed by it, teams deduped within each bucket, buckets sorted
- * alphabetically. Makes no assumption about group count, letter range or team
- * count — it renders whatever the data contains (tournament-agnostic).
+ * Buckets matches by their `group` letter (buckets sorted alphabetically, each
+ * bucket's matches kept chronological). Tournament-agnostic — renders whatever
+ * group letters the data contains. Per-group teams/standings are derived inside
+ * `GroupStandingsCard`.
  */
-function deriveGroups(matches: Match[]): GroupComposition[] {
-  const byGroup = new Map<string, Map<string, MatchTeam>>()
+function deriveGroupMatches(matches: Match[]): GroupMatches[] {
+  const byGroup = new Map<string, Match[]>()
   for (const match of matches) {
     if (!match.group) continue
-    let teams = byGroup.get(match.group)
-    if (!teams) {
-      teams = new Map<string, MatchTeam>()
-      byGroup.set(match.group, teams)
-    }
-    for (const team of [match.homeTeam, match.awayTeam]) {
-      if (team && !teams.has(team.id)) teams.set(team.id, team)
-    }
+    const bucket = byGroup.get(match.group)
+    if (bucket) bucket.push(match)
+    else byGroup.set(match.group, [match])
   }
   return [...byGroup.entries()]
     .sort(([a], [b]) => a.localeCompare(b, 'es'))
-    .map(([group, teams]) => ({
+    .map(([group, groupMatches]) => ({
       group,
-      teams: [...teams.values()].sort((a, b) =>
-        a.name.localeCompare(b.name, 'es'),
+      matches: [...groupMatches].sort(
+        (a, b) =>
+          new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
       ),
     }))
 }
@@ -76,10 +71,10 @@ function GruposPlaceholder() {
  * Public fixture with three views (segmented tabs):
  * - Calendario: every match grouped by day, predicted inline via
  *   `MatchCardExpandable`, with team/date filters.
- * - Grupos: group composition (teams per group) derived from match `group`
- *   letters; falls back to a placeholder when no group data is present.
- * - Eliminación: the read-only knockout bracket (empty-state handled by
- *   `BracketView` until knockout matches are seeded).
+ * - Grupos: one `GroupStandingsCard` per group letter (standings shell +
+ *   collapsible inline-predictable matches); placeholder when no group data.
+ * - Eliminación: knockout matches as a sub-phase-filterable, inline-predictable
+ *   list (default) or the read-only bracket, toggled via `EliminationView`.
  *
  * Kickoff times always render in the viewer's browser timezone.
  */
@@ -137,12 +132,7 @@ export function FixturePage() {
     [allMatches, teamId, effectiveDateFrom, dateTo, timezone],
   )
 
-  const groups = useMemo(() => deriveGroups(allMatches), [allMatches])
-
-  const bracketRounds = useMemo(
-    () => buildBracketRounds(allMatches),
-    [allMatches],
-  )
+  const groups = useMemo(() => deriveGroupMatches(allMatches), [allMatches])
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
@@ -188,34 +178,15 @@ export function FixturePage() {
 
       {tab === 'grupos' &&
         (groups.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-col gap-4">
             {groups.map((g) => (
-              <div
+              <GroupStandingsCard
                 key={g.group}
-                className="border-border bg-surface rounded-xl border p-4"
-              >
-                <SectionLabel as="h3" className="mb-3 block">
-                  Grupo {g.group}
-                </SectionLabel>
-                <ul className="flex flex-col gap-2">
-                  {g.teams.map((team) => (
-                    <li key={team.id} className="flex items-center gap-2.5">
-                      {team.flagUrl ? (
-                        <img
-                          src={team.flagUrl}
-                          alt=""
-                          className="h-[18px] w-[26px] shrink-0 rounded-[3px] object-cover"
-                        />
-                      ) : (
-                        <span className="bg-surface-muted text-text-secondary inline-flex h-[18px] w-[26px] shrink-0 items-center justify-center rounded-[3px] text-[10px]">
-                          {team.code3 ?? '—'}
-                        </span>
-                      )}
-                      <span className="text-body-sm">{team.name}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                groupLetter={g.group}
+                matches={g.matches}
+                predictions={predictionsByMatch}
+                timezone={timezone}
+              />
             ))}
           </div>
         ) : (
@@ -223,8 +194,10 @@ export function FixturePage() {
         ))}
 
       {tab === 'eliminacion' && (
-        <BracketView
-          rounds={bracketRounds}
+        <EliminationView
+          matches={allMatches}
+          predictions={predictionsByMatch}
+          timezone={timezone}
           onSelectMatch={(match) => navigate(`/app/matches/${match.id}`)}
         />
       )}
