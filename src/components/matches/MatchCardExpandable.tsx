@@ -36,19 +36,19 @@ function teamName(team: MatchTeam | null): string {
 function TeamFlag({ team }: { team: MatchTeam | null }) {
   if (team?.flagUrl) {
     return (
-      <span className="inline-flex h-[18px] w-[26px] shrink-0 overflow-hidden rounded-[3px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
+      <span className="inline-flex h-[16px] w-[24px] shrink-0 overflow-hidden rounded-[3px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
         <img src={team.flagUrl} alt="" className="block size-full object-cover" />
       </span>
     )
   }
   return (
-    <span className="bg-surface-muted text-text-secondary text-mono-mini inline-flex h-[18px] w-[26px] shrink-0 items-center justify-center rounded-[3px]">
+    <span className="bg-surface-muted text-text-secondary text-mono-mini inline-flex h-[16px] w-[24px] shrink-0 items-center justify-center rounded-[3px]">
       {team?.code3 ?? '—'}
     </span>
   )
 }
 
-function StatusBadge({ match, timezone }: { match: Match; timezone: string }) {
+function StatusBadge({ match }: { match: Match }) {
   if (match.status === 'live') {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEE2E2] px-2.5 py-1 text-mono-mini font-semibold text-[#991B1B]">
@@ -64,11 +64,8 @@ function StatusBadge({ match, timezone }: { match: Match; timezone: string }) {
       </span>
     )
   }
-  return (
-    <span className="bg-surface-muted text-text-secondary rounded-full px-2.5 py-1 text-mono-mini font-semibold">
-      {formatKickoff(match.kickoffAt, 'time', timezone).replace(':', 'h')}
-    </span>
-  )
+  // Scheduled: the kickoff time already shows next to the phase — no duplicate.
+  return null
 }
 
 const CHIP_CLASS: Record<PredictionResultStatus, string> = {
@@ -143,7 +140,7 @@ function CardFace({
 }) {
   const hasScore = match.status === 'live' || match.status === 'finished'
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-text-secondary text-mono-mini font-semibold uppercase">
@@ -154,10 +151,10 @@ function CardFace({
             {formatKickoff(match.kickoffAt, 'time', timezone)}
           </span>
         </div>
-        <StatusBadge match={match} timezone={timezone} />
+        <StatusBadge match={match} />
       </div>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <TeamLine
           team={match.homeTeam}
           align="left"
@@ -171,7 +168,7 @@ function CardFace({
         />
       </div>
 
-      <div className="border-border flex items-center justify-between gap-2 border-t border-dashed pt-2">
+      <div className="border-border flex items-center justify-between gap-2 border-t border-dashed pt-1.5">
         {prediction ? (
           <PredictionChip prediction={prediction} match={match} />
         ) : (
@@ -255,7 +252,7 @@ export function MatchCardExpandable({
     : 'pending'
 
   const cardClasses = cn(
-    'w-full rounded-xl border p-3.5 shadow-sm text-left transition-colors',
+    'w-full rounded-xl border p-3 shadow-sm text-left transition-colors',
     // Subtle result tint once finished: green for an exact hit, red for a miss.
     isFinished && resultStatus === 'exact'
       ? 'bg-[linear-gradient(180deg,#F0FDF4_0%,#FFFFFF_60%)]'
