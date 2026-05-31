@@ -36,13 +36,13 @@ function teamName(team: MatchTeam | null): string {
 function TeamFlag({ team }: { team: MatchTeam | null }) {
   if (team?.flagUrl) {
     return (
-      <span className="inline-flex h-[22px] w-[30px] shrink-0 overflow-hidden rounded-[3px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
+      <span className="inline-flex h-[26px] w-[36px] shrink-0 overflow-hidden rounded-[3px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
         <img src={team.flagUrl} alt="" className="block size-full object-cover" />
       </span>
     )
   }
   return (
-    <span className="bg-surface-muted text-text-secondary inline-flex h-[22px] w-[30px] shrink-0 items-center justify-center rounded-[3px] text-[10px]">
+    <span className="bg-surface-muted text-text-secondary inline-flex h-[26px] w-[36px] shrink-0 items-center justify-center rounded-[3px] text-[10px]">
       {team?.code3 ?? '—'}
     </span>
   )
@@ -113,11 +113,11 @@ function TeamLine({
     <div className={cn('flex items-center gap-2.5', isRight && 'flex-row-reverse')}>
       <TeamFlag team={team} />
       <div className={cn('min-w-0 flex-1', isRight ? 'text-right' : 'text-left')}>
-        <div className="truncate text-base font-bold leading-tight md:text-lg">
+        <div className="truncate text-base font-semibold leading-tight md:text-lg">
           {teamName(team)}
         </div>
         {score !== null && (
-          <div className="font-display text-text-primary mt-1 text-2xl leading-none font-extrabold tabular-nums md:text-3xl">
+          <div className="font-display text-text-primary mt-1 text-2xl leading-none font-bold tabular-nums md:text-3xl">
             {score}
           </div>
         )}

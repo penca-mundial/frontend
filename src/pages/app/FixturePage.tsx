@@ -53,7 +53,8 @@ export function FixturePage() {
   const navigate = useNavigate()
 
   const [tab, setTab] = useState<FixtureTab>('calendario')
-  const [dateFrom, setDateFrom] = useState('')
+  // null = the user hasn't touched it yet → defaults to the first matchday.
+  const [dateFrom, setDateFrom] = useState<string | null>(null)
   const [dateTo, setDateTo] = useState('')
   const [teamId, setTeamId] = useState<TeamFilter>('all')
 
@@ -70,6 +71,19 @@ export function FixturePage() {
     return map
   }, [predictionData])
 
+  // Tournament's first matchday (in the viewer's timezone), used as the default
+  // lower bound for the date filter so the fixture opens at kick-off, not on
+  // long-past test data.
+  const earliestDay = useMemo(() => {
+    if (allMatches.length === 0) return ''
+    const earliest = allMatches.reduce(
+      (min, match) => (match.kickoffAt < min ? match.kickoffAt : min),
+      allMatches[0].kickoffAt,
+    )
+    return matchDayKey(earliest, timezone)
+  }, [allMatches, timezone])
+  const effectiveDateFrom = dateFrom ?? earliestDay
+
   const visibleMatches = useMemo(
     () =>
       allMatches.filter((match) => {
@@ -81,11 +95,11 @@ export function FixturePage() {
           return false
         }
         const day = matchDayKey(match.kickoffAt, timezone)
-        if (dateFrom && day < dateFrom) return false
+        if (effectiveDateFrom && day < effectiveDateFrom) return false
         if (dateTo && day > dateTo) return false
         return true
       }),
-    [allMatches, teamId, dateFrom, dateTo, timezone],
+    [allMatches, teamId, effectiveDateFrom, dateTo, timezone],
   )
 
   const bracketRounds = useMemo(
@@ -102,7 +116,7 @@ export function FixturePage() {
       {tab === 'calendario' && (
         <div className="flex flex-col gap-5">
           <MatchFilters
-            dateFrom={dateFrom}
+            dateFrom={effectiveDateFrom}
             dateTo={dateTo}
             onDateFromChange={setDateFrom}
             onDateToChange={setDateTo}

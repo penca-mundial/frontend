@@ -147,7 +147,7 @@ export function MyPredictionsPage() {
       <div
         role="group"
         aria-label="Filtrar por estado"
-        className="flex flex-wrap gap-2"
+        className="bg-surface-muted inline-flex w-fit max-w-full gap-1 overflow-x-auto rounded-lg p-1"
       >
         {FILTERS.map(({ value, label }) => {
           const selected = filter === value
@@ -158,10 +158,10 @@ export function MyPredictionsPage() {
               aria-pressed={selected}
               onClick={() => setFilter(value)}
               className={cn(
-                'rounded-full px-3.5 py-1.5 text-body-sm font-medium transition-colors',
+                'shrink-0 rounded-md px-3.5 py-1.5 text-body-sm font-medium whitespace-nowrap transition-colors',
                 selected
-                  ? 'bg-text-primary text-surface'
-                  : 'bg-surface-muted text-text-secondary hover:bg-surface',
+                  ? 'bg-surface text-text-primary shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary',
               )}
             >
               {label}
