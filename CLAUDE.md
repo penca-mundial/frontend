@@ -14,6 +14,63 @@ Vite + React 19 + TypeScript SPA para la plataforma de predicciones del Mundial 
 - date-fns + date-fns-tz
 - Vitest + Testing Library + MSW
 
+## Architectural principles
+
+This project is built to evolve. The constraints below exist so that adding a feature, replacing a backend endpoint, or onboarding a new contributor never requires undoing decisions we already made. If you find yourself fighting them, pause and raise it — it's likely we have to update the principles, not bypass them.
+
+### Open/Closed: extensible to change
+
+Code is **open for extension, closed for modification**. When a feature changes or a new consumer appears, we extend by composing or adding — not by editing what already works. Concretely:
+
+- **Extract a component to its own file as soon as a second consumer is predictable — not when the third actually arrives.** The cost of a new file is trivial; the cost of finding and unifying drift between copies is large.
+- **Prefer composition over conditional bloat.** If a component grows two unrelated modes joined by `if (variant === ...)`, those are two components hiding in one.
+- **Props are a contract.** Never silently break an existing prop's meaning. Add new optional props for new behaviors; deprecate old ones explicitly.
+
+### SOLID applied to React
+
+- **Single Responsibility (S):** each component does one thing. A page composes; a feature component renders a domain concept; a UI primitive renders a styled atom.
+- **Open/Closed (O):** see above. Components accept `children`, render-props, or polymorphic props (`asChild`) for extension points.
+- **Liskov Substitution (L):** variants of a component (`<Button variant="ghost">` vs `<Button variant="default">`) must behave compatibly — same accessibility, same focus behavior, same event surface.
+- **Interface Segregation (I):** don't force a consumer to know props it doesn't use. If "compact mode" and "full mode" need different props, those are two components.
+- **Dependency Inversion (D):** depend on abstractions (types, hooks, API clients), not concrete implementations. Never call `fetch` directly from a component — go through `src/api/`.
+
+### GRASP
+
+- **Information Expert:** data lives in the component that owns it. If a parent passes 5 callbacks to manipulate a child's state, the state belongs in the child.
+- **High Cohesion / Low Coupling:** files in `src/features/<domain>/` know about their domain. They don't import from another domain — if they need to, the shared piece moves to `src/components/` or to a shared hook.
+- **Pure Fabrication:** utility components (`Button`, `Logo`, `Skeleton`) and helper hooks (`useMediaQuery`) don't map to domain concepts. They exist to avoid duplication and to abstract platform details.
+- **Indirection:** API calls, navigation, and time go through helpers (`src/api/`, `useNavigate`, `formatKickoff`). Never reach the platform directly from a component.
+
+### React patterns we follow
+
+In addition to the lower-level rules in "Convenciones de código" below:
+
+- **Composition over inheritance.** React doesn't do component inheritance; compose.
+- **Hooks for stateful and side-effectful logic.** Extract a custom hook when the same effect-shaped logic appears in two components.
+- **Props down, events up.** Don't `useContext` for data that only crosses one level.
+- **Locality of state.** Lift state up only when two siblings genuinely need to share it. Don't lift "just in case".
+- **No prop-drilling beyond 2 levels.** Past 2 hops, use `useContext` or rethink.
+- **Don't write 200-line components.** ~150 lines is a smell; extract.
+- **No `useState` for derived values.** If `B = f(A)`, compute B with `useMemo`, don't store and synchronize it.
+- **Mobile-first responsive via Tailwind utilities** (`sm:`, `md:`, `hidden md:block`). No JavaScript-based screen-size conditionals.
+- **Semantic HTML and accessibility from day 1.** `<button>` not `<div onClick>`. `<h1>` once per page, `<h2>` for sections. `aria-label` on icon-only controls. `aria-hidden="true"` on decorative icons.
+
+### When the AC and the codebase disagree, stop
+
+If an acceptance criterion can't be implemented as written without violating these principles (e.g. it asks for a conditional that should be a new component, or for data that doesn't exist on the backend) — **STOP** and report on the ticket. Document the tension, propose a deviation with rationale, and wait. Don't silently work around the AC, and don't silently bypass the principles. The decision trail matters more than speed. This extends the "SÍ pedí permiso si: conflicto no trivial con código existente" rule below with the principles as the second criterion for tension.
+
+### Before opening a PR
+
+Beyond the tests / lint / typecheck the workflow already requires:
+
+- [ ] Each new component does one thing.
+- [ ] No duplicated code — if you copy 5+ lines, extract.
+- [ ] Primitives reused (`Button`, `Logo`, etc.), not recreated.
+- [ ] Semantic HTML: heading hierarchy correct, `<button>` not `<div onClick>`, ARIA where appropriate.
+- [ ] Mobile-first responsive via Tailwind utilities.
+- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test --run` all green.
+- [ ] If you deviated from the AC, the deviation is documented on the ticket.
+
 ## Convenciones de código
 
 - Todo el código, identificadores y comentarios en **inglés**.
