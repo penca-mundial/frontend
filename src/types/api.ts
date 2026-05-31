@@ -111,6 +111,8 @@ export interface MatchResponse {
   kickoff_at: string
   status: string
   phase: string
+  group?: string | null
+  minute?: number | null
   home_score: number | null
   away_score: number | null
   advancing_team_id: number | null

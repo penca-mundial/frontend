@@ -39,6 +39,10 @@ export interface Match {
   kickoffAt: string
   status: MatchStatus
   phase: MatchPhase
+  /** Group letter (e.g. "A"); null/absent for knockout matches. From SCRUM-257. */
+  group?: string | null
+  /** Live elapsed minute while `status === 'live'`; null otherwise. From SCRUM-259. */
+  minute?: number | null
   homeScore: number | null
   awayScore: number | null
   advancingTeamId: string | null

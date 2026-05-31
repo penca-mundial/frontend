@@ -44,6 +44,8 @@ export function mapMatch(match: MatchResponse): Match {
     kickoffAt: match.kickoff_at,
     status: match.status as MatchStatus,
     phase: match.phase as MatchPhase,
+    group: match.group ?? null,
+    minute: match.minute ?? null,
     homeScore: match.home_score,
     awayScore: match.away_score,
     advancingTeamId:

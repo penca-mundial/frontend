@@ -120,6 +120,27 @@ describe('FixturePage', () => {
     ).toBeInTheDocument()
   })
 
+  it('renders group composition cards on the Grupos tab when matches carry a group', async () => {
+    const user = userEvent.setup()
+    mockQuery({
+      data: {
+        matches: [makeMatch({ group: 'A' })],
+        totalCount: 1,
+        page: 1,
+        perPage: 100,
+      },
+    })
+    renderPage()
+
+    await user.click(screen.getByRole('tab', { name: 'Grupos' }))
+    expect(screen.getByText('Grupo A')).toBeInTheDocument()
+    expect(screen.getByText('Uruguay')).toBeInTheDocument()
+    expect(screen.getByText('Argentina')).toBeInTheDocument()
+    expect(
+      screen.queryByText(/Los grupos se mostrarán/i),
+    ).not.toBeInTheDocument()
+  })
+
   it('shows the bracket empty-state on Eliminación when there are no knockout matches', async () => {
     const user = userEvent.setup()
     mockQuery({
