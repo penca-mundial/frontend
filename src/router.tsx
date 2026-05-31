@@ -10,6 +10,7 @@ import { ConfirmEmailPage } from '@/pages/public/ConfirmEmailPage'
 import { OAuthCallbackPage } from '@/pages/public/OAuthCallbackPage'
 import { FixturePage } from '@/pages/app/FixturePage'
 import { MatchPage } from '@/pages/app/MatchPage'
+import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
 
 /**
  * Placeholder page. Real pages and layouts arrive in their feature tickets;
@@ -100,6 +101,14 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute>
         <MatchPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/app/predictions/mine',
+    element: (
+      <ProtectedRoute>
+        <MyPredictionsPage />
       </ProtectedRoute>
     ),
   },
