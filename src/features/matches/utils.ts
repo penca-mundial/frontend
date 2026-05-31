@@ -1,4 +1,4 @@
-import type { Match, MatchPhase } from '@/features/matches/types'
+import type { BracketRound, Match, MatchPhase } from '@/features/matches/types'
 
 /**
  * Spanish (rioplatense) labels for each tournament phase. Note the 48-team
@@ -33,6 +33,57 @@ export function getPhaseLabel(phase: string): string {
 /** Whether the phase is a knockout (and thus needs an advancing-team pick). */
 export function isKnockoutPhase(phase: string): boolean {
   return KNOCKOUT_PHASES.has(phase as MatchPhase)
+}
+
+/**
+ * Knockout rounds in bracket progression order. `third_place` is rendered
+ * alongside the final, so it is ordered just before it.
+ */
+export const KNOCKOUT_ROUND_ORDER: readonly MatchPhase[] = [
+  'round_of_32',
+  'round_of_16',
+  'quarter_final',
+  'semi_final',
+  'third_place',
+  'final',
+]
+
+/**
+ * Group knockout matches into ordered bracket rounds, dropping group-stage
+ * matches and rounds with no matches. Within a round, matches keep chronological
+ * order (kickoff ascending) so the bracket reads top-to-bottom consistently.
+ */
+export function buildBracketRounds(matches: Match[]): BracketRound[] {
+  return KNOCKOUT_ROUND_ORDER.map((phase) => ({
+    phase,
+    matches: matches
+      .filter((match) => match.phase === phase)
+      .sort(
+        (a, b) =>
+          new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
+      ),
+  })).filter((round) => round.matches.length > 0)
+}
+
+/**
+ * Whether the user correctly predicted who advances from a knockout match.
+ * Returns null when it can't be judged yet (match unfinished, no prediction, or
+ * no actual winner recorded).
+ */
+export function advancingPredictionOutcome(
+  match: Match,
+): 'correct' | 'incorrect' | null {
+  if (
+    match.status !== 'finished' ||
+    !match.myPrediction ||
+    match.advancingTeamId === null ||
+    match.myPrediction.predictedAdvancingTeamId === null
+  ) {
+    return null
+  }
+  return match.myPrediction.predictedAdvancingTeamId === match.advancingTeamId
+    ? 'correct'
+    : 'incorrect'
 }
 
 /** Predictions lock from one minute before kickoff (mirrors the backend). */
