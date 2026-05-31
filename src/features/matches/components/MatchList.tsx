@@ -1,9 +1,12 @@
-import { MatchCard } from '@/features/matches/components/MatchCard'
+import { MatchCardExpandable } from '@/components/matches/MatchCardExpandable'
 import type { Match } from '@/features/matches/types'
+import type { Prediction } from '@/features/predictions/types'
 import { formatMatchDay, matchDayKey } from '@/lib/date'
 
 export interface MatchListProps {
   matches: Match[]
+  /** User predictions keyed by match id, for the inline prediction display. */
+  predictions: Map<string, Prediction>
   timezone: string
 }
 
@@ -35,8 +38,11 @@ function groupByDay(matches: Match[], timezone: string): DayGroup[] {
   return [...groups.values()]
 }
 
-/** Renders matches grouped by calendar day in the user's timezone. */
-export function MatchList({ matches, timezone }: MatchListProps) {
+/**
+ * Matches grouped by calendar day (user timezone), each rendered as a
+ * `MatchCardExpandable` so predictions happen inline from the list.
+ */
+export function MatchList({ matches, predictions, timezone }: MatchListProps) {
   const groups = groupByDay(matches, timezone)
 
   return (
@@ -48,7 +54,12 @@ export function MatchList({ matches, timezone }: MatchListProps) {
           </h2>
           <div className="flex flex-col gap-3">
             {group.matches.map((match) => (
-              <MatchCard key={match.id} match={match} timezone={timezone} />
+              <MatchCardExpandable
+                key={match.id}
+                match={match}
+                prediction={predictions.get(match.id) ?? null}
+                timezone={timezone}
+              />
             ))}
           </div>
         </section>

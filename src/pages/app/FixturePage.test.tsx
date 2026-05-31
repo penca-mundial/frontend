@@ -1,18 +1,24 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FixturePage } from '@/pages/app/FixturePage'
 import type { Match } from '@/features/matches/types'
 
 vi.mock('@/features/matches/hooks/useMatches', () => ({ useMatches: vi.fn() }))
+vi.mock('@/features/predictions/hooks/usePredictions', () => ({
+  usePredictions: vi.fn(),
+}))
 vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({ currentUser: { timezone: 'UTC' } }),
 }))
 
 import { useMatches } from '@/features/matches/hooks/useMatches'
+import { usePredictions } from '@/features/predictions/hooks/usePredictions'
 
 const useMatchesMock = vi.mocked(useMatches)
+const usePredictionsMock = vi.mocked(usePredictions)
 
 function mockQuery(value: {
   data?: { matches: Match[]; totalCount: number; page: number; perPage: number }
@@ -45,15 +51,23 @@ function makeMatch(overrides: Partial<Match> = {}): Match {
 }
 
 function renderPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
   return render(
-    <MemoryRouter>
-      <FixturePage />
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <FixturePage />
+      </MemoryRouter>
+    </QueryClientProvider>,
   )
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
+  usePredictionsMock.mockReturnValue({
+    data: { predictions: [], totalCount: 0, page: 1, perPage: 100 },
+  } as unknown as ReturnType<typeof usePredictions>)
 })
 
 describe('FixturePage', () => {
@@ -75,7 +89,7 @@ describe('FixturePage', () => {
     expect(screen.getByText(/No hay partidos para estos filtros/i)).toBeInTheDocument()
   })
 
-  it('renders matches grouped by day', () => {
+  it('renders the count banner and an inline card per match', () => {
     mockQuery({
       data: {
         matches: [makeMatch(), makeMatch()],
@@ -85,16 +99,16 @@ describe('FixturePage', () => {
       },
     })
     renderPage()
-    expect(screen.getAllByText('Uruguay').length).toBe(2)
-    expect(screen.getAllByRole('link')).toHaveLength(2)
+    expect(screen.getByText('2 partidos del Mundial 2026')).toBeInTheDocument()
+    expect(screen.getAllByText('Uruguay')).toHaveLength(2)
   })
 
-  it('requests the chosen phase from the server', async () => {
+  it('requests the chosen phase from the server via the underlined tabs', async () => {
     const user = userEvent.setup()
     mockQuery({ data: { matches: [], totalCount: 0, page: 1, perPage: 100 } })
     renderPage()
 
-    await user.click(screen.getByRole('button', { name: 'Dieciseisavos' }))
+    await user.click(screen.getByRole('tab', { name: 'Dieciseisavos' }))
 
     expect(useMatchesMock.mock.calls.at(-1)?.[0]).toMatchObject({
       phase: 'round_of_32',

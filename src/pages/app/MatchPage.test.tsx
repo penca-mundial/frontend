@@ -64,6 +64,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   useUpsertPredictionMock.mockReturnValue({
     mutate: vi.fn(),
+    mutateAsync: vi.fn(),
     isPending: false,
   } as unknown as ReturnType<typeof useUpsertPrediction>)
 })
@@ -85,7 +86,7 @@ describe('MatchPage', () => {
     mockMatch({ data: makeMatch() })
     renderPage()
     expect(
-      screen.getByRole('button', { name: 'Guardar pronóstico' }),
+      screen.getByRole('button', { name: /Guardar pronóstico/ }),
     ).toBeInTheDocument()
   })
 
@@ -96,7 +97,7 @@ describe('MatchPage', () => {
     renderPage()
     expect(screen.getByText('EN VIVO')).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'Guardar pronóstico' }),
+      screen.queryByRole('button', { name: /Guardar pronóstico/ }),
     ).not.toBeInTheDocument()
   })
 

@@ -1,6 +1,7 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom'
 import { PublicOnlyRoute } from '@/components/layout/PublicOnlyRoute'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
+import { AppShell } from '@/components/layout/AppShell'
 import { LoginPage } from '@/pages/public/LoginPage'
 import { ChooseUsernamePage } from '@/pages/onboarding/ChooseUsernamePage'
 import { SignupPage } from '@/pages/public/SignupPage'
@@ -86,31 +87,20 @@ export const routes: RouteObject[] = [
     ),
   },
 
-  // App (authenticated)
-  { path: '/app', element: <Placeholder title="Inicio" /> },
+  // App (authenticated) — wrapped in the AppShell (Header + Footer) layout.
   {
-    path: '/app/matches',
     element: (
       <ProtectedRoute>
-        <FixturePage />
+        <AppShell />
       </ProtectedRoute>
     ),
-  },
-  {
-    path: '/app/matches/:id',
-    element: (
-      <ProtectedRoute>
-        <MatchPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/app/predictions/mine',
-    element: (
-      <ProtectedRoute>
-        <MyPredictionsPage />
-      </ProtectedRoute>
-    ),
+    children: [
+      { path: '/app', element: <Placeholder title="Inicio" /> },
+      { path: '/app/home', element: <Placeholder title="Inicio" /> },
+      { path: '/app/matches', element: <FixturePage /> },
+      { path: '/app/matches/:id', element: <MatchPage /> },
+      { path: '/app/predictions/mine', element: <MyPredictionsPage /> },
+    ],
   },
 
   // Admin

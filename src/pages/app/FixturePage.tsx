@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { MatchFilters, type PhaseFilter, type TeamFilter } from '@/features/matches/components/MatchFilters'
+import { MatchFilters, type TeamFilter } from '@/features/matches/components/MatchFilters'
 import { MatchList } from '@/features/matches/components/MatchList'
+import { PhaseTabs, type PhaseFilter } from '@/features/matches/components/PhaseTabs'
 import { useMatches } from '@/features/matches/hooks/useMatches'
+import { usePredictions } from '@/features/predictions/hooks/usePredictions'
 import type { MatchListFilters } from '@/api/matches.api'
 import type { Match, MatchTeam } from '@/features/matches/types'
+import type { Prediction } from '@/features/predictions/types'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { detectUserTimezone } from '@/lib/timezone'
 
@@ -20,9 +23,11 @@ function collectTeams(matches: Match[]): MatchTeam[] {
 }
 
 /**
- * Public fixture: all tournament matches, filterable by phase and date range
- * (server-side) and by team (client-side, since there is no team endpoint yet).
- * Matches are grouped by day in the user's timezone and link to the detail page.
+ * Public fixture: all tournament matches, filterable by phase (underlined tabs,
+ * server-side) and date range (server-side), plus a client-side team filter.
+ * Matches are grouped by day and predicted inline via MatchCardExpandable — the
+ * user's predictions are fetched separately and joined by match id, since the
+ * list endpoint doesn't embed them.
  */
 export function FixturePage() {
   const { currentUser } = useCurrentUser()
@@ -40,11 +45,18 @@ export function FixturePage() {
   }
 
   const { data, isLoading, isError } = useMatches(serverFilters)
+  const { data: predictionData } = usePredictions(1, 100)
 
   const allMatches = useMemo(() => data?.matches ?? [], [data])
-  // Team options come from the full server-filtered set, so picking a team
-  // doesn't shrink the option list.
   const teamOptions = useMemo(() => collectTeams(allMatches), [allMatches])
+  const predictionsByMatch = useMemo(() => {
+    const map = new Map<string, Prediction>()
+    for (const prediction of predictionData?.predictions ?? []) {
+      map.set(prediction.matchId, prediction)
+    }
+    return map
+  }, [predictionData])
+
   const visibleMatches =
     teamId === 'all'
       ? allMatches
@@ -53,13 +65,22 @@ export function FixturePage() {
             match.homeTeam?.id === teamId || match.awayTeam?.id === teamId,
         )
 
+  const totalCount = data?.totalCount ?? 0
+
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-display-lg font-display font-semibold">Partidos</h1>
+    <div className="flex flex-col gap-5">
+      <div>
+        <h1 className="text-display-lg font-display font-semibold">Partidos</h1>
+        {totalCount > 0 && (
+          <p className="text-text-secondary text-body-sm">
+            {totalCount} partidos del Mundial 2026
+          </p>
+        )}
+      </div>
+
+      <PhaseTabs value={phase} onChange={setPhase} />
 
       <MatchFilters
-        phase={phase}
-        onPhaseChange={setPhase}
         dateFrom={dateFrom}
         dateTo={dateTo}
         onDateFromChange={setDateFrom}
@@ -72,7 +93,7 @@ export function FixturePage() {
       {isLoading ? (
         <div className="flex flex-col gap-3" aria-busy="true">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-28 w-full rounded-lg" />
+            <Skeleton key={index} className="h-28 w-full rounded-xl" />
           ))}
         </div>
       ) : isError ? (
@@ -84,7 +105,11 @@ export function FixturePage() {
           No hay partidos para estos filtros.
         </p>
       ) : (
-        <MatchList matches={visibleMatches} timezone={timezone} />
+        <MatchList
+          matches={visibleMatches}
+          predictions={predictionsByMatch}
+          timezone={timezone}
+        />
       )}
     </div>
   )
