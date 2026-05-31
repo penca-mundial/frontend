@@ -63,13 +63,9 @@ function TeamStepper({
   disabled: boolean
 }) {
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="flex flex-col items-center gap-0.5">
-        <TeamFlag team={team} />
-        <span className="text-text-secondary text-mono-mini font-semibold">
-          {teamCode(team)}
-        </span>
-      </div>
+    <div className="flex flex-col items-center gap-2.5">
+      {/* Flag only — the country code under the flag was redundant here. */}
+      <TeamFlag team={team} size={40} />
       <PredictionStepper
         label={teamName(team)}
         value={value}
@@ -119,7 +115,7 @@ export function PredictionEditor({
       {isSheet ? (
         <div className="border-border mb-3.5 flex items-center justify-between border-b pb-3">
           <div>
-            <div className="text-text-secondary text-mono-mini font-semibold uppercase">
+            <div className="text-text-primary text-body-sm font-semibold">
               Tu pronóstico
             </div>
             <div className="mt-0.5 flex items-center gap-1.5 text-body-sm font-semibold">
@@ -138,7 +134,7 @@ export function PredictionEditor({
           </button>
         </div>
       ) : (
-        <div className="text-text-secondary text-mono-mini mb-2.5 font-semibold uppercase">
+        <div className="text-text-primary text-body-sm mb-2.5 font-semibold">
           Tu pronóstico
         </div>
       )}
