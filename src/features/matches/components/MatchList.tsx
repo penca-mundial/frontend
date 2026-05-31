@@ -65,12 +65,12 @@ export function MatchList({
               <h2 className="text-text-primary text-body-sm flex items-center gap-2 font-semibold">
                 {group.label}
                 {group.key === todayKey && (
-                  <span className="bg-brand-accent-soft text-mono-mini rounded-full px-2 py-0.5 font-bold uppercase text-[#92400E]">
+                  <span className="bg-brand-accent-soft text-mono-mini rounded-full px-2 py-0.5 font-semibold uppercase text-[#92400E]">
                     Hoy
                   </span>
                 )}
               </h2>
-              <span className="text-text-secondary text-mono-mini">
+              <span className="text-text-secondary text-body-sm font-semibold">
                 {count} {count === 1 ? 'partido' : 'partidos'}
               </span>
             </div>

@@ -61,14 +61,26 @@ export function matchDayKey(date: string | Date, tz: string): string {
   return formatInTimeZone(toDate(date), tz, 'yyyy-MM-dd')
 }
 
-/** Capitalize the first letter of every whitespace-delimited word. */
+/**
+ * Capitalize each word's first letter, but keep Spanish connectors lowercase
+ * (a user preference, not strict orthography): "jueves, 11 de junio" becomes
+ * "Jueves, 11 de Junio" — day and month capitalized, the preposition not.
+ */
+const LOWERCASE_WORDS = new Set(['de', 'del', 'y', 'e'])
 function titleCase(value: string): string {
-  return value.replace(/(^|\s)(\p{L})/gu, (_, sep, ch) => sep + ch.toUpperCase())
+  return value
+    .split(' ')
+    .map((word) =>
+      LOWERCASE_WORDS.has(word.toLowerCase())
+        ? word.toLowerCase()
+        : word.charAt(0).toUpperCase() + word.slice(1),
+    )
+    .join(' ')
 }
 
 /**
  * Prominent day heading for the grouped fixture list, in the user's timezone
- * and title-cased to match the design (e.g. "Lunes, 15 De Junio").
+ * and title-cased to match the design (e.g. "Lunes, 15 de Junio").
  */
 export function formatDayHeading(date: string | Date, tz: string): string {
   return titleCase(

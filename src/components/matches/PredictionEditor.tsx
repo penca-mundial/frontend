@@ -150,7 +150,7 @@ export function PredictionEditor({
           onChange={setHome}
           disabled={saving}
         />
-        <span className="font-display text-text-disabled px-1 text-2xl font-extrabold">
+        <span className="font-display text-text-disabled px-1 text-2xl font-bold">
           –
         </span>
         <TeamStepper

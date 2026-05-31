@@ -125,7 +125,7 @@ export function GroupStandingsCard({
     <div className="border-border bg-surface overflow-hidden rounded-xl border">
       <div className="flex items-center justify-between gap-2 p-4 pb-2">
         <div className="flex items-center gap-2">
-          <h3 className="text-brand-primary font-display text-body-lg font-bold">
+          <h3 className="text-brand-primary font-display text-body-lg font-semibold">
             Grupo {groupLetter}
           </h3>
           <span className="bg-surface-muted text-text-secondary text-mono-mini rounded-full px-2 py-0.5">
