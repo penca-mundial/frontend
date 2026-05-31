@@ -99,30 +99,51 @@ function PredictionChip({
   )
 }
 
-function TeamLine({
+/**
+ * A team's name + flag, pinned to the outer edge of the card with the flag
+ * toward the centre (home: "Name 🇲🇽", away: "🇿🇦 Name"). The score lives in the
+ * centre cluster, not here — matching the fixture reference.
+ */
+function TeamSide({
   team,
-  align,
-  score,
+  side,
 }: {
   team: MatchTeam | null
-  align: 'left' | 'right'
-  score: number | null
+  side: 'home' | 'away'
 }) {
-  const isRight = align === 'right'
+  const isHome = side === 'home'
+  const name = (
+    <span className="truncate text-base font-semibold md:text-lg">
+      {teamName(team)}
+    </span>
+  )
   return (
-    <div className={cn('flex items-center gap-2.5', isRight && 'flex-row-reverse')}>
-      <TeamFlag team={team} />
-      <div className={cn('min-w-0 flex-1', isRight ? 'text-right' : 'text-left')}>
-        <div className="truncate text-base font-semibold leading-tight md:text-lg">
-          {teamName(team)}
-        </div>
-        {score !== null && (
-          <div className="font-display text-text-primary mt-1 text-2xl leading-none font-bold tabular-nums md:text-3xl">
-            {score}
-          </div>
-        )}
-      </div>
+    <div
+      className={cn(
+        'flex min-w-0 flex-1 items-center gap-2.5',
+        isHome ? 'justify-start' : 'justify-end',
+      )}
+    >
+      {isHome ? (
+        <>
+          {name}
+          <TeamFlag team={team} />
+        </>
+      ) : (
+        <>
+          <TeamFlag team={team} />
+          {name}
+        </>
+      )}
     </div>
+  )
+}
+
+function Score({ value }: { value: number | null }) {
+  return (
+    <span className="font-display text-text-primary text-2xl leading-none font-bold tabular-nums md:text-3xl">
+      {value}
+    </span>
   )
 }
 
@@ -155,20 +176,20 @@ function CardFace({
         <StatusBadge match={match} />
       </div>
 
-      {/* Teams capped + centred so the "vs" stays close to the names instead of
-          drifting across the full card width. */}
-      <div className="mx-auto grid w-full max-w-md grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <TeamLine
-          team={match.homeTeam}
-          align="left"
-          score={hasScore ? match.homeScore : null}
-        />
-        <span className="text-text-disabled px-1 text-xs">vs</span>
-        <TeamLine
-          team={match.awayTeam}
-          align="right"
-          score={hasScore ? match.awayScore : null}
-        />
+      {/* Names hug the outer edges, flags sit inward, scores form a centred
+          "1 vs 0" cluster — matching imagenes_mundial/fixture.png. */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        <TeamSide team={match.homeTeam} side="home" />
+        <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
+          {hasScore && match.homeScore !== null && (
+            <Score value={match.homeScore} />
+          )}
+          <span className="text-text-disabled text-xs">vs</span>
+          {hasScore && match.awayScore !== null && (
+            <Score value={match.awayScore} />
+          )}
+        </div>
+        <TeamSide team={match.awayTeam} side="away" />
       </div>
 
       <div className="border-border flex items-center justify-between gap-2 border-t border-dashed pt-1.5">
