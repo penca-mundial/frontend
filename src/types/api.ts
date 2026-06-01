@@ -122,6 +122,53 @@ export interface StandingsResponse {
   groups: Record<string, StandingResponse[]>
 }
 
+/** `GET /tournaments/current` (`TournamentBlueprint`). */
+export interface TournamentResponse {
+  id: number
+  name: string
+  starts_at: string
+  ends_at: string | null
+  external_code: string | null
+  champion_id: number | null
+  runner_up_id: number | null
+  third_place_id: number | null
+  fourth_place_id: number | null
+  top_scorer_id: number | null
+  is_locked: boolean
+  seconds_until_kickoff: number
+}
+
+/** A player row (`PlayerBlueprint`) with its embedded compact team. */
+export interface PlayerResponse {
+  id: number
+  name: string
+  external_id: string | null
+  team_id: number
+  team: MatchTeamResponse | null
+}
+
+/** A user's tournament-wide prediction (`TournamentPredictionBlueprint`). */
+export interface TournamentPredictionResponse {
+  id: number
+  tournament_id: number
+  champion_id: number | null
+  runner_up_id: number | null
+  third_place_id: number | null
+  fourth_place_id: number | null
+  top_scorer_id: number | null
+  locked_at: string | null
+  locked: boolean
+}
+
+/** Flat upsert body for `PUT /tournament_predictions` (all picks optional). */
+export interface UpsertTournamentPredictionPayload {
+  champion_id?: string | null
+  runner_up_id?: string | null
+  third_place_id?: string | null
+  fourth_place_id?: string | null
+  top_scorer_id?: string | null
+}
+
 /**
  * Wire shape of a match from `MatchBlueprint`. `my_prediction` is only present
  * on `GET /matches/:id` when a user is signed in (null when they have none).
