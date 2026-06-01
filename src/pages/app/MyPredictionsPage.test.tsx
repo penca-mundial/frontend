@@ -89,6 +89,14 @@ describe('MyPredictionsPage', () => {
     ).toBeInTheDocument()
   })
 
+  it('links to the tournament prediction page', () => {
+    mock([], [])
+    renderPage()
+
+    const link = screen.getByRole('link', { name: /Pronóstico del torneo/ })
+    expect(link).toHaveAttribute('href', '/app/predictions/tournament')
+  })
+
   it('renders a read-only card per prediction joined with its match', () => {
     mock([makePrediction('p1', '10', 2, 1)], [makeMatch('10')])
     renderPage()

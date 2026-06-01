@@ -1,4 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MatchList } from '@/features/matches/components/MatchList'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
@@ -134,6 +136,24 @@ export function MyPredictionsPage() {
           Tu historial de aciertos.
         </p>
       </div>
+
+      {/* Entry point to the tournament-wide prediction (podium + top scorer),
+          which has no navbar item. The whole card is the link (role="link"). */}
+      <Link
+        to="/app/predictions/tournament"
+        className="group border-brand-primary-soft bg-brand-primary-soft/40 hover:bg-brand-primary-soft focus-visible:ring-ring flex items-center justify-between gap-4 rounded-xl border px-4 py-3.5 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      >
+        <span className="flex flex-col">
+          <span className="text-body font-semibold">Pronóstico del torneo</span>
+          <span className="text-text-secondary text-body-sm">
+            Elegí el podio y el goleador del Mundial 2026.
+          </span>
+        </span>
+        <ArrowRight
+          aria-hidden="true"
+          className="text-brand-primary size-5 shrink-0 transition-transform group-hover:translate-x-0.5"
+        />
+      </Link>
 
       <div className="border-border bg-surface grid grid-cols-4 gap-2 rounded-xl border p-4">
         <Stat value={stats.predicted} label="Pronosticados" sub={`de ${totalMatches}`} />
