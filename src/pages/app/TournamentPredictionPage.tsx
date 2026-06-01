@@ -1,7 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
-import { SectionLabel } from '@/components/ui/section-label'
 import { TournamentPredictionForm } from '@/features/tournament-predictions/components/TournamentPredictionForm'
-import { TeamFlag } from '@/features/tournament-predictions/components/TeamFlag'
+import { TournamentPredictionSummary } from '@/features/tournament-predictions/components/TournamentPredictionSummary'
 import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
 import { useTeams } from '@/features/tournament-predictions/hooks/useTeams'
 import { usePlayers } from '@/features/tournament-predictions/hooks/usePlayers'
@@ -27,19 +26,6 @@ function formatCountdown(total: number): string {
   return parts.join(' ')
 }
 
-type PodiumKey =
-  | 'championId'
-  | 'runnerUpId'
-  | 'thirdPlaceId'
-  | 'fourthPlaceId'
-
-const PODIUM: { id: PodiumKey; label: string }[] = [
-  { id: 'championId', label: 'Campeón' },
-  { id: 'runnerUpId', label: 'Subcampeón' },
-  { id: 'thirdPlaceId', label: 'Tercer puesto' },
-  { id: 'fourthPlaceId', label: 'Cuarto puesto' },
-]
-
 /** Read-only summary of the user's own prediction once the tournament locks. */
 function LockedView({
   prediction,
@@ -57,41 +43,12 @@ function LockedView({
       </p>
     )
   }
-  const findTeam = (id: string | null) =>
-    id ? (teams.find((team) => team.id === id) ?? null) : null
-  const scorer = prediction.topScorerId
-    ? (players.find((player) => player.id === prediction.topScorerId) ?? null)
-    : null
-
   return (
-    <dl className="border-border bg-surface divide-border divide-y rounded-xl border">
-      {PODIUM.map(({ id, label }) => {
-        const team = findTeam(prediction[id])
-        return (
-          <div
-            key={id}
-            className="flex items-center justify-between gap-4 px-4 py-3"
-          >
-            <SectionLabel as="dt" tone="secondary">
-              {label}
-            </SectionLabel>
-            <dd className="flex items-center gap-2 text-body-sm font-semibold">
-              <TeamFlag flagUrl={team?.flagUrl ?? null} />
-              {team?.name ?? '—'}
-            </dd>
-          </div>
-        )
-      })}
-      <div className="flex items-center justify-between gap-4 px-4 py-3">
-        <SectionLabel as="dt" tone="secondary">
-          Goleador
-        </SectionLabel>
-        <dd className="flex items-center gap-2 text-body-sm font-semibold">
-          <TeamFlag flagUrl={scorer?.team?.flagUrl ?? null} />
-          {scorer?.name ?? '—'}
-        </dd>
-      </div>
-    </dl>
+    <TournamentPredictionSummary
+      prediction={prediction}
+      teams={teams}
+      players={players}
+    />
   )
 }
 
