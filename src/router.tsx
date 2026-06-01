@@ -10,6 +10,7 @@ import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage'
 import { ConfirmEmailPage } from '@/pages/public/ConfirmEmailPage'
 import { OAuthCallbackPage } from '@/pages/public/OAuthCallbackPage'
 import { LandingPage } from '@/pages/public/LandingPage'
+import { HomePage } from '@/pages/app/HomePage'
 import { FixturePage } from '@/pages/app/FixturePage'
 import { MatchPage } from '@/pages/app/MatchPage'
 import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
@@ -104,8 +105,8 @@ export const routes: RouteObject[] = [
       </ProtectedRoute>
     ),
     children: [
-      { path: '/app', element: <Placeholder title="Inicio" /> },
-      { path: '/app/home', element: <Placeholder title="Inicio" /> },
+      { path: '/app', element: <HomePage /> },
+      { path: '/app/home', element: <HomePage /> },
       { path: '/app/matches', element: <FixturePage /> },
       { path: '/app/matches/:id', element: <MatchPage /> },
       { path: '/app/predictions/mine', element: <MyPredictionsPage /> },
