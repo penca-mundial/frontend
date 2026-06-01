@@ -13,6 +13,7 @@ import { LandingPage } from '@/pages/public/LandingPage'
 import { FixturePage } from '@/pages/app/FixturePage'
 import { MatchPage } from '@/pages/app/MatchPage'
 import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
+import { TournamentPredictionPage } from '@/pages/app/TournamentPredictionPage'
 
 /**
  * Placeholder page. Real pages and layouts arrive in their feature tickets;
@@ -108,6 +109,10 @@ export const routes: RouteObject[] = [
       { path: '/app/matches', element: <FixturePage /> },
       { path: '/app/matches/:id', element: <MatchPage /> },
       { path: '/app/predictions/mine', element: <MyPredictionsPage /> },
+      {
+        path: '/app/predictions/tournament',
+        element: <TournamentPredictionPage />,
+      },
     ],
   },
 
