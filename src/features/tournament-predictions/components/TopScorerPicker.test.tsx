@@ -27,6 +27,24 @@ describe('TopScorerPicker', () => {
     expect(screen.queryByText('Cristiano Ronaldo')).not.toBeInTheDocument()
   })
 
+  it('shows the selected player flag in the trigger', () => {
+    const messi: Player = {
+      id: '9',
+      name: 'Lionel Messi',
+      externalId: 'e9',
+      teamId: '1',
+      team: { id: '1', name: 'Argentina', code3: 'ARG', flagUrl: 'https://flags/arg.png' },
+    }
+    render(<TopScorerPicker players={[messi]} value="9" onChange={vi.fn()} />)
+
+    const trigger = screen.getByRole('combobox')
+    expect(trigger).toHaveTextContent('Lionel Messi')
+    const flag = trigger.querySelector('img')
+    expect(flag).toHaveAttribute('src', 'https://flags/arg.png')
+    expect(flag).toHaveAttribute('alt', '') // decorative
+    expect(flag).toHaveAttribute('aria-hidden', 'true')
+  })
+
   it('reports the chosen player', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()

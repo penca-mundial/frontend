@@ -53,8 +53,11 @@ export function TopScorerPicker({
             disabled={disabled}
             className="justify-between font-normal"
           >
-            <span className="truncate">
-              {selected ? selected.name : 'Buscá un jugador'}
+            <span className="flex min-w-0 items-center gap-2">
+              {selected && <TeamFlag flagUrl={selected.team?.flagUrl ?? null} />}
+              <span className="truncate">
+                {selected ? selected.name : 'Buscá un jugador'}
+              </span>
             </span>
             <ChevronsUpDown className="opacity-50" />
           </Button>
