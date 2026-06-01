@@ -1,6 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionLabel } from '@/components/ui/section-label'
 import { TournamentPredictionForm } from '@/features/tournament-predictions/components/TournamentPredictionForm'
+import { TeamFlag } from '@/features/tournament-predictions/components/TeamFlag'
 import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
 import { useTeams } from '@/features/tournament-predictions/hooks/useTeams'
 import { usePlayers } from '@/features/tournament-predictions/hooks/usePlayers'
@@ -56,29 +57,38 @@ function LockedView({
       </p>
     )
   }
-  const teamName = (id: string | null) =>
-    (id && teams.find((team) => team.id === id)?.name) || '—'
-  const playerName = (id: string | null) =>
-    (id && players.find((player) => player.id === id)?.name) || '—'
+  const findTeam = (id: string | null) =>
+    id ? (teams.find((team) => team.id === id) ?? null) : null
+  const scorer = prediction.topScorerId
+    ? (players.find((player) => player.id === prediction.topScorerId) ?? null)
+    : null
 
   return (
     <dl className="border-border bg-surface divide-border divide-y rounded-xl border">
-      {PODIUM.map(({ id, label }) => (
-        <div key={id} className="flex items-center justify-between gap-4 px-4 py-3">
-          <SectionLabel as="dt" tone="secondary">
-            {label}
-          </SectionLabel>
-          <dd className="text-body-sm font-semibold">
-            {teamName(prediction[id])}
-          </dd>
-        </div>
-      ))}
+      {PODIUM.map(({ id, label }) => {
+        const team = findTeam(prediction[id])
+        return (
+          <div
+            key={id}
+            className="flex items-center justify-between gap-4 px-4 py-3"
+          >
+            <SectionLabel as="dt" tone="secondary">
+              {label}
+            </SectionLabel>
+            <dd className="flex items-center gap-2 text-body-sm font-semibold">
+              <TeamFlag flagUrl={team?.flagUrl ?? null} />
+              {team?.name ?? '—'}
+            </dd>
+          </div>
+        )
+      })}
       <div className="flex items-center justify-between gap-4 px-4 py-3">
         <SectionLabel as="dt" tone="secondary">
           Goleador
         </SectionLabel>
-        <dd className="text-body-sm font-semibold">
-          {playerName(prediction.topScorerId)}
+        <dd className="flex items-center gap-2 text-body-sm font-semibold">
+          <TeamFlag flagUrl={scorer?.team?.flagUrl ?? null} />
+          {scorer?.name ?? '—'}
         </dd>
       </div>
     </dl>

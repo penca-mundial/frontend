@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { TeamFlag } from '@/features/tournament-predictions/components/TeamFlag'
 import type { MatchTeam } from '@/features/matches/types'
 
 /** Sentinel for "no pick" — Radix Select items can't have an empty value. */
@@ -69,7 +70,10 @@ export function PodiumPicker({
                 <SelectItem value={NONE}>Sin definir</SelectItem>
                 {options.map((team) => (
                   <SelectItem key={team.id} value={team.id}>
-                    {team.name}
+                    <span className="flex items-center gap-2">
+                      <TeamFlag flagUrl={team.flagUrl} />
+                      {team.name}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

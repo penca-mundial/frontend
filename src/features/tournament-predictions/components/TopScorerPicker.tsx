@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { TeamFlag } from '@/features/tournament-predictions/components/TeamFlag'
 import type { Player } from '@/features/tournament-predictions/types'
 import { cn } from '@/lib/cn'
 
@@ -82,6 +83,7 @@ export function TopScorerPicker({
                         player.id === value ? 'opacity-100' : 'opacity-0',
                       )}
                     />
+                    <TeamFlag flagUrl={player.team?.flagUrl ?? null} />
                     <span className="truncate">{player.name}</span>
                     {player.team?.code3 && (
                       <span className="text-text-disabled text-mono-mini ml-auto">
