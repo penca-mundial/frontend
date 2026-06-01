@@ -1,4 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MatchList } from '@/features/matches/components/MatchList'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
@@ -126,13 +129,25 @@ export function MyPredictionsPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <div>
-        <h1 className="text-display-lg font-display font-semibold">
-          Mis pronósticos
-        </h1>
-        <p className="text-text-secondary text-body-sm">
-          Tu historial de aciertos.
-        </p>
+      {/* Title left / action right; on mobile the action wraps below the
+          title. The action is the entry point to the tournament-wide
+          prediction (podium + top scorer), which has no navbar item — kept as
+          a <Link> (role="link", keyboard-navigable, accessible name from text).*/}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-display-lg font-display font-semibold">
+            Mis pronósticos
+          </h1>
+          <p className="text-text-secondary text-body-sm">
+            Tu historial de aciertos.
+          </p>
+        </div>
+        <Button asChild variant="outline" className="self-start sm:self-auto">
+          <Link to="/app/predictions/tournament">
+            Pronóstico del torneo
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </Button>
       </div>
 
       <div className="border-border bg-surface grid grid-cols-4 gap-2 rounded-xl border p-4">
