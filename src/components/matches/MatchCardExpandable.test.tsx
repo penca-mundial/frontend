@@ -99,6 +99,27 @@ describe('MatchCardExpandable', () => {
     expect(screen.getByText('Grupo A')).toBeInTheDocument()
   })
 
+  it('omits the kickoff date by default but shows it with showDate', () => {
+    const match = makeMatch({ group: 'A' }) // 2099-06-12T19:00:00Z
+    const { rerender } = render(
+      <MatchCardExpandable match={match} prediction={null} timezone="UTC" />,
+    )
+    // Default: only the time, no date.
+    expect(screen.getByText('19:00')).toBeInTheDocument()
+    expect(screen.queryByText(/12 jun/i)).not.toBeInTheDocument()
+
+    rerender(
+      <MatchCardExpandable
+        match={match}
+        prediction={null}
+        timezone="UTC"
+        showDate
+      />,
+    )
+    expect(screen.getByText('19:00')).toBeInTheDocument()
+    expect(screen.getByText(/12 jun/i)).toBeInTheDocument()
+  })
+
   it('renders the live minute in the EN VIVO badge', () => {
     renderCard({
       match: makeMatch({

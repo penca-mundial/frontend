@@ -191,6 +191,65 @@ describe('FixturePage', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('renders the pre-tournament groups (all stats at 0) instead of the placeholder', async () => {
+    const user = userEvent.setup()
+    // The computed endpoint returns the 12 groups with their teams at 0
+    // pre-tournament — so the tab must show the tables, not "Próximamente".
+    const letters = 'ABCDEFGHIJKL'.split('')
+    mockQuery({
+      data: { matches: [makeMatch({ group: 'A' })], totalCount: 1, page: 1, perPage: 100 },
+    })
+    mockStandings(
+      letters.map((letter) => ({
+        group: letter,
+        rows: [
+          {
+            id: `${letter}-1`,
+            group: letter,
+            position: 1,
+            playedGames: 0,
+            won: 0,
+            draw: 0,
+            lost: 0,
+            goalsFor: 0,
+            goalsAgainst: 0,
+            goalDifference: 0,
+            points: 0,
+            form: null,
+            team: { id: `${letter}1`, name: `Equipo ${letter}`, code3: letter.repeat(3), flagUrl: null },
+          },
+        ],
+      })),
+    )
+    renderPage()
+
+    await user.click(screen.getByRole('tab', { name: 'Grupos' }))
+    expect(screen.getByText('Grupo A')).toBeInTheDocument()
+    expect(screen.getByText('Grupo L')).toBeInTheDocument()
+    expect(screen.getAllByText(/^Grupo [A-L]$/)).toHaveLength(12)
+    expect(
+      screen.queryByText(/Los grupos se mostrarán/i),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows a skeleton (not the placeholder) while standings load', async () => {
+    const user = userEvent.setup()
+    mockQuery({
+      data: { matches: [makeMatch()], totalCount: 1, page: 1, perPage: 100 },
+    })
+    useStandingsMock.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+    } as unknown as ReturnType<typeof useStandings>)
+    const { container } = renderPage()
+
+    await user.click(screen.getByRole('tab', { name: 'Grupos' }))
+    expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull()
+    expect(
+      screen.queryByText(/Los grupos se mostrarán/i),
+    ).not.toBeInTheDocument()
+  })
+
   it('shows the elimination empty-state when there are no knockout matches', async () => {
     const user = userEvent.setup()
     mockQuery({
