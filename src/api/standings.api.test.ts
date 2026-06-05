@@ -2,73 +2,128 @@ import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import { server } from '@/test/mocks/server'
 import { standingsApi } from '@/api/standings.api'
-import type { StandingResponse } from '@/types/api'
+import type { ComputedGroupStandings, ComputedStandingRow } from '@/types/api'
 
-function row(overrides: Partial<StandingResponse>): StandingResponse {
+function row(overrides: Partial<ComputedStandingRow>): ComputedStandingRow {
   return {
-    id: 1,
-    group: 'A',
+    team: { id: 1, name: 'Uruguay', code3: 'URU', flag_url: null },
     position: 1,
-    played_games: 1,
+    played: 1,
     won: 1,
-    draw: 0,
+    drawn: 0,
     lost: 0,
     goals_for: 3,
     goals_against: 1,
     goal_difference: 2,
     points: 3,
-    form: 'W',
-    team: { id: 1, name: 'Uruguay', code3: 'URU', flag_url: null },
     ...overrides,
   }
 }
 
+function group(
+  name: string,
+  rows: ComputedStandingRow[],
+): ComputedGroupStandings {
+  return { name, standings: rows }
+}
+
 describe('standingsApi.list', () => {
-  it('maps the grouped envelope to camelCase and sorts groups alphabetically', async () => {
+  it('maps the computed array to camelCase, sorts groups, keeps row order', async () => {
     server.use(
-      http.get('*/standings', () =>
-        HttpResponse.json({
-          groups: {
-            B: [row({ id: 3, group: 'B', team: { id: 5, name: 'Brasil', code3: 'BRA', flag_url: null } })],
-            A: [row({ id: 1, group: 'A' })],
-          },
-        }),
+      http.get('*/tournaments/:id/standings', () =>
+        HttpResponse.json([
+          group('B', [
+            row({
+              position: 1,
+              team: { id: 5, name: 'Brasil', code3: 'BRA', flag_url: null },
+            }),
+          ]),
+          group('A', [
+            row({ position: 1, points: 7, goal_difference: 4 }),
+            row({
+              position: 2,
+              points: 1,
+              drawn: 1,
+              won: 0,
+              played: 1,
+              goal_difference: -2,
+              team: { id: 2, name: 'Argentina', code3: 'ARG', flag_url: null },
+            }),
+          ]),
+        ]),
       ),
     )
 
     const result = await standingsApi.list('1')
 
-    expect(result.map((g) => g.group)).toEqual(['A', 'B']) // sorted
-    expect(result[0]).toMatchObject({
+    expect(result.map((g) => g.group)).toEqual(['A', 'B']) // sorted by name
+    // Row order within the group is preserved (backend already ordered it).
+    expect(result[0].rows.map((r) => r.position)).toEqual([1, 2])
+    expect(result[0].rows[0]).toMatchObject({
       group: 'A',
-      rows: [
-        {
-          id: '1',
-          position: 1,
-          playedGames: 1,
-          goalDifference: 2,
-          points: 3,
-          team: { id: '1', name: 'Uruguay', code3: 'URU' },
-        },
-      ],
+      position: 1,
+      playedGames: 1,
+      won: 1,
+      draw: 0, // drawn -> draw
+      goalDifference: 4,
+      points: 7,
+      form: null,
+      team: { id: '1', name: 'Uruguay', code3: 'URU' },
     })
+    // Synthesized stable key from group + team id (the endpoint has no row id).
+    expect(result[0].rows[0].id).toBe('A-1')
+    expect(result[0].rows[1].draw).toBe(1)
   })
 
-  it('passes tournament_id as a flat query param', async () => {
-    let captured: URLSearchParams | null = null
+  it('hits the computed path with the tournament id', async () => {
+    let capturedPath: string | null = null
     server.use(
-      http.get('*/standings', ({ request }) => {
-        captured = new URL(request.url).searchParams
-        return HttpResponse.json({ groups: {} })
+      http.get('*/tournaments/:id/standings', ({ request }) => {
+        capturedPath = new URL(request.url).pathname
+        return HttpResponse.json([])
       }),
     )
 
     await standingsApi.list('7')
-    expect(captured!.get('tournament_id')).toBe('7')
+    expect(capturedPath).toMatch(/\/tournaments\/7\/standings$/)
   })
 
-  it('returns an empty array when there are no groups', async () => {
-    server.use(http.get('*/standings', () => HttpResponse.json({ groups: {} })))
-    expect(await standingsApi.list()).toEqual([])
+  it('maps pre-tournament groups with every stat at 0 (teams present)', async () => {
+    server.use(
+      http.get('*/tournaments/:id/standings', () =>
+        HttpResponse.json([
+          group('A', [
+            row({
+              position: 1,
+              played: 0,
+              won: 0,
+              drawn: 0,
+              lost: 0,
+              goals_for: 0,
+              goals_against: 0,
+              goal_difference: 0,
+              points: 0,
+            }),
+          ]),
+        ]),
+      ),
+    )
+
+    const result = await standingsApi.list('1')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].rows[0]).toMatchObject({
+      playedGames: 0,
+      points: 0,
+      goalDifference: 0,
+      team: { name: 'Uruguay' },
+    })
+  })
+
+  it('returns an empty array when the endpoint has no groups', async () => {
+    server.use(
+      http.get('*/tournaments/:id/standings', () => HttpResponse.json([])),
+    )
+    expect(await standingsApi.list('1')).toEqual([])
   })
 })

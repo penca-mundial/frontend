@@ -60,8 +60,10 @@ function GruposPlaceholder() {
  * Public fixture with three views (segmented tabs):
  * - Calendario: every match grouped by day, predicted inline via
  *   `MatchCardExpandable`, with team/date filters.
- * - Grupos: one `GroupStandingsCard` per group from `GET /standings` (real
- *   standings + collapsible inline-predictable matches); placeholder when none.
+ * - Grupos: one `GroupStandingsCard` per group from the computed standings
+ *   endpoint (`GET /tournaments/:id/standings`, derived from the matches —
+ *   every group at 0 pre-tournament, live during) plus collapsible inline-
+ *   predictable matches; a skeleton while loading, placeholder only when empty.
  * - Eliminación: knockout matches as a sub-phase-filterable, inline-predictable
  *   list (default) or the read-only bracket, toggled via `EliminationView`.
  *
@@ -126,10 +128,10 @@ export function FixturePage() {
     [allMatches],
   )
   const tournamentId = allMatches[0]?.tournamentId
-  const { data: standingsGroups } = useStandings(tournamentId, {
-    hasLiveMatches,
-    enabled: tab === 'grupos',
-  })
+  const { data: standingsGroups, isLoading: standingsLoading } = useStandings(
+    tournamentId,
+    { hasLiveMatches, enabled: tab === 'grupos' },
+  )
   const matchesByGroup = useMemo(
     () => matchesByGroupLetter(allMatches),
     [allMatches],
@@ -178,7 +180,13 @@ export function FixturePage() {
       )}
 
       {tab === 'grupos' &&
-        (standingsGroups && standingsGroups.length > 0 ? (
+        (standingsLoading ? (
+          <div className="flex flex-col gap-4" aria-busy="true">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton key={index} className="h-48 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : standingsGroups && standingsGroups.length > 0 ? (
           <div className="flex flex-col gap-4">
             {standingsGroups.map((g) => (
               <GroupStandingsCard

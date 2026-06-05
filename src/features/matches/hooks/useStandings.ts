@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { standingsApi } from '@/api/standings.api'
+import type { GroupStandings } from '@/features/matches/types'
 
 const LIVE_REFETCH_MS = 30_000
 const IDLE_REFETCH_MS = 5 * 60_000
@@ -12,10 +13,11 @@ export interface UseStandingsOptions {
 }
 
 /**
- * Group standings for a tournament (`GET /standings?tournament_id=`). Server
- * state via TanStack Query — polls every 30s while a match is live and every
- * 5 minutes otherwise. `tournamentId` is optional (backend defaults to the
- * first tournament).
+ * Computed group standings for a tournament
+ * (`GET /tournaments/:id/standings`, SCRUM-244 — derived from the matches,
+ * server-cached 30s). Server state via TanStack Query — polls every 30s while a
+ * match is live and every 5 minutes otherwise. The tournament id lives in the
+ * path, so the fetch only runs once it's known.
  */
 export function useStandings(
   tournamentId: string | undefined,
@@ -23,8 +25,11 @@ export function useStandings(
 ) {
   return useQuery({
     queryKey: ['standings', tournamentId ?? 'default'],
-    queryFn: () => standingsApi.list(tournamentId),
+    queryFn: () =>
+      tournamentId
+        ? standingsApi.list(tournamentId)
+        : Promise.resolve<GroupStandings[]>([]),
     refetchInterval: hasLiveMatches ? LIVE_REFETCH_MS : IDLE_REFETCH_MS,
-    enabled,
+    enabled: enabled && Boolean(tournamentId),
   })
 }

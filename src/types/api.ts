@@ -100,26 +100,29 @@ export interface MatchTeamResponse {
   flag_url: string | null
 }
 
-/** A standings row (`StandingBlueprint`). */
-export interface StandingResponse {
-  id: number
-  group: string
+/**
+ * A computed standings row (`GET /tournaments/:id/standings`, SCRUM-244). The
+ * tables are derived from the matches: pre-tournament every team sits at 0,
+ * stats update live during. Rows arrive already ordered within their group
+ * (points → goal difference → goals for).
+ */
+export interface ComputedStandingRow {
+  team: MatchTeamResponse | null
   position: number
-  played_games: number
+  played: number
   won: number
-  draw: number
+  drawn: number
   lost: number
   goals_for: number
   goals_against: number
   goal_difference: number
   points: number
-  form: string | null
-  team: MatchTeamResponse | null
 }
 
-/** `GET /standings` envelope: rows grouped by group letter, ordered by position. */
-export interface StandingsResponse {
-  groups: Record<string, StandingResponse[]>
+/** A computed group's table (`GET /tournaments/:id/standings`). */
+export interface ComputedGroupStandings {
+  name: string
+  standings: ComputedStandingRow[]
 }
 
 /** `GET /tournaments/current` (`TournamentBlueprint`). */

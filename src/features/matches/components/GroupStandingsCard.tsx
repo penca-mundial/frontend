@@ -34,10 +34,11 @@ function Flag({ team }: { team: MatchTeam | null }) {
 
 /**
  * A single group's standings table plus its (collapsible) matches, rendered in
- * the fixture "Grupos" tab. Standings come from the real `GET /standings`
- * endpoint (see `useStandings`); matches reuse `MatchCardExpandable` (inline-
- * predictable). The mobile layout keeps Equipo / DG / Pts and hides the
- * secondary columns via Tailwind responsive utilities.
+ * the fixture "Grupos" tab. Standings come from the computed
+ * `GET /tournaments/:id/standings` endpoint (see `useStandings`); matches reuse
+ * `MatchCardExpandable` (inline-predictable). The mobile layout keeps
+ * Equipo / DG / Pts and hides the secondary columns via Tailwind responsive
+ * utilities.
  */
 export function GroupStandingsCard({
   groupLetter,
