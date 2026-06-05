@@ -67,7 +67,7 @@ export function GroupStandingsCard({
                 (consolidated here so it isn't shown twice): a teal heading plus
                 the same grey "jugados" badge the card header used. */}
             <th className="py-2 font-medium" scope="col">
-              <div className="flex items-center gap-3">
+              <div className="-ml-2 flex items-center gap-3">
                 <h3 className="text-brand-primary font-display text-body-lg font-semibold">
                   Grupo {groupLetter}
                 </h3>
@@ -126,7 +126,7 @@ export function GroupStandingsCard({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="border-border bg-surface-muted/40 hover:bg-surface-muted text-text-secondary mt-2 flex w-full items-center justify-between gap-2 border-t px-4 py-2.5 text-body-sm transition-colors"
+        className="border-border bg-surface-muted/40 hover:bg-surface-muted text-text-secondary mt-2 flex w-full items-center justify-between gap-2 border-t px-4 py-2.5 text-xs transition-colors"
       >
         <span>
           {matches.length} {matches.length === 1 ? 'partido' : 'partidos'} del
