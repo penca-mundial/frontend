@@ -100,7 +100,7 @@ export function GroupStandingsCard({
                   <span className="text-body-sm font-semibold">
                     {row.team?.name ?? 'Por definir'}
                   </span>
-                  <span className="text-text-disabled text-mono-mini">
+                  <span className="text-text-disabled font-mono text-[10px] tracking-[0.04em]">
                     {row.team?.code3}
                   </span>
                 </div>
