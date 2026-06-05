@@ -60,14 +60,11 @@ export function GroupStandingsCard({
       <table className="w-full px-4 pt-4 text-left">
         <thead>
           <tr className="text-text-disabled text-mono-mini">
-            <th className="w-6 px-4 py-1 font-medium" scope="col">
-              <span className="sr-only">Posición</span>
-            </th>
-            {/* The Equipo column header carries the group title + played count
-                (consolidated here so it isn't shown twice): a teal heading plus
-                the same grey "jugados" badge the card header used. */}
-            <th className="py-2 font-medium" scope="col">
-              <div className="-ml-2 flex items-center gap-3">
+            {/* Group title + played-count badge, spanning the position + team
+                columns so it starts (px-4) flush with the position numbers in
+                the rows below. */}
+            <th className="px-4 py-2 font-medium" colSpan={2} scope="colgroup">
+              <div className="flex items-center gap-3">
                 <h3 className="text-brand-primary font-display text-body-lg font-semibold">
                   Grupo {groupLetter}
                 </h3>
