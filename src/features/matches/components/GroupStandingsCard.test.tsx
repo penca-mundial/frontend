@@ -57,8 +57,9 @@ describe('GroupStandingsCard', () => {
       />,
     )
 
-    // The group title + played count are consolidated in the table header.
-    expect(screen.getByText('Grupo A · 0/0 jugados')).toBeInTheDocument()
+    // The group title + played-count badge live in the table header.
+    expect(screen.getByText('Grupo A')).toBeInTheDocument()
+    expect(screen.getByText('0 / 0 jugados')).toBeInTheDocument()
     const rows = screen.getAllByRole('row').slice(1) // drop the header row
 
     const row0 = within(rows[0]).getAllByRole('cell')

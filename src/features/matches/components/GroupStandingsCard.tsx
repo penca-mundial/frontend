@@ -64,11 +64,17 @@ export function GroupStandingsCard({
               <span className="sr-only">Posición</span>
             </th>
             {/* The Equipo column header carries the group title + played count
-                (consolidated here so it isn't shown twice). */}
+                (consolidated here so it isn't shown twice): a teal heading plus
+                the same grey "jugados" badge the card header used. */}
             <th className="py-2 font-medium" scope="col">
-              <h3 className="text-brand-primary font-display text-xs font-semibold">
-                Grupo {groupLetter} · {played}/{matches.length} jugados
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-brand-primary font-display text-body-lg font-semibold">
+                  Grupo {groupLetter}
+                </h3>
+                <span className="bg-surface-muted text-text-secondary text-mono-mini rounded-full px-2 py-0.5 font-normal">
+                  {played} / {matches.length} jugados
+                </span>
+              </div>
             </th>
             <th className={cn(numCols, secondary)} scope="col">PJ</th>
             <th className={cn(numCols, secondary)} scope="col">G</th>
