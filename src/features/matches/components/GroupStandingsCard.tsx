@@ -53,6 +53,8 @@ export function GroupStandingsCard({
   // Wider numeric columns so the stats table breathes (was w-7); the secondary
   // ones still collapse on mobile, leaving Equipo / DG / Pts.
   const numCols = 'text-text-secondary w-9 text-center text-mono-mini'
+  // Column headers a notch smaller than the body numbers (12px vs 14px).
+  const numHead = 'text-text-secondary w-9 text-center font-mono text-xs tracking-[0.04em]'
   const secondary = 'hidden sm:table-cell' // hidden on mobile per the spec
 
   return (
@@ -76,14 +78,14 @@ export function GroupStandingsCard({
                 </span>
               </div>
             </th>
-            <th className={cn(numCols, secondary)} scope="col">PJ</th>
-            <th className={cn(numCols, secondary)} scope="col">G</th>
-            <th className={cn(numCols, secondary)} scope="col">E</th>
-            <th className={cn(numCols, secondary)} scope="col">P</th>
-            <th className={cn(numCols, secondary)} scope="col">GF</th>
-            <th className={cn(numCols, secondary)} scope="col">GC</th>
-            <th className={cn(numCols)} scope="col">DG</th>
-            <th className="text-text-primary w-9 px-4 text-center text-mono-mini font-semibold" scope="col">
+            <th className={cn(numHead, secondary)} scope="col">PJ</th>
+            <th className={cn(numHead, secondary)} scope="col">G</th>
+            <th className={cn(numHead, secondary)} scope="col">E</th>
+            <th className={cn(numHead, secondary)} scope="col">P</th>
+            <th className={cn(numHead, secondary)} scope="col">GF</th>
+            <th className={cn(numHead, secondary)} scope="col">GC</th>
+            <th className={cn(numHead)} scope="col">DG</th>
+            <th className="text-text-primary w-9 px-4 text-center font-mono text-xs font-semibold tracking-[0.04em]" scope="col">
               PTS
             </th>
           </tr>
