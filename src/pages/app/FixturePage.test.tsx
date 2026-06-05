@@ -183,7 +183,7 @@ describe('FixturePage', () => {
     renderPage()
 
     await user.click(screen.getByRole('tab', { name: 'Grupos' }))
-    expect(screen.getByText('Grupo A')).toBeInTheDocument()
+    expect(screen.getByText(/^Grupo A ·/)).toBeInTheDocument()
     expect(screen.getByText('Uruguay')).toBeInTheDocument()
     expect(screen.getByText('Argentina')).toBeInTheDocument()
     expect(
@@ -224,9 +224,9 @@ describe('FixturePage', () => {
     renderPage()
 
     await user.click(screen.getByRole('tab', { name: 'Grupos' }))
-    expect(screen.getByText('Grupo A')).toBeInTheDocument()
-    expect(screen.getByText('Grupo L')).toBeInTheDocument()
-    expect(screen.getAllByText(/^Grupo [A-L]$/)).toHaveLength(12)
+    expect(screen.getByText(/^Grupo A ·/)).toBeInTheDocument()
+    expect(screen.getByText(/^Grupo L ·/)).toBeInTheDocument()
+    expect(screen.getAllByText(/^Grupo [A-L] ·/)).toHaveLength(12)
     expect(
       screen.queryByText(/Los grupos se mostrarán/i),
     ).not.toBeInTheDocument()

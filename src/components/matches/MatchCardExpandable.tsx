@@ -27,6 +27,12 @@ export interface MatchCardExpandableProps {
    * regardless of lock state — used by history views like "Mis pronósticos".
    */
   readOnly?: boolean
+  /**
+   * Show the kickoff date next to the time in the eyebrow. Off by default —
+   * day-grouped lists (Calendario, Mis pronósticos) already have a day header,
+   * so it's only needed where matches aren't grouped by day (the Grupos tab).
+   */
+  showDate?: boolean
 }
 
 function teamName(team: MatchTeam | null): string {
@@ -156,11 +162,13 @@ function CardFace({
   prediction,
   timezone,
   locked,
+  showDate,
 }: {
   match: Match
   prediction: Prediction | null
   timezone: string
   locked: boolean
+  showDate: boolean
 }) {
   const hasScore = match.status === 'live' || match.status === 'finished'
   return (
@@ -175,6 +183,14 @@ function CardFace({
                 : 'Fase de grupos'}
           </span>
           <span className="text-border-strong text-[11px]">·</span>
+          {showDate && (
+            <>
+              <span className="text-text-secondary text-[11px] font-medium">
+                {formatKickoff(match.kickoffAt, 'date', timezone)}
+              </span>
+              <span className="text-border-strong text-[11px]">·</span>
+            </>
+          )}
           <span className="text-text-secondary text-[11px] font-medium tabular-nums">
             {formatKickoff(match.kickoffAt, 'time', timezone)}
           </span>
@@ -235,6 +251,7 @@ export function MatchCardExpandable({
   prediction: predictionProp = null,
   timezone = detectUserTimezone(),
   readOnly = false,
+  showDate = false,
 }: MatchCardExpandableProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const upsert = useUpsertPrediction(match.id)
@@ -304,6 +321,7 @@ export function MatchCardExpandable({
       prediction={prediction}
       timezone={timezone}
       locked={locked}
+      showDate={showDate}
     />
   )
 

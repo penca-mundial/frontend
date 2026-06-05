@@ -50,30 +50,25 @@ export function GroupStandingsCard({
   const [open, setOpen] = useState(false)
   const played = matches.filter((m) => m.status === 'finished').length
 
-  const numCols = 'text-text-secondary w-7 text-center text-mono-mini'
+  // Wider numeric columns so the stats table breathes (was w-7); the secondary
+  // ones still collapse on mobile, leaving Equipo / DG / Pts.
+  const numCols = 'text-text-secondary w-9 text-center text-mono-mini'
   const secondary = 'hidden sm:table-cell' // hidden on mobile per the spec
 
   return (
     <div className="border-border bg-surface overflow-hidden rounded-xl border">
-      <div className="flex items-center justify-between gap-2 p-4 pb-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-brand-primary font-display text-body-lg font-semibold">
-            Grupo {groupLetter}
-          </h3>
-          <span className="bg-surface-muted text-text-secondary text-mono-mini rounded-full px-2 py-0.5">
-            {played} / {matches.length} jugados
-          </span>
-        </div>
-      </div>
-
-      <table className="w-full px-4 text-left">
+      <table className="w-full px-4 pt-4 text-left">
         <thead>
           <tr className="text-text-disabled text-mono-mini">
             <th className="w-6 px-4 py-1 font-medium" scope="col">
               <span className="sr-only">Posición</span>
             </th>
-            <th className="py-1 font-medium" scope="col">
-              Equipo
+            {/* The Equipo column header carries the group title + played count
+                (consolidated here so it isn't shown twice). */}
+            <th className="py-2 font-medium" scope="col">
+              <h3 className="text-brand-primary font-display text-xs font-semibold">
+                Grupo {groupLetter} · {played}/{matches.length} jugados
+              </h3>
             </th>
             <th className={cn(numCols, secondary)} scope="col">PJ</th>
             <th className={cn(numCols, secondary)} scope="col">G</th>
@@ -146,6 +141,7 @@ export function GroupStandingsCard({
               match={match}
               prediction={predictions?.get(match.id) ?? null}
               timezone={timezone}
+              showDate
             />
           ))}
         </div>
