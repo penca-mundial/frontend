@@ -71,7 +71,7 @@ export function GroupStandingsCard({
                 <h3 className="text-brand-primary font-display text-body-lg font-semibold">
                   Grupo {groupLetter}
                 </h3>
-                <span className="bg-surface-muted text-text-secondary text-mono-mini rounded-full px-2 py-0.5 font-normal">
+                <span className="bg-surface-muted text-text-secondary rounded-full px-2 py-0.5 font-mono text-xs font-normal tracking-[0.04em]">
                   {played} / {matches.length} jugados
                 </span>
               </div>
