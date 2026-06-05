@@ -67,11 +67,11 @@ export function GroupStandingsCard({
                 (consolidated here so it isn't shown twice): a teal heading plus
                 the same grey "jugados" badge the card header used. */}
             <th className="py-2 font-medium" scope="col">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <h3 className="text-brand-primary font-display text-body-lg font-semibold">
                   Grupo {groupLetter}
                 </h3>
-                <span className="bg-surface-muted text-text-secondary rounded-full px-2 py-0.5 font-mono text-[10px] font-normal tracking-[0.04em]">
+                <span className="bg-surface-muted text-text-secondary rounded-full px-2 py-0.5 font-mono text-[10px] font-normal leading-none tracking-[0.04em]">
                   {played} / {matches.length} jugados
                 </span>
               </div>
