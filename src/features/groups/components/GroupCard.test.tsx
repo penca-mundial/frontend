@@ -110,6 +110,18 @@ describe('GroupCard', () => {
     expect(screen.getByText('DETALLE')).toBeInTheDocument()
   })
 
+  it('highlights a 1º rank in brand green', () => {
+    mockRank(1)
+    renderCard(makeGroup())
+    expect(screen.getByText('1º').className).toContain('text-brand-primary')
+  })
+
+  it('shows non-winning ranks in primary text', () => {
+    mockRank(3)
+    renderCard(makeGroup())
+    expect(screen.getByText('3º').className).toContain('text-text-primary')
+  })
+
   it('shows a subtle placeholder while the rank loads', () => {
     mockRank(null, true)
     renderCard(makeGroup())

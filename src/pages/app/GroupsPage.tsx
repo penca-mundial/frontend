@@ -54,7 +54,12 @@ function GroupsSections({ groups }: { groups: Group[] }) {
     <div className="flex flex-col gap-8">
       {general && (
         <section className="flex flex-col gap-3">
-          <SectionLabel as="h2" size="sm" tone="secondary" className="tracking-wide">
+          <SectionLabel
+            as="h2"
+            size="sm"
+            tone="secondary"
+            className="tracking-wide"
+          >
             POOL GENERAL
           </SectionLabel>
           <GeneralPoolHero group={general} />
@@ -62,7 +67,12 @@ function GroupsSections({ groups }: { groups: Group[] }) {
       )}
 
       <section className="flex flex-col gap-3">
-        <SectionLabel as="h2" tone="secondary" className="tracking-wide">
+        <SectionLabel
+          as="h2"
+          size="sm"
+          tone="secondary"
+          className="tracking-wide"
+        >
           TUS PENCAS PRIVADAS
         </SectionLabel>
         {privateGroups.length > 0 ? (

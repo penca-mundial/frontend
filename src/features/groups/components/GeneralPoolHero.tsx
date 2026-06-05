@@ -43,7 +43,7 @@ export function GeneralPoolHero({ group }: GeneralPoolHeroProps) {
 
       <div className="relative flex items-center gap-4 p-5">
         <div className="min-w-0 flex-1">
-          <Badge className="border-white/20 bg-white/15 text-white">
+          <Badge className="bg-brand-accent-soft border-transparent text-[#92400e]">
             POOL GENERAL
           </Badge>
           <h2 className="font-display text-display-md mt-2 font-semibold">

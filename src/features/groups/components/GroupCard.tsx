@@ -21,7 +21,13 @@ function RankBadge({ groupId, total }: { groupId: string; total: number }) {
       {isLoading ? (
         <div className="bg-surface-muted h-6 w-9 animate-pulse rounded" />
       ) : (
-        <span className="text-brand-accent font-display text-display-md leading-none font-bold">
+        <span
+          className={cn(
+            'font-display text-display-md leading-none font-bold',
+            // 1º highlighted in brand green; every other position in primary.
+            rankPosition === 1 ? 'text-brand-primary' : 'text-text-primary',
+          )}
+        >
           {rankPosition != null ? `${rankPosition}º` : '—'}
         </span>
       )}
