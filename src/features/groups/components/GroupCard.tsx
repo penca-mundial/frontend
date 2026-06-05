@@ -15,14 +15,14 @@ export interface GroupCardProps {
 
 /** The user's rank in this group, in amber, with a subtle loading placeholder. */
 function RankBadge({ groupId, total }: { groupId: string; total: number }) {
-  const { data, isLoading } = useGroupRank(groupId)
+  const { rankPosition, isLoading } = useGroupRank(groupId)
   return (
     <div className="flex shrink-0 flex-col items-end text-right">
       {isLoading ? (
         <div className="bg-surface-muted h-6 w-9 animate-pulse rounded" />
       ) : (
         <span className="text-brand-accent font-display text-display-md leading-none font-bold">
-          {data ? `${data.rankPosition}º` : '—'}
+          {rankPosition != null ? `${rankPosition}º` : '—'}
         </span>
       )}
       <span className="text-text-disabled text-body-sm mt-1">

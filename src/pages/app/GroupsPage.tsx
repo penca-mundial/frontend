@@ -54,7 +54,7 @@ function GroupsSections({ groups }: { groups: Group[] }) {
     <div className="flex flex-col gap-8">
       {general && (
         <section className="flex flex-col gap-3">
-          <SectionLabel as="h2" tone="secondary" className="tracking-wide">
+          <SectionLabel as="h2" size="sm" tone="secondary" className="tracking-wide">
             POOL GENERAL
           </SectionLabel>
           <GeneralPoolHero group={general} />
@@ -88,14 +88,24 @@ function GroupsSections({ groups }: { groups: Group[] }) {
 export function GroupsPage() {
   const { data: groups, isLoading, isError } = useGroups()
 
+  // Dynamic subtitle: "{N} privada(s) · 1 pool general". Hidden when the user
+  // is only in the general pool (no private pencas yet).
+  const privateCount = (groups ?? []).filter(
+    (group) => !group.isGeneralPool,
+  ).length
+  const subtitle =
+    privateCount > 0
+      ? `${privateCount} ${privateCount === 1 ? 'privada' : 'privadas'} · 1 pool general`
+      : null
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-display-lg font-display font-semibold">Pencas</h1>
-          <p className="text-text-secondary text-body-sm">
-            Competí con tus amigos en pencas privadas.
-          </p>
+          {subtitle && (
+            <p className="text-text-secondary text-body-sm">{subtitle}</p>
+          )}
         </div>
         <GroupCtas className="shrink-0" />
       </div>

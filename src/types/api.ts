@@ -136,12 +136,14 @@ export interface RankingEntryResponse {
 }
 
 /**
- * A group's leaderboard slice (`GET /rankings/groups/:id`). `me` is the current
- * user's row when `include_me=true`, or null when they have none yet.
+ * A group's leaderboard slice (`GET /rankings/groups/:id`). With
+ * `include_me=true`, `me` is a small window of rows around the current user
+ * (their row + neighbours), so the caller must pick the row whose `user_id`
+ * matches the current user — it is NOT `me[0]`. Null when there is no row yet.
  */
 export interface GroupRankingResponse {
   entries: RankingEntryResponse[]
-  me: RankingEntryResponse | null
+  me: RankingEntryResponse[] | null
 }
 
 /** A penca/group membership (`GET /groups/me`, `GroupBlueprint`). */

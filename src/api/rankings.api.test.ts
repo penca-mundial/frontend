@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { server } from '@/test/mocks/server'
 import { rankingsApi } from '@/api/rankings.api'
 
-function entry(rankPosition: number) {
+function entry(rankPosition: number, userId = 9) {
   return {
-    user_id: 9,
-    username: 'santi',
+    user_id: userId,
+    username: `u${userId}`,
     avatar_url: null,
     points: 0,
     exact_count: 0,
@@ -14,41 +14,54 @@ function entry(rankPosition: number) {
   }
 }
 
-describe('rankingsApi.myGroupRank', () => {
-  it('reads rank_position from the "me" slice', async () => {
+describe('rankingsApi.groupSlice', () => {
+  it('maps entries and the me window to camelCase', async () => {
     server.use(
       http.get('*/rankings/groups/:id', () =>
-        HttpResponse.json({ entries: [entry(5)], me: entry(5) }),
+        HttpResponse.json({
+          entries: [entry(1, 9)],
+          me: [entry(3, 5), entry(4, 9)],
+        }),
       ),
     )
-    expect(await rankingsApi.myGroupRank('7')).toEqual({ rankPosition: 5 })
+
+    const slice = await rankingsApi.groupSlice('7')
+
+    expect(slice.entries).toEqual([
+      { userId: '9', username: 'u9', points: 0, position: 1 },
+    ])
+    // me is the window around the user (their row + neighbours).
+    expect(slice.me).toEqual([
+      { userId: '5', username: 'u5', points: 0, position: 3 },
+      { userId: '9', username: 'u9', points: 0, position: 4 },
+    ])
   })
 
-  it('returns null when there is no "me" row yet', async () => {
+  it('returns an empty me window when null', async () => {
     server.use(
       http.get('*/rankings/groups/:id', () =>
         HttpResponse.json({ entries: [], me: null }),
       ),
     )
-    expect(await rankingsApi.myGroupRank('7')).toBeNull()
+    expect((await rankingsApi.groupSlice('7')).me).toEqual([])
   })
 
   it('requests the group with include_me and the smallest page', async () => {
-    let captured: URLSearchParams | null = null
-    let capturedPath: string | null = null
+    let params: URLSearchParams | null = null
+    let path: string | null = null
     server.use(
       http.get('*/rankings/groups/:id', ({ request }) => {
         const url = new URL(request.url)
-        captured = url.searchParams
-        capturedPath = url.pathname
-        return HttpResponse.json({ entries: [], me: entry(1) })
+        params = url.searchParams
+        path = url.pathname
+        return HttpResponse.json({ entries: [], me: [] })
       }),
     )
 
-    await rankingsApi.myGroupRank('42')
+    await rankingsApi.groupSlice('42')
 
-    expect(capturedPath).toMatch(/\/rankings\/groups\/42$/)
-    expect(captured!.get('include_me')).toBe('true')
-    expect(captured!.get('limit')).toBe('1')
+    expect(path).toMatch(/\/rankings\/groups\/42$/)
+    expect(params!.get('include_me')).toBe('true')
+    expect(params!.get('limit')).toBe('1')
   })
 })

@@ -60,8 +60,9 @@ beforeEach(() => {
   vi.clearAllMocks()
   // Every card/hero asks for its rank; a fixed value keeps them rendering.
   useGroupRankMock.mockReturnValue({
-    data: { rankPosition: 1 },
+    rankPosition: 1,
     isLoading: false,
+    isError: false,
   } as unknown as ReturnType<typeof useGroupRank>)
 })
 
@@ -107,6 +108,28 @@ describe('GroupsPage', () => {
       screen.getByText(/Todavía no estás en ninguna penca privada/i),
     ).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: /Crear penca/ })).toHaveLength(2)
+  })
+
+  it('shows a dynamic subtitle pluralised by the private count', () => {
+    mock({
+      data: [GENERAL, makeGroup({ id: '2' }), makeGroup({ id: '3' })],
+    })
+    renderPage()
+    expect(
+      screen.getByText('2 privadas · 1 pool general'),
+    ).toBeInTheDocument()
+  })
+
+  it('singularises the subtitle with a single private penca', () => {
+    mock({ data: [GENERAL, makeGroup({ id: '2' })] })
+    renderPage()
+    expect(screen.getByText('1 privada · 1 pool general')).toBeInTheDocument()
+  })
+
+  it('hides the subtitle when the user is only in the general pool', () => {
+    mock({ data: [GENERAL] })
+    renderPage()
+    expect(screen.queryByText(/· 1 pool general/)).not.toBeInTheDocument()
   })
 
   it('shows skeletons while loading', () => {

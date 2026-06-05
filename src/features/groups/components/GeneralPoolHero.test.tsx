@@ -28,8 +28,9 @@ function makeGeneral(overrides: Partial<Group> = {}): Group {
 
 function mockRank(rank: number | null, isLoading = false) {
   useGroupRankMock.mockReturnValue({
-    data: rank === null ? null : { rankPosition: rank },
+    rankPosition: rank,
     isLoading,
+    isError: false,
   } as unknown as ReturnType<typeof useGroupRank>)
 }
 

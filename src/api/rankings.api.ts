@@ -1,25 +1,39 @@
 import { get } from '@/api/client'
-import type { GroupRankingResponse } from '@/types/api'
+import type { GroupRankingResponse, RankingEntryResponse } from '@/types/api'
 import type { RankingEntry } from '@/types/domain'
 
-/** The current user's position within a group's leaderboard. */
-export interface GroupRank {
-  rankPosition: number
+/** Map a leaderboard row (snake_case) to the domain type. */
+function mapEntry(entry: RankingEntryResponse): RankingEntry {
+  return {
+    userId: String(entry.user_id),
+    username: entry.username,
+    points: entry.points,
+    position: entry.rank_position,
+  }
+}
+
+/** A group's leaderboard slice: the top `entries` plus the `me` window. */
+export interface GroupLeaderboardSlice {
+  entries: RankingEntry[]
+  me: RankingEntry[]
 }
 
 export const rankingsApi = {
   /**
-   * The current user's rank in a group's leaderboard
-   * (`GET /rankings/groups/:id?include_me=true&limit=1`, SCRUM-276). The cards
-   * only need the `me` slice's position, so we ask for the smallest page.
-   * Returns null when the user has no row yet.
+   * A slice of a group's leaderboard
+   * (`GET /rankings/groups/:id?include_me=true&limit=1`, SCRUM-276). `me` is a
+   * window around the current user (their row + neighbours); the caller finds
+   * their own row by `userId`. Maps everything to camelCase.
    */
-  async myGroupRank(groupId: string): Promise<GroupRank | null> {
+  async groupSlice(groupId: string): Promise<GroupLeaderboardSlice> {
     const data = await get<GroupRankingResponse>(
       `/rankings/groups/${groupId}`,
       { params: { include_me: true, limit: 1 } },
     )
-    return data.me ? { rankPosition: data.me.rank_position } : null
+    return {
+      entries: data.entries.map(mapEntry),
+      me: (data.me ?? []).map(mapEntry),
+    }
   },
 
   // Global leaderboard arrives in Phase 7 (SCRUM-155).
