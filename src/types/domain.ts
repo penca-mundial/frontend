@@ -42,11 +42,21 @@ export interface Prediction {
   points: number | null
 }
 
+/**
+ * A penca (group) the user belongs to, as the app consumes it (camelCase, from
+ * `GET /groups/me`). `isGeneralPool` marks the everyone-in tournament pool the
+ * backend lists first; `code` is the invite code (shown in the detail, not the
+ * card); `isOwner` is true when the current user created it.
+ */
 export interface Group {
   id: string
   name: string
-  ownerId: string
-  joinCode: string
+  description: string | null
+  isGeneralPool: boolean
+  code: string
+  memberCount: number
+  isOwner: boolean
+  createdAt: string
 }
 
 export interface RankingEntry {

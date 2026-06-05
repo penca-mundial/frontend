@@ -125,6 +125,18 @@ export interface ComputedGroupStandings {
   standings: ComputedStandingRow[]
 }
 
+/** A penca/group membership (`GET /groups/me`, `GroupBlueprint`). */
+export interface GroupResponse {
+  id: number
+  name: string
+  description: string | null
+  is_general_pool: boolean
+  code: string
+  member_count: number
+  is_owner: boolean
+  created_at: string
+}
+
 /** `GET /tournaments/current` (`TournamentBlueprint`). */
 export interface TournamentResponse {
   id: number
