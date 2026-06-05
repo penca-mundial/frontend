@@ -1,6 +1,11 @@
+import { type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { Copy } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useGroupRank } from '@/features/groups/hooks/useGroupRank'
+import { avatarColor, formatThousands, groupInitials } from '@/features/groups/utils'
+import { toast } from '@/hooks/useToast'
 import type { Group } from '@/types/domain'
 import { cn } from '@/lib/cn'
 
@@ -8,48 +13,93 @@ export interface GroupCardProps {
   group: Group
 }
 
+/** The user's rank in this group, in amber, with a subtle loading placeholder. */
+function RankBadge({ groupId, total }: { groupId: string; total: number }) {
+  const { data, isLoading } = useGroupRank(groupId)
+  return (
+    <div className="flex shrink-0 flex-col items-end text-right">
+      {isLoading ? (
+        <div className="bg-surface-muted h-6 w-9 animate-pulse rounded" />
+      ) : (
+        <span className="text-brand-accent font-display text-display-md leading-none font-bold">
+          {data ? `${data.rankPosition}º` : '—'}
+        </span>
+      )}
+      <span className="text-text-disabled text-body-sm mt-1">
+        de {formatThousands(total)}
+      </span>
+    </div>
+  )
+}
+
 /**
- * A single penca in the "Pencas" list. Shows the name, member count and a
- * badge for the general pool / for groups the user owns. The whole card is a
- * link into the group detail (stretched, keyboard-navigable); the invite code
- * is intentionally not shown here — it lives in the detail (SCRUM-148).
+ * A private penca in the list: a name + owner badge, description, avatar, and
+ * the user's rank, over a divider row with the invite code + a copy button.
+ * The whole card links to the detail (stretched link); the copy button sits
+ * above it (`z-10` + `stopPropagation`) so copying never navigates.
  */
 export function GroupCard({ group }: GroupCardProps) {
-  const memberLabel = `${group.memberCount} ${
-    group.memberCount === 1 ? 'miembro' : 'miembros'
-  }`
+  async function handleCopy(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation()
+    try {
+      await navigator.clipboard.writeText(group.code)
+      toast({ title: 'Código copiado', description: group.code })
+    } catch {
+      toast({
+        variant: 'destructive',
+        title: 'No se pudo copiar el código',
+      })
+    }
+  }
 
   return (
-    <section
-      className={cn(
-        'relative flex items-center gap-3 rounded-xl border p-4 transition-colors',
-        // The general pool is highlighted with a subtle teal tint; private
-        // groups use the standard surface card.
-        group.isGeneralPool
-          ? 'border-brand-primary/30 bg-brand-primary-soft/30 hover:border-brand-primary/50'
-          : 'border-border bg-surface hover:border-border-strong',
-        // Card-wide focus ring when the stretched link is keyboard-focused.
-        'has-[a:focus-visible]:ring-ring has-[a:focus-visible]:ring-2',
-      )}
-    >
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-display text-body-lg truncate font-semibold">
-            {group.name}
-          </h2>
-          {group.isGeneralPool && <Badge variant="secondary">General</Badge>}
-          {group.isOwner && <Badge variant="outline">Creador</Badge>}
+    <section className="border-border bg-surface has-[a:focus-visible]:ring-ring relative flex flex-col rounded-xl border transition-colors hover:border-border-strong has-[a:focus-visible]:ring-2">
+      <div className="flex items-start gap-3 p-4">
+        <span
+          className={cn(
+            'flex size-10 shrink-0 items-center justify-center rounded-lg text-body-sm font-bold',
+            avatarColor(group.name),
+          )}
+          aria-hidden="true"
+        >
+          {groupInitials(group.name)}
+        </span>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-display text-body-lg truncate font-semibold">
+              {group.name}
+            </h3>
+            {group.isOwner && <Badge variant="outline">owner</Badge>}
+          </div>
+          {group.description && (
+            <p className="text-text-secondary text-body-sm mt-0.5 truncate">
+              {group.description}
+            </p>
+          )}
         </div>
-        <p className="text-text-secondary text-body-sm mt-0.5">{memberLabel}</p>
+
+        <RankBadge groupId={group.id} total={group.memberCount} />
       </div>
 
-      <ArrowRight
-        aria-hidden="true"
-        className="text-text-disabled size-5 shrink-0"
-      />
+      <div className="border-border flex items-center justify-between gap-2 border-t px-4 py-2">
+        <span className="text-text-secondary font-mono text-body-sm tracking-wider">
+          {group.code}
+        </span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleCopy}
+          className="text-text-secondary hover:text-text-primary relative z-10 -mr-1.5 gap-1.5"
+        >
+          <Copy aria-hidden="true" />
+          Copiar código
+        </Button>
+      </div>
 
-      {/* Stretched link: covers the card so the whole thing is clickable while
-          keeping a single accessible link with a clear name. */}
+      {/* Stretched link: covers the card so it's all clickable; the copy button
+          (z-10) stays above it so copying doesn't trigger navigation. */}
       <Link
         to={`/app/groups/${group.id}`}
         className="absolute inset-0 rounded-xl focus:outline-none"

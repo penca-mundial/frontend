@@ -5,16 +5,21 @@ import { GroupsPage } from '@/pages/app/GroupsPage'
 import type { Group } from '@/types/domain'
 
 vi.mock('@/features/groups/hooks/useGroups', () => ({ useGroups: vi.fn() }))
+vi.mock('@/features/groups/hooks/useGroupRank', () => ({
+  useGroupRank: vi.fn(),
+}))
 
 import { useGroups } from '@/features/groups/hooks/useGroups'
+import { useGroupRank } from '@/features/groups/hooks/useGroupRank'
 
 const useGroupsMock = vi.mocked(useGroups)
+const useGroupRankMock = vi.mocked(useGroupRank)
 
 function makeGroup(overrides: Partial<Group> = {}): Group {
   return {
     id: '2',
     name: 'Los Cracks',
-    description: null,
+    description: 'Los pibes',
     isGeneralPool: false,
     code: 'ABC123',
     memberCount: 12,
@@ -28,7 +33,7 @@ const GENERAL = makeGroup({
   id: '1',
   name: 'Mundial 2026',
   isGeneralPool: true,
-  memberCount: 1240,
+  memberCount: 1247,
 })
 
 function mock(state: {
@@ -51,7 +56,14 @@ function renderPage() {
   )
 }
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  // Every card/hero asks for its rank; a fixed value keeps them rendering.
+  useGroupRankMock.mockReturnValue({
+    data: { rankPosition: 1 },
+    isLoading: false,
+  } as unknown as ReturnType<typeof useGroupRank>)
+})
 
 describe('GroupsPage', () => {
   it('renders the title and both CTAs linking to create / join', () => {
@@ -69,19 +81,18 @@ describe('GroupsPage', () => {
     ).toHaveAttribute('href', '/app/groups/join')
   })
 
-  it('shows skeletons while loading', () => {
-    mock({ isLoading: true })
-    const { container } = renderPage()
-    expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull()
-  })
-
-  it('renders the general pool first, then private groups, with no empty state', () => {
+  it('renders both labelled sections, the general hero and private cards', () => {
     mock({ data: [GENERAL, makeGroup({ id: '2', name: 'Los Cracks' })] })
     renderPage()
 
-    expect(screen.getByText('Mundial 2026')).toBeInTheDocument()
-    expect(screen.getByText('General')).toBeInTheDocument()
-    expect(screen.getByText('Los Cracks')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'POOL GENERAL' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'TUS PENCAS PRIVADAS' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Penca general')).toBeInTheDocument() // hero copy
+    expect(screen.getByText('Los Cracks')).toBeInTheDocument() // private card
     expect(
       screen.queryByText(/Todavía no estás en ninguna penca privada/i),
     ).not.toBeInTheDocument()
@@ -91,12 +102,17 @@ describe('GroupsPage', () => {
     mock({ data: [GENERAL] })
     renderPage()
 
-    expect(screen.getByText('Mundial 2026')).toBeInTheDocument()
+    expect(screen.getByText('Penca general')).toBeInTheDocument()
     expect(
       screen.getByText(/Todavía no estás en ninguna penca privada/i),
     ).toBeInTheDocument()
-    // CTAs appear at the top and again in the empty state.
     expect(screen.getAllByRole('link', { name: /Crear penca/ })).toHaveLength(2)
+  })
+
+  it('shows skeletons while loading', () => {
+    mock({ isLoading: true })
+    const { container } = renderPage()
+    expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull()
   })
 
   it('shows an error message when the request fails', () => {

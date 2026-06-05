@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import { KeyRound, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SectionLabel } from '@/components/ui/section-label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { GeneralPoolHero } from '@/features/groups/components/GeneralPoolHero'
 import { GroupCard } from '@/features/groups/components/GroupCard'
 import { useGroups } from '@/features/groups/hooks/useGroups'
 import type { Group } from '@/types/domain'
@@ -27,7 +29,7 @@ function GroupCtas({ className }: { className?: string }) {
   )
 }
 
-/** Shown below the general pool when the user isn't in any private penca yet. */
+/** Shown in the private section when the user isn't in any private penca yet. */
 function EmptyPrivateState() {
   return (
     <div className="border-border bg-surface rounded-xl border border-dashed p-8 text-center">
@@ -43,25 +45,45 @@ function EmptyPrivateState() {
   )
 }
 
-/** The list itself: groups in backend order (general pool first), plus the
- *  empty state when the user has no private pencas. */
-function GroupsList({ groups }: { groups: Group[] }) {
-  const hasPrivate = groups.some((group) => !group.isGeneralPool)
+/** Two labelled sections: the general pool hero, then the private pencas. */
+function GroupsSections({ groups }: { groups: Group[] }) {
+  const general = groups.find((group) => group.isGeneralPool) ?? null
+  const privateGroups = groups.filter((group) => !group.isGeneralPool)
+
   return (
-    <div className="flex flex-col gap-3">
-      {groups.map((group) => (
-        <GroupCard key={group.id} group={group} />
-      ))}
-      {!hasPrivate && <EmptyPrivateState />}
+    <div className="flex flex-col gap-8">
+      {general && (
+        <section className="flex flex-col gap-3">
+          <SectionLabel as="h2" tone="secondary" className="tracking-wide">
+            POOL GENERAL
+          </SectionLabel>
+          <GeneralPoolHero group={general} />
+        </section>
+      )}
+
+      <section className="flex flex-col gap-3">
+        <SectionLabel as="h2" tone="secondary" className="tracking-wide">
+          TUS PENCAS PRIVADAS
+        </SectionLabel>
+        {privateGroups.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {privateGroups.map((group) => (
+              <GroupCard key={group.id} group={group} />
+            ))}
+          </div>
+        ) : (
+          <EmptyPrivateState />
+        )}
+      </section>
     </div>
   )
 }
 
 /**
  * "Pencas" — the user's groups (`GET /groups/me`). The general tournament pool
- * is listed first (highlighted), followed by their private pencas. Two CTAs
- * (create / join by code) sit at the top and repeat in the empty state. The
- * navbar already links here; this page does not add an item.
+ * is a hero card, followed by the user's private pencas (each with its rank,
+ * from `GET /rankings/groups/:id`). Two CTAs (create / join) sit at the top and
+ * repeat in the empty state. The navbar already links here.
  */
 export function GroupsPage() {
   const { data: groups, isLoading, isError } = useGroups()
@@ -80,16 +102,16 @@ export function GroupsPage() {
 
       {isLoading ? (
         <div className="flex flex-col gap-3" aria-busy="true">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-[72px] w-full rounded-xl" />
-          ))}
+          <Skeleton className="h-24 w-full rounded-xl" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-28 w-full rounded-xl" />
         </div>
       ) : isError ? (
         <p className="text-danger text-body">
           No pudimos cargar tus pencas. Intentá de nuevo.
         </p>
       ) : (
-        <GroupsList groups={groups ?? []} />
+        <GroupsSections groups={groups ?? []} />
       )}
     </div>
   )

@@ -125,6 +125,25 @@ export interface ComputedGroupStandings {
   standings: ComputedStandingRow[]
 }
 
+/** One leaderboard row (`RankingEntryBlueprint`, SCRUM-276). */
+export interface RankingEntryResponse {
+  user_id: number
+  username: string | null
+  avatar_url: string | null
+  points: number
+  exact_count: number
+  rank_position: number
+}
+
+/**
+ * A group's leaderboard slice (`GET /rankings/groups/:id`). `me` is the current
+ * user's row when `include_me=true`, or null when they have none yet.
+ */
+export interface GroupRankingResponse {
+  entries: RankingEntryResponse[]
+  me: RankingEntryResponse | null
+}
+
 /** A penca/group membership (`GET /groups/me`, `GroupBlueprint`). */
 export interface GroupResponse {
   id: number
