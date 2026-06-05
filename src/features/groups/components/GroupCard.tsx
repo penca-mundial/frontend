@@ -23,7 +23,7 @@ function RankBadge({ groupId, total }: { groupId: string; total: number }) {
       ) : (
         <span
           className={cn(
-            'font-display text-display-md leading-none font-bold',
+            'font-display text-display-lg leading-none font-bold',
             // 1º highlighted in brand green; every other position in primary.
             rankPosition === 1 ? 'text-brand-primary' : 'text-text-primary',
           )}
@@ -31,7 +31,7 @@ function RankBadge({ groupId, total }: { groupId: string; total: number }) {
           {rankPosition != null ? `${rankPosition}º` : '—'}
         </span>
       )}
-      <span className="text-text-disabled text-body-sm mt-1">
+      <span className="text-text-disabled mt-1 text-xs">
         de {formatThousands(total)}
       </span>
     </div>
@@ -79,7 +79,7 @@ export function GroupCard({ group }: GroupCardProps) {
             {group.isOwner && <Badge variant="outline">owner</Badge>}
           </div>
           {group.description && (
-            <p className="text-text-secondary text-body-sm mt-0.5 truncate">
+            <p className="text-text-secondary mt-0.5 truncate text-xs">
               {group.description}
             </p>
           )}
@@ -89,7 +89,7 @@ export function GroupCard({ group }: GroupCardProps) {
       </div>
 
       <div className="border-border flex items-center justify-between gap-2 border-t px-4 py-2">
-        <span className="text-text-secondary font-mono text-body-sm tracking-wider">
+        <span className="text-text-secondary font-mono text-[13px] tracking-wider">
           {group.code}
         </span>
         <Button
@@ -97,7 +97,7 @@ export function GroupCard({ group }: GroupCardProps) {
           variant="ghost"
           size="sm"
           onClick={handleCopy}
-          className="text-text-secondary hover:text-text-primary relative z-10 -mr-1.5 gap-1.5"
+          className="text-text-secondary hover:text-text-primary relative z-10 -mr-1.5 gap-1.5 text-[13px]"
         >
           <Copy aria-hidden="true" />
           Copiar código
