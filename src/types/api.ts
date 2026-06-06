@@ -71,7 +71,9 @@ export interface ResendConfirmationPayload {
  * camelCase `AuthUser` domain type before handing it to the app.
  */
 export interface AuthUserResponse {
-  id: string
+  // The backend serialises the user id as a number (integer PK); `mapUser`
+  // normalises it to a string for the domain `AuthUser`.
+  id: number
   email: string
   username: string | null
   admin: boolean
