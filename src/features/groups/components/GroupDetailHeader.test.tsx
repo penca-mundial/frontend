@@ -6,6 +6,10 @@ import { GroupDetailHeader } from '@/features/groups/components/GroupDetailHeade
 import type { Group } from '@/types/domain'
 
 vi.mock('@/hooks/useToast', () => ({ toast: vi.fn() }))
+// The management menu is tested separately; here we only assert it's gated.
+vi.mock('@/features/groups/components/GroupManagementMenu', () => ({
+  GroupManagementMenu: () => <div data-testid="mgmt-menu" />,
+}))
 import { toast } from '@/hooks/useToast'
 
 const toastMock = vi.mocked(toast)
@@ -86,5 +90,13 @@ describe('GroupDetailHeader', () => {
     expect(
       screen.queryByRole('button', { name: /Compartir código/ }),
     ).not.toBeInTheDocument()
+  })
+
+  it('renders the management menu on a private penca but not on the general pool', () => {
+    const { unmount } = renderHeader(makeGroup())
+    expect(screen.getByTestId('mgmt-menu')).toBeInTheDocument()
+    unmount()
+    renderHeader(makeGroup({ isGeneralPool: true }))
+    expect(screen.queryByTestId('mgmt-menu')).not.toBeInTheDocument()
   })
 })

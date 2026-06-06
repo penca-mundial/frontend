@@ -12,6 +12,10 @@ vi.mock('@/features/groups/hooks/useGroupLeaderboard', () => ({
 vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
   useCurrentUser: vi.fn(),
 }))
+// Management menu is tested separately; stub it (it needs a QueryClient).
+vi.mock('@/features/groups/components/GroupManagementMenu', () => ({
+  GroupManagementMenu: () => null,
+}))
 
 import { useGroup } from '@/features/groups/hooks/useGroup'
 import { useGroupLeaderboard } from '@/features/groups/hooks/useGroupLeaderboard'
