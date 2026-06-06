@@ -67,7 +67,7 @@ describe('GroupDetailHeader', () => {
     expect(screen.queryByText(/creada por/)).not.toBeInTheDocument()
   })
 
-  it('shows the code + share on private pencas and copies as a fallback', async () => {
+  it('shares the invite LINK on private pencas (copy fallback)', async () => {
     const user = userEvent.setup()
     const writeText = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
@@ -80,8 +80,15 @@ describe('GroupDetailHeader', () => {
     expect(screen.getByText('PIZZA124')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /Compartir código/ }))
 
-    expect(writeText).toHaveBeenCalledWith('PIZZA124')
-    await waitFor(() => expect(toastMock).toHaveBeenCalled())
+    // The fallback copies the invite LINK, not the bare code.
+    expect(writeText).toHaveBeenCalledWith(
+      expect.stringContaining('/app/groups/join?code=PIZZA124'),
+    )
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenCalledWith({
+        title: 'Link de invitación copiado',
+      }),
+    )
   })
 
   it('hides the code and share action on the general pool', () => {

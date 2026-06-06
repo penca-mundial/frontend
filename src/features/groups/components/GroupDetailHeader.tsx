@@ -39,10 +39,10 @@ export function GroupDetailHeader({ group }: GroupDetailHeaderProps) {
       return
     }
     try {
-      await navigator.clipboard.writeText(group.code)
-      toast({ title: 'Código copiado', description: group.code })
+      await navigator.clipboard.writeText(url)
+      toast({ title: 'Link de invitación copiado' })
     } catch {
-      toast({ variant: 'destructive', title: 'No se pudo copiar el código' })
+      toast({ variant: 'destructive', title: 'No se pudo copiar el link' })
     }
   }
 

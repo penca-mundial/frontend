@@ -1,4 +1,6 @@
+import { useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { readReturnTo, stashReturnTo } from '@/features/auth/returnTo'
 
 /**
  * Resolve the backend's Google OAuth request URL. Devise mounts the omniauth
@@ -34,8 +36,18 @@ export function GoogleSignInButton({
 }: {
   label?: string
 }) {
+  const location = useLocation()
+  // The OAuth round-trip leaves the SPA, so carry the destination via
+  // sessionStorage (set before the native POST navigates away).
+  const handleSubmit = () => stashReturnTo(readReturnTo(location.search))
+
   return (
-    <form method="post" action={googleOauthUrl()} className="w-full">
+    <form
+      method="post"
+      action={googleOauthUrl()}
+      onSubmit={handleSubmit}
+      className="w-full"
+    >
       <Button
         type="submit"
         variant="outline"

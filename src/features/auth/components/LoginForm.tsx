@@ -1,10 +1,11 @@
 import { useEffect, useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { authApi, getApiError } from '@/api/auth.api'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
+import { readReturnTo } from '@/features/auth/returnTo'
 import { loginSchema, type LoginValues } from '@/features/auth/schemas'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +35,7 @@ const GENERIC_COPY: Record<
 
 export function LoginForm() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { refetch } = useCurrentUser()
   const [serverError, setServerError] = useState<ServerError | null>(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -64,7 +66,7 @@ export function LoginForm() {
     try {
       await authApi.login(values)
       refetch()
-      navigate('/app/home', { replace: true })
+      navigate(readReturnTo(location.search) ?? '/app/home', { replace: true })
     } catch (error) {
       const apiError = getApiError(error)
       switch (apiError?.code) {
