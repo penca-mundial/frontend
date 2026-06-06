@@ -22,6 +22,7 @@ function makeGeneral(overrides: Partial<Group> = {}): Group {
     memberCount: 1247,
     isOwner: false,
     createdAt: '2026-01-01T00:00:00Z',
+    ownerUsername: null,
     ...overrides,
   }
 }

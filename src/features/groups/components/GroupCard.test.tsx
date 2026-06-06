@@ -27,6 +27,7 @@ function makeGroup(overrides: Partial<Group> = {}): Group {
     memberCount: 14,
     isOwner: false,
     createdAt: '2026-06-01T00:00:00Z',
+    ownerUsername: null,
     ...overrides,
   }
 }

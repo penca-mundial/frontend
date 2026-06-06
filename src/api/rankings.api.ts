@@ -9,6 +9,8 @@ function mapEntry(entry: RankingEntryResponse): RankingEntry {
     username: entry.username,
     points: entry.points,
     position: entry.rank_position,
+    exactCount: entry.exact_count,
+    avatarUrl: entry.avatar_url,
   }
 }
 
@@ -20,15 +22,18 @@ export interface GroupLeaderboardSlice {
 
 export const rankingsApi = {
   /**
-   * A slice of a group's leaderboard
-   * (`GET /rankings/groups/:id?include_me=true&limit=1`, SCRUM-276). `me` is a
-   * window around the current user (their row + neighbours); the caller finds
-   * their own row by `userId`. Maps everything to camelCase.
+   * A group's leaderboard (`GET /rankings/groups/:id?include_me=true`,
+   * SCRUM-276). `entries` is the top `limit` rows; `me` is a window around the
+   * current user (their row + neighbours) so the caller can show their position
+   * even when they rank past the top. Maps everything to camelCase.
    */
-  async groupSlice(groupId: string): Promise<GroupLeaderboardSlice> {
+  async groupLeaderboard(
+    groupId: string,
+    limit = 100,
+  ): Promise<GroupLeaderboardSlice> {
     const data = await get<GroupRankingResponse>(
       `/rankings/groups/${groupId}`,
-      { params: { include_me: true, limit: 1 } },
+      { params: { include_me: true, limit } },
     )
     return {
       entries: data.entries.map(mapEntry),

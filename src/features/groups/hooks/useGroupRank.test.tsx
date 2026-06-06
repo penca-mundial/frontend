@@ -7,7 +7,7 @@ vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
   useCurrentUser: vi.fn(),
 }))
 vi.mock('@/api/rankings.api', () => ({
-  rankingsApi: { groupSlice: vi.fn() },
+  rankingsApi: { groupLeaderboard: vi.fn() },
 }))
 
 import { useGroupRank } from '@/features/groups/hooks/useGroupRank'
@@ -15,7 +15,7 @@ import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { rankingsApi } from '@/api/rankings.api'
 
 const useCurrentUserMock = vi.mocked(useCurrentUser)
-const groupSliceMock = vi.mocked(rankingsApi.groupSlice)
+const groupLeaderboardMock = vi.mocked(rankingsApi.groupLeaderboard)
 
 function Wrapper({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient({
@@ -37,11 +37,11 @@ beforeEach(() => {
 
 describe('useGroupRank', () => {
   it("picks the current user's row from the me window, not me[0]", async () => {
-    groupSliceMock.mockResolvedValue({
+    groupLeaderboardMock.mockResolvedValue({
       entries: [],
       me: [
-        { userId: '5', username: 'u5', points: 0, position: 2 },
-        { userId: '9', username: 'u9', points: 0, position: 3 },
+        { userId: '5', username: 'u5', points: 0, position: 2, exactCount: 0, avatarUrl: null },
+        { userId: '9', username: 'u9', points: 0, position: 3, exactCount: 0, avatarUrl: null },
       ],
     })
 
@@ -52,7 +52,7 @@ describe('useGroupRank', () => {
   })
 
   it('returns null when the user has no row in the window', async () => {
-    groupSliceMock.mockResolvedValue({ entries: [], me: [] })
+    groupLeaderboardMock.mockResolvedValue({ entries: [], me: [] })
 
     const { result } = renderHook(() => useGroupRank('7'), { wrapper: Wrapper })
 

@@ -7,15 +7,15 @@ function entry(rankPosition: number, userId = 9) {
   return {
     user_id: userId,
     username: `u${userId}`,
-    avatar_url: null,
-    points: 0,
-    exact_count: 0,
+    avatar_url: userId === 9 ? 'https://avatars/9.png' : null,
+    points: 10 - rankPosition,
+    exact_count: rankPosition,
     rank_position: rankPosition,
   }
 }
 
-describe('rankingsApi.groupSlice', () => {
-  it('maps entries and the me window to camelCase', async () => {
+describe('rankingsApi.groupLeaderboard', () => {
+  it('maps entries and the me window to camelCase, incl. exactCount + avatarUrl', async () => {
     server.use(
       http.get('*/rankings/groups/:id', () =>
         HttpResponse.json({
@@ -25,16 +25,20 @@ describe('rankingsApi.groupSlice', () => {
       ),
     )
 
-    const slice = await rankingsApi.groupSlice('7')
+    const slice = await rankingsApi.groupLeaderboard('7')
 
     expect(slice.entries).toEqual([
-      { userId: '9', username: 'u9', points: 0, position: 1 },
+      {
+        userId: '9',
+        username: 'u9',
+        points: 9,
+        position: 1,
+        exactCount: 1,
+        avatarUrl: 'https://avatars/9.png',
+      },
     ])
-    // me is the window around the user (their row + neighbours).
-    expect(slice.me).toEqual([
-      { userId: '5', username: 'u5', points: 0, position: 3 },
-      { userId: '9', username: 'u9', points: 0, position: 4 },
-    ])
+    expect(slice.me.map((e) => e.userId)).toEqual(['5', '9'])
+    expect(slice.me[0]).toMatchObject({ position: 3, exactCount: 3, avatarUrl: null })
   })
 
   it('returns an empty me window when null', async () => {
@@ -43,10 +47,10 @@ describe('rankingsApi.groupSlice', () => {
         HttpResponse.json({ entries: [], me: null }),
       ),
     )
-    expect((await rankingsApi.groupSlice('7')).me).toEqual([])
+    expect((await rankingsApi.groupLeaderboard('7')).me).toEqual([])
   })
 
-  it('requests the group with include_me and the smallest page', async () => {
+  it('requests include_me with the given limit at the right path', async () => {
     let params: URLSearchParams | null = null
     let path: string | null = null
     server.use(
@@ -58,10 +62,10 @@ describe('rankingsApi.groupSlice', () => {
       }),
     )
 
-    await rankingsApi.groupSlice('42')
+    await rankingsApi.groupLeaderboard('42', 100)
 
     expect(path).toMatch(/\/rankings\/groups\/42$/)
     expect(params!.get('include_me')).toBe('true')
-    expect(params!.get('limit')).toBe('1')
+    expect(params!.get('limit')).toBe('100')
   })
 })

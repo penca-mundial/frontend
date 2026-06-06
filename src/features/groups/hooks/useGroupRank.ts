@@ -21,7 +21,8 @@ export function useGroupRank(groupId: string): GroupRank {
 
   const query = useQuery({
     queryKey: ['rankings', 'group', groupId, 'me'],
-    queryFn: () => rankingsApi.groupSlice(groupId),
+    // Only the `me` window is needed per card, so ask for the smallest page.
+    queryFn: () => rankingsApi.groupLeaderboard(groupId, 1),
   })
 
   // Both ids are strings (the mapper normalises `currentUser.id`, and
