@@ -12,6 +12,7 @@ import { OAuthCallbackPage } from '@/pages/public/OAuthCallbackPage'
 import { LandingPage } from '@/pages/public/LandingPage'
 import { HomePage } from '@/pages/app/HomePage'
 import { GroupsPage } from '@/pages/app/GroupsPage'
+import { CreateGroupPage } from '@/pages/app/CreateGroupPage'
 import { FixturePage } from '@/pages/app/FixturePage'
 import { MatchPage } from '@/pages/app/MatchPage'
 import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
@@ -147,10 +148,7 @@ export const routes: RouteObject[] = [
         element: <TournamentPredictionPage />,
       },
       { path: '/app/groups', element: <GroupsPage /> },
-      {
-        path: '/app/groups/new',
-        element: <ShellPlaceholder title="Crear penca" />,
-      },
+      { path: '/app/groups/new', element: <CreateGroupPage /> },
       {
         path: '/app/groups/join',
         element: <ShellPlaceholder title="Unirme con código" />,
