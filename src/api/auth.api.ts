@@ -19,7 +19,7 @@ function mapUser(
   user: AuthUserResponse & { needs_username?: boolean },
 ): AuthUser {
   return {
-    id: user.id,
+    id: String(user.id),
     email: user.email,
     username: user.username,
     isAdmin: user.admin,

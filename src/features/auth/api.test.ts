@@ -6,7 +6,7 @@ import { navigation } from '@/api/client'
 import type { ApiErrorResponse, AuthUserResponse } from '@/types/api'
 
 const userResponse: AuthUserResponse = {
-  id: 'user-1',
+  id: 1,
   email: 'sosa@example.com',
   username: 'sosa',
   admin: false,
@@ -41,7 +41,7 @@ describe('authApi.login', () => {
     })
 
     expect(user).toEqual({
-      id: 'user-1',
+      id: '1', // normalised from the numeric backend id
       email: 'sosa@example.com',
       username: 'sosa',
       isAdmin: false,
@@ -230,6 +230,20 @@ describe('authApi.getMe', () => {
     const user = await authApi.getMe()
     expect(user?.username).toBeNull()
     expect(user?.needsUsername).toBe(true)
+  })
+
+  it('normalises the numeric backend id to a string', async () => {
+    server.use(
+      http.get('*/auth/me', () =>
+        HttpResponse.json({
+          user: { ...userResponse, id: 42, needs_username: false },
+        }),
+      ),
+    )
+
+    const user = await authApi.getMe()
+    expect(user?.id).toBe('42')
+    expect(typeof user?.id).toBe('string')
   })
 
   it('returns null when there is no session (401)', async () => {

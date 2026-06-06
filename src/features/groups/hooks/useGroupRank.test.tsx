@@ -28,10 +28,10 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  // The backend serialises the user id as a NUMBER (despite the string type);
-  // the hook must normalise it to match the string `userId` from the API.
+  // `currentUser.id` is a string (normalised at the auth boundary by mapUser),
+  // matching the string `userId` from the rankings API.
   useCurrentUserMock.mockReturnValue({
-    currentUser: { id: 9 },
+    currentUser: { id: '9' },
   } as unknown as ReturnType<typeof useCurrentUser>)
 })
 

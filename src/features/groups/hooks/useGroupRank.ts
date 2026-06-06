@@ -24,12 +24,10 @@ export function useGroupRank(groupId: string): GroupRank {
     queryFn: () => rankingsApi.groupSlice(groupId),
   })
 
-  // The API sends numeric ids; `entry.userId` is normalised to a string in the
-  // mapper, so normalise `currentUser.id` too (the auth type claims string, but
-  // the backend serialises the integer PK as a number) — otherwise the strict
-  // compare fails and the rank silently falls back to "—" in production.
+  // Both ids are strings (the mapper normalises `currentUser.id`, and
+  // `entry.userId` is mapped to a string), so a direct compare is safe.
   const myRow = currentUser
-    ? query.data?.me.find((entry) => entry.userId === String(currentUser.id))
+    ? query.data?.me.find((entry) => entry.userId === currentUser.id)
     : undefined
 
   return {
