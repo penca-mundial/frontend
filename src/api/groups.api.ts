@@ -1,11 +1,30 @@
-import { get, post } from '@/api/client'
-import type { GroupResponse } from '@/types/api'
-import type { Group } from '@/types/domain'
+import { apiClient, get, post } from '@/api/client'
+import type { GroupMemberResponse, GroupResponse } from '@/types/api'
+import type { Group, GroupMember } from '@/types/domain'
 
 /** Body for creating a penca (`POST /groups`). */
 export interface CreateGroupPayload {
   name: string
   description?: string | null
+}
+
+/** One page of a group's member list. */
+export interface GroupMemberPage {
+  members: GroupMember[]
+  totalCount: number
+  page: number
+  perPage: number
+}
+
+/** Map a backend (snake_case) member row to the domain type. */
+function mapMember(row: GroupMemberResponse): GroupMember {
+  return {
+    userId: String(row.user.id),
+    username: row.user.username,
+    avatarUrl: row.user.avatar_url,
+    isOwner: row.is_owner,
+    joinedAt: row.joined_at,
+  }
 }
 
 /** Map a backend (snake_case) group to the domain type. */
@@ -56,5 +75,28 @@ export const groupsApi = {
   /** A single penca by id (`GET /groups/:id`, members only). */
   async get(groupId: string): Promise<Group> {
     return mapGroup(await get<GroupResponse>(`/groups/${groupId}`))
+  },
+
+  /**
+   * A page of a penca's members (`GET /groups/:id/members`, members only).
+   * The backend renders a bare array and exposes the total via `X-Total-Count`;
+   * rows come ordered by join date.
+   */
+  async members(
+    groupId: string,
+    page = 1,
+    perPage = 25,
+  ): Promise<GroupMemberPage> {
+    const response = await apiClient.get<GroupMemberResponse[]>(
+      `/groups/${groupId}/members`,
+      { params: { page, per_page: perPage } },
+    )
+    const total = response.headers['x-total-count']
+    return {
+      members: response.data.map(mapMember),
+      totalCount: total ? Number(total) : response.data.length,
+      page,
+      perPage,
+    }
   },
 }

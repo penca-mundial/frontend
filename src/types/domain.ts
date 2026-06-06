@@ -70,6 +70,15 @@ export interface RankingEntry {
   avatarUrl: string | null
 }
 
+/** A member of a penca (`GET /groups/:id/members`). */
+export interface GroupMember {
+  userId: string
+  username: string | null
+  avatarUrl: string | null
+  isOwner: boolean
+  joinedAt: string
+}
+
 export interface ScoringRule {
   id: string
   key: string

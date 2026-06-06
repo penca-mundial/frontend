@@ -148,6 +148,17 @@ export interface GroupRankingResponse {
   me: RankingEntryResponse[] | null
 }
 
+/** One member row (`GET /groups/:id/members`, `GroupMemberBlueprint`). */
+export interface GroupMemberResponse {
+  joined_at: string
+  is_owner: boolean
+  user: {
+    id: number
+    username: string | null
+    avatar_url: string | null
+  }
+}
+
 /** A penca/group membership (`GET /groups/me` and `/groups/:id`, `GroupBlueprint`). */
 export interface GroupResponse {
   id: number
