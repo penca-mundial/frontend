@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Share2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { GroupManagementMenu } from '@/features/groups/components/GroupManagementMenu'
 import { toast } from '@/hooks/useToast'
 import type { Group } from '@/types/domain'
 
@@ -60,11 +61,15 @@ export function GroupDetailHeader({ group }: GroupDetailHeaderProps) {
       </Button>
 
       <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-display-lg font-display font-semibold">
-            {group.name}
-          </h1>
-          {group.isOwner && <Badge variant="outline">owner</Badge>}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-display-lg font-display font-semibold">
+              {group.name}
+            </h1>
+            {group.isOwner && <Badge variant="outline">owner</Badge>}
+          </div>
+          {/* "..." management menu — private pencas only (not the general pool). */}
+          {!group.isGeneralPool && <GroupManagementMenu group={group} />}
         </div>
         {group.description && (
           <p className="text-text-secondary text-body">{group.description}</p>

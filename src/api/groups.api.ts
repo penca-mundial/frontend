@@ -1,4 +1,4 @@
-import { apiClient, get, post } from '@/api/client'
+import { apiClient, del, get, patch, post } from '@/api/client'
 import type { GroupMemberResponse, GroupResponse } from '@/types/api'
 import type { Group, GroupMember } from '@/types/domain'
 
@@ -98,5 +98,23 @@ export const groupsApi = {
       page,
       perPage,
     }
+  },
+
+  /**
+   * Update a penca's name/description (`PATCH /groups/:id`, owner only). Rejects
+   * with the axios error on validation failure — read via `getApiError`.
+   */
+  async update(groupId: string, payload: CreateGroupPayload): Promise<Group> {
+    return mapGroup(await patch<GroupResponse>(`/groups/${groupId}`, payload))
+  },
+
+  /** Leave a penca (`DELETE /groups/:id/membership`, self-leave). Owners can't. */
+  async leave(groupId: string): Promise<void> {
+    await del(`/groups/${groupId}/membership`)
+  },
+
+  /** Delete (soft) a penca (`DELETE /groups/:id`, owner only). */
+  async remove(groupId: string): Promise<void> {
+    await del(`/groups/${groupId}`)
   },
 }
