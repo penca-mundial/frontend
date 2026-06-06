@@ -26,6 +26,7 @@ function joinedGroup(): Group {
     memberCount: 13,
     isOwner: false,
     createdAt: '2026-06-06T00:00:00Z',
+    ownerUsername: null,
   }
 }
 

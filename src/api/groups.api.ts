@@ -19,6 +19,7 @@ export function mapGroup(group: GroupResponse): Group {
     memberCount: group.member_count,
     isOwner: group.is_owner,
     createdAt: group.created_at,
+    ownerUsername: group.owner_username ?? null,
   }
 }
 
@@ -52,8 +53,8 @@ export const groupsApi = {
     return mapGroup(await post<GroupResponse>('/groups/join', { code }))
   },
 
-  // Implemented by its feature ticket (SCRUM-148 detail).
-  get(): Promise<Group> {
-    throw new Error('Not implemented')
+  /** A single penca by id (`GET /groups/:id`, members only). */
+  async get(groupId: string): Promise<Group> {
+    return mapGroup(await get<GroupResponse>(`/groups/${groupId}`))
   },
 }

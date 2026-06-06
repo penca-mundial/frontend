@@ -57,6 +57,8 @@ export interface Group {
   memberCount: number
   isOwner: boolean
   createdAt: string
+  /** Creator's username ("creada por @x"). Null until the backend exposes it. */
+  ownerUsername: string | null
 }
 
 export interface RankingEntry {
@@ -64,6 +66,8 @@ export interface RankingEntry {
   username: string | null
   points: number
   position: number
+  exactCount: number
+  avatarUrl: string | null
 }
 
 export interface ScoringRule {

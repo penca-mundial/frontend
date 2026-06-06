@@ -148,7 +148,7 @@ export interface GroupRankingResponse {
   me: RankingEntryResponse[] | null
 }
 
-/** A penca/group membership (`GET /groups/me`, `GroupBlueprint`). */
+/** A penca/group membership (`GET /groups/me` and `/groups/:id`, `GroupBlueprint`). */
 export interface GroupResponse {
   id: number
   name: string
@@ -158,6 +158,8 @@ export interface GroupResponse {
   member_count: number
   is_owner: boolean
   created_at: string
+  /** Creator's username (SCRUM-281); null only if the creator has none. */
+  owner_username: string | null
 }
 
 /** `GET /tournaments/current` (`TournamentBlueprint`). */

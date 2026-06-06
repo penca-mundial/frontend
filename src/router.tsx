@@ -14,6 +14,7 @@ import { HomePage } from '@/pages/app/HomePage'
 import { GroupsPage } from '@/pages/app/GroupsPage'
 import { CreateGroupPage } from '@/pages/app/CreateGroupPage'
 import { JoinGroupPage } from '@/pages/app/JoinGroupPage'
+import { GroupDetailPage } from '@/pages/app/GroupDetailPage'
 import { FixturePage } from '@/pages/app/FixturePage'
 import { MatchPage } from '@/pages/app/MatchPage'
 import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
@@ -38,19 +39,6 @@ function NotFound() {
       <h1 className="text-2xl font-semibold">404</h1>
       <p className="text-muted-foreground">Página no encontrada.</p>
     </main>
-  )
-}
-
-/**
- * In-shell placeholder (no own `<main>`, since AppShell already provides one)
- * for authenticated routes still being built in their own tickets — the group
- * create/join/detail pages (SCRUM-146/147/148).
- */
-function ShellPlaceholder({ title }: { title: string }) {
-  return (
-    <div className="mx-auto w-full max-w-4xl">
-      <h1 className="text-display-lg font-display font-semibold">{title}</h1>
-    </div>
   )
 }
 
@@ -151,7 +139,7 @@ export const routes: RouteObject[] = [
       { path: '/app/groups', element: <GroupsPage /> },
       { path: '/app/groups/new', element: <CreateGroupPage /> },
       { path: '/app/groups/join', element: <JoinGroupPage /> },
-      { path: '/app/groups/:id', element: <ShellPlaceholder title="Penca" /> },
+      { path: '/app/groups/:id', element: <GroupDetailPage /> },
       { path: '/app/rankings', element: <RankingsComingSoon /> },
     ],
   },
