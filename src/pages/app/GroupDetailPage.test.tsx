@@ -83,7 +83,7 @@ describe('GroupDetailPage', () => {
     expect(screen.getByRole('tab', { name: 'Miembros' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Estadísticas' })).toBeInTheDocument()
     // Ranking content (the leaderboard) is shown by default.
-    expect(screen.getByText('@santi')).toBeInTheDocument()
+    expect(screen.getByText('santi')).toBeInTheDocument()
   })
 
   it('shows a "Próximamente" placeholder on the Miembros tab', async () => {

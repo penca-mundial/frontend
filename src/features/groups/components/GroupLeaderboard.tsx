@@ -65,7 +65,7 @@ function LeaderboardRow({
       </Avatar>
       <div className="min-w-0 flex-1">
         <p className="text-body-sm truncate font-semibold">
-          {entry.username ? `@${entry.username}` : 'Jugador'}
+          {entry.username ?? 'Jugador'}
           {isMe && <span className="text-brand-primary"> · vos</span>}
         </p>
         <p className="text-text-secondary text-xs">

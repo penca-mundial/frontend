@@ -71,7 +71,7 @@ export function GroupDetailHeader({ group }: GroupDetailHeaderProps) {
         )}
         <p className="text-text-secondary text-body-sm">
           {memberLabel}
-          {group.ownerUsername && <> · creada por @{group.ownerUsername}</>}
+          {group.ownerUsername && <> · creada por {group.ownerUsername}</>}
         </p>
       </div>
 

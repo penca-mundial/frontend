@@ -78,7 +78,7 @@ describe('GroupLeaderboard', () => {
     })
     render(<GroupLeaderboard groupId="7" />)
 
-    expect(screen.getByText('@leo')).toBeInTheDocument()
+    expect(screen.getByText('leo')).toBeInTheDocument()
     expect(screen.getByText('4 exactos')).toBeInTheDocument()
     expect(screen.getByText('1 exacto')).toBeInTheDocument()
     expect(screen.getByText('30')).toBeInTheDocument()
@@ -94,7 +94,7 @@ describe('GroupLeaderboard', () => {
     render(<GroupLeaderboard groupId="7" />)
 
     expect(screen.getByText(/· vos/)).toBeInTheDocument()
-    expect(screen.getByText('@santi')).toBeInTheDocument()
+    expect(screen.getByText('santi')).toBeInTheDocument()
   })
 
   it('pins the user row from the me window when they are not in the top', () => {
@@ -108,7 +108,7 @@ describe('GroupLeaderboard', () => {
     render(<GroupLeaderboard groupId="7" />)
 
     // The user isn't in the top rows but their pinned row is shown.
-    expect(screen.getByText('@santi')).toBeInTheDocument()
+    expect(screen.getByText('santi')).toBeInTheDocument()
     expect(screen.getByText(/· vos/)).toBeInTheDocument()
     expect(screen.getByText('142')).toBeInTheDocument()
   })

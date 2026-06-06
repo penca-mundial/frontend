@@ -57,7 +57,7 @@ describe('GroupDetailHeader', () => {
 
   it('shows "creada por @x" only when the creator is known', () => {
     const { unmount } = renderHeader(makeGroup({ ownerUsername: 'messi' }))
-    expect(screen.getByText(/creada por @messi/)).toBeInTheDocument()
+    expect(screen.getByText(/creada por messi/)).toBeInTheDocument()
     unmount()
     renderHeader(makeGroup({ ownerUsername: null }))
     expect(screen.queryByText(/creada por/)).not.toBeInTheDocument()
