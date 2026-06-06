@@ -42,3 +42,38 @@ describe('groupsApi.create', () => {
     })
   })
 })
+
+describe('groupsApi.join', () => {
+  it('POSTs the code and maps the joined group to camelCase', async () => {
+    let body: unknown = null
+    server.use(
+      http.post('*/groups/join', async ({ request }) => {
+        body = await request.json()
+        return HttpResponse.json(
+          {
+            id: 9,
+            name: 'Los Cracks',
+            description: null,
+            code: 'PIZZA124',
+            is_general_pool: false,
+            member_count: 13,
+            is_owner: false,
+            created_at: '2026-06-06T00:00:00Z',
+          },
+          { status: 201 },
+        )
+      }),
+    )
+
+    const group = await groupsApi.join('PIZZA124')
+
+    expect(body).toEqual({ code: 'PIZZA124' })
+    expect(group).toMatchObject({
+      id: '9',
+      name: 'Los Cracks',
+      code: 'PIZZA124',
+      memberCount: 13,
+      isOwner: false,
+    })
+  })
+})

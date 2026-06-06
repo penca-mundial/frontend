@@ -43,7 +43,16 @@ export const groupsApi = {
     return mapGroup(await post<GroupResponse>('/groups', payload))
   },
 
-  // Implemented by their feature tickets (SCRUM-147 join, 148 detail).
+  /**
+   * Join a penca by its invite code (`POST /groups/join`). Idempotent on the
+   * backend (already a member → returns the group untouched). Rejects with the
+   * axios error on failure (invalid code, full group) — read via `getApiError`.
+   */
+  async join(code: string): Promise<Group> {
+    return mapGroup(await post<GroupResponse>('/groups/join', { code }))
+  },
+
+  // Implemented by its feature ticket (SCRUM-148 detail).
   get(): Promise<Group> {
     throw new Error('Not implemented')
   },
