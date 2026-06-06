@@ -5,9 +5,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GroupDetailHeader } from '@/features/groups/components/GroupDetailHeader'
 import { GroupLeaderboard } from '@/features/groups/components/GroupLeaderboard'
+import { GroupMembersList } from '@/features/groups/components/GroupMembersList'
 import { useGroup } from '@/features/groups/hooks/useGroup'
 
-/** Placeholder for tabs built in follow-up tickets (Miembros 278, Estadísticas). */
+/** Placeholder for tabs built in follow-up tickets (Estadísticas). */
 function SoonPlaceholder({ children }: { children: string }) {
   return (
     <div className="border-border bg-surface rounded-xl border border-dashed p-8 text-center">
@@ -57,16 +58,22 @@ export function GroupDetailPage() {
       <Tabs defaultValue="ranking" className="gap-4">
         <TabsList>
           <TabsTrigger value="ranking">Ranking</TabsTrigger>
-          <TabsTrigger value="members">Miembros</TabsTrigger>
+          {/* The general pool has every user — its member list adds nothing, so
+              the tab is hidden there (private pencas only). */}
+          {!group.isGeneralPool && (
+            <TabsTrigger value="members">Miembros</TabsTrigger>
+          )}
           <TabsTrigger value="stats">Estadísticas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="ranking">
           <GroupLeaderboard groupId={group.id} />
         </TabsContent>
-        <TabsContent value="members">
-          <SoonPlaceholder>La lista de miembros llega pronto.</SoonPlaceholder>
-        </TabsContent>
+        {!group.isGeneralPool && (
+          <TabsContent value="members">
+            <GroupMembersList groupId={group.id} />
+          </TabsContent>
+        )}
         <TabsContent value="stats">
           <SoonPlaceholder>Las estadísticas de la penca llegan pronto.</SoonPlaceholder>
         </TabsContent>

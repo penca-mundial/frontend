@@ -3,6 +3,46 @@ import { describe, expect, it } from 'vitest'
 import { server } from '@/test/mocks/server'
 import { groupsApi } from '@/api/groups.api'
 
+describe('groupsApi.members', () => {
+  it('GETs a page, reads X-Total-Count and maps the nested user', async () => {
+    let params: URLSearchParams | null = null
+    server.use(
+      http.get('*/groups/7/members', ({ request }) => {
+        params = new URL(request.url).searchParams
+        return HttpResponse.json(
+          [
+            {
+              joined_at: '2026-06-01T00:00:00Z',
+              is_owner: true,
+              user: { id: 1, username: 'leo', avatar_url: 'https://a/1.png' },
+            },
+            {
+              joined_at: '2026-06-02T00:00:00Z',
+              is_owner: false,
+              user: { id: 2, username: 'fede', avatar_url: null },
+            },
+          ],
+          { headers: { 'X-Total-Count': '37' } },
+        )
+      }),
+    )
+
+    const result = await groupsApi.members('7', 2)
+
+    expect(params!.get('page')).toBe('2')
+    expect(params!.get('per_page')).toBe('25')
+    expect(result.totalCount).toBe(37)
+    expect(result.members[0]).toEqual({
+      userId: '1',
+      username: 'leo',
+      avatarUrl: 'https://a/1.png',
+      isOwner: true,
+      joinedAt: '2026-06-01T00:00:00Z',
+    })
+    expect(result.members[1].userId).toBe('2')
+  })
+})
+
 describe('groupsApi.create', () => {
   it('POSTs name + description and maps the created group to camelCase', async () => {
     let body: unknown = null

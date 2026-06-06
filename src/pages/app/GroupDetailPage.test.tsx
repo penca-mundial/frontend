@@ -86,13 +86,22 @@ describe('GroupDetailPage', () => {
     expect(screen.getByText('santi')).toBeInTheDocument()
   })
 
-  it('shows a "Próximamente" placeholder on the Miembros tab', async () => {
+  it('shows a "Próximamente" placeholder on the Estadísticas tab', async () => {
     const user = userEvent.setup()
     mockGroup({ data: GROUP })
     renderPage()
 
-    await user.click(screen.getByRole('tab', { name: 'Miembros' }))
+    await user.click(screen.getByRole('tab', { name: 'Estadísticas' }))
     expect(screen.getByText('Próximamente')).toBeInTheDocument()
+  })
+
+  it('hides the Miembros tab on the general pool', () => {
+    mockGroup({ data: { ...GROUP, isGeneralPool: true } })
+    renderPage()
+    expect(screen.getByRole('tab', { name: 'Ranking' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('tab', { name: 'Miembros' }),
+    ).not.toBeInTheDocument()
   })
 
   it('shows an error state when the group fails to load', () => {
