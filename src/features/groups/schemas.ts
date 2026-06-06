@@ -26,3 +26,17 @@ export const createGroupSchema = z.object({
 })
 
 export type CreateGroupValues = z.infer<typeof createGroupSchema>
+
+/** Invite codes are 8 uppercase alphanumerics (`Group::CODE_FORMAT`). */
+export const GROUP_CODE_PATTERN = /^[A-Z0-9]{8}$/
+
+export const joinGroupSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .min(1, 'Ingresá el código de la penca.')
+    .regex(GROUP_CODE_PATTERN, 'El código son 8 caracteres (letras y números).'),
+})
+
+export type JoinGroupValues = z.infer<typeof joinGroupSchema>

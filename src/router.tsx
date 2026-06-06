@@ -13,6 +13,7 @@ import { LandingPage } from '@/pages/public/LandingPage'
 import { HomePage } from '@/pages/app/HomePage'
 import { GroupsPage } from '@/pages/app/GroupsPage'
 import { CreateGroupPage } from '@/pages/app/CreateGroupPage'
+import { JoinGroupPage } from '@/pages/app/JoinGroupPage'
 import { FixturePage } from '@/pages/app/FixturePage'
 import { MatchPage } from '@/pages/app/MatchPage'
 import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
@@ -149,10 +150,7 @@ export const routes: RouteObject[] = [
       },
       { path: '/app/groups', element: <GroupsPage /> },
       { path: '/app/groups/new', element: <CreateGroupPage /> },
-      {
-        path: '/app/groups/join',
-        element: <ShellPlaceholder title="Unirme con código" />,
-      },
+      { path: '/app/groups/join', element: <JoinGroupPage /> },
       { path: '/app/groups/:id', element: <ShellPlaceholder title="Penca" /> },
       { path: '/app/rankings', element: <RankingsComingSoon /> },
     ],
