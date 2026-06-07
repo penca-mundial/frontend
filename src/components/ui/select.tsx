@@ -53,7 +53,10 @@ function SelectTrigger({
 function SelectContent({
   className,
   children,
-  position = 'item-aligned',
+  // Popper (shadcn's current default): fixed height anchored to the trigger
+  // with native scroll. The old item-aligned default stretched/shrank the box
+  // and reset its scroll position (SCRUM-288).
+  position = 'popper',
   align = 'center',
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
