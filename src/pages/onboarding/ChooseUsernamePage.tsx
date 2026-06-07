@@ -19,7 +19,7 @@ export function ChooseUsernamePage() {
     <div className="bg-background flex min-h-screen flex-col">
       <header className="border-border bg-surface flex h-[60px] items-center justify-center border-b px-5">
         <span className="font-display text-brand-primary text-lg font-extrabold tracking-tight">
-          Penca Mundial
+          Magic Penca
         </span>
       </header>
 
@@ -41,7 +41,7 @@ export function ChooseUsernamePage() {
       </main>
 
       <footer className="text-text-disabled px-5 py-4 text-center font-mono text-[11px]">
-        © {new Date().getFullYear()} Penca Mundial
+        © {new Date().getFullYear()} Magic Penca
       </footer>
     </div>
   )

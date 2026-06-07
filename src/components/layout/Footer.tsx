@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="text-muted-foreground border-t py-4 text-center text-sm">
       <p>
-        © {new Date().getFullYear()} Penca Mundial · v{version}
+        © {new Date().getFullYear()} Magic Penca · v{version}
       </p>
     </footer>
   )

@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { vi } from 'vitest'
 import {
@@ -46,10 +47,10 @@ describe('AppShell', () => {
   it('renders the header logo, routed outlet content and footer', () => {
     renderShell()
     expect(
-      screen.getByRole('link', { name: 'Penca Mundial' }),
+      screen.getByRole('link', { name: 'Magic Penca' }),
     ).toBeInTheDocument()
     expect(screen.getByText('home content')).toBeInTheDocument()
-    expect(screen.getByText(/©/)).toBeInTheDocument()
+    expect(screen.getByText(/© \d{4} Magic Penca/)).toBeInTheDocument()
   })
 
   it('renders a hamburger menu button for mobile', () => {
@@ -76,5 +77,26 @@ describe('AppShell', () => {
     expect(
       screen.getAllByRole('link', { name: 'Admin' }).length,
     ).toBeGreaterThan(0)
+  })
+
+  it('hides the admin panel dropdown item from non-admins', async () => {
+    const user = userEvent.setup()
+    renderShell('/app/home', member)
+    await user.click(screen.getByRole('button', { name: /member/ }))
+    expect(
+      await screen.findByRole('menuitem', { name: 'Perfil' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('menuitem', { name: 'Panel de administración' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows the admin panel dropdown item to admins', async () => {
+    const user = userEvent.setup()
+    renderShell('/app/home', { ...member, isAdmin: true })
+    await user.click(screen.getByRole('button', { name: /member/ }))
+    expect(
+      await screen.findByRole('menuitem', { name: 'Panel de administración' }),
+    ).toBeInTheDocument()
   })
 })
