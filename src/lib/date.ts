@@ -62,6 +62,15 @@ export function matchDayKey(date: string | Date, tz: string): string {
 }
 
 /**
+ * Today's calendar-day key (e.g. "2026-06-07") in the given timezone. Goes
+ * through `formatInTimeZone` — never `toISOString()`, which reads the UTC
+ * day and would shift the date near midnight for non-UTC users.
+ */
+export function todayDayKey(tz: string = detectUserTimezone()): string {
+  return matchDayKey(new Date(), tz)
+}
+
+/**
  * Capitalize each word's first letter, but keep Spanish connectors lowercase
  * (a user preference, not strict orthography): "jueves, 11 de junio" becomes
  * "Jueves, 11 de Junio" — day and month capitalized, the preposition not.

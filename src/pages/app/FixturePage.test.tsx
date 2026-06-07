@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { formatInTimeZone } from 'date-fns-tz'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -79,6 +80,69 @@ beforeEach(() => {
     data: { predictions: [], totalCount: 0, page: 1, perPage: 100 },
   } as unknown as ReturnType<typeof usePredictions>)
   mockStandings(undefined)
+})
+
+describe('FixturePage date filter default (SCRUM-289)', () => {
+  it('defaults "Desde" to today in the user timezone and leaves "Hasta" empty', () => {
+    mockQuery({
+      data: { matches: [makeMatch()], totalCount: 1, page: 1, perPage: 100 },
+    })
+    renderPage()
+
+    // The timezone mock pins 'UTC', so today's key is the UTC calendar day.
+    const today = formatInTimeZone(new Date(), 'UTC', 'yyyy-MM-dd')
+    expect(screen.getByLabelText('Desde')).toHaveValue(today)
+    expect(screen.getByLabelText('Hasta')).toHaveValue('')
+  })
+
+  it('hides matches before today by default, showing today onwards', () => {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    mockQuery({
+      data: {
+        matches: [
+          makeMatch({
+            kickoffAt: yesterday,
+            homeTeam: { id: '9', name: 'Ayerlandia', code3: 'AYE', flagUrl: null },
+          }),
+          makeMatch(), // 2099 — far future
+        ],
+        totalCount: 2,
+        page: 1,
+        perPage: 100,
+      },
+    })
+    renderPage()
+
+    expect(screen.queryByText('Ayerlandia')).not.toBeInTheDocument()
+    expect(screen.getByText('Uruguay')).toBeInTheDocument()
+  })
+
+  it("respects the user's own date once they change the filter", async () => {
+    const user = userEvent.setup()
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    mockQuery({
+      data: {
+        matches: [
+          makeMatch({
+            kickoffAt: yesterday.toISOString(),
+            homeTeam: { id: '9', name: 'Ayerlandia', code3: 'AYE', flagUrl: null },
+          }),
+        ],
+        totalCount: 1,
+        page: 1,
+        perPage: 100,
+      },
+    })
+    renderPage()
+    expect(screen.queryByText('Ayerlandia')).not.toBeInTheDocument()
+
+    // Widen the range to include yesterday — the user's choice wins.
+    const yesterdayKey = formatInTimeZone(yesterday, 'UTC', 'yyyy-MM-dd')
+    const fromInput = screen.getByLabelText('Desde')
+    await user.clear(fromInput)
+    await user.type(fromInput, yesterdayKey)
+    expect(screen.getByText('Ayerlandia')).toBeInTheDocument()
+  })
 })
 
 describe('FixturePage', () => {
