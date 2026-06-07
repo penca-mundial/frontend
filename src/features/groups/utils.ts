@@ -9,11 +9,6 @@ const AVATAR_PALETTE = [
   'bg-[#ffedd5] text-[#9a3412]', // orange
 ] as const
 
-/** Thousands separator in the rioplatense style: 1247 -> "1.247". */
-export function formatThousands(value: number): string {
-  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-}
-
 /** Two-letter initials for a group avatar (first letters of the first two
  *  words, falling back to the first two letters of a single word). */
 export function groupInitials(name: string): string {

@@ -6,8 +6,8 @@ import { GroupDetailPage } from '@/pages/app/GroupDetailPage'
 import type { Group, RankingEntry } from '@/types/domain'
 
 vi.mock('@/features/groups/hooks/useGroup', () => ({ useGroup: vi.fn() }))
-vi.mock('@/features/groups/hooks/useGroupLeaderboard', () => ({
-  useGroupLeaderboard: vi.fn(),
+vi.mock('@/features/rankings/hooks/useRanking', () => ({
+  useRanking: vi.fn(),
 }))
 vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
   useCurrentUser: vi.fn(),
@@ -18,11 +18,11 @@ vi.mock('@/features/groups/components/GroupManagementMenu', () => ({
 }))
 
 import { useGroup } from '@/features/groups/hooks/useGroup'
-import { useGroupLeaderboard } from '@/features/groups/hooks/useGroupLeaderboard'
+import { useRanking } from '@/features/rankings/hooks/useRanking'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 
 const useGroupMock = vi.mocked(useGroup)
-const useLeaderboardMock = vi.mocked(useGroupLeaderboard)
+const useRankingMock = vi.mocked(useRanking)
 const useCurrentUserMock = vi.mocked(useCurrentUser)
 
 const GROUP: Group = {
@@ -70,11 +70,11 @@ beforeEach(() => {
   useCurrentUserMock.mockReturnValue({
     currentUser: { id: '9' },
   } as unknown as ReturnType<typeof useCurrentUser>)
-  useLeaderboardMock.mockReturnValue({
+  useRankingMock.mockReturnValue({
     data: { entries: [ENTRY], me: [] },
     isLoading: false,
     isError: false,
-  } as unknown as ReturnType<typeof useGroupLeaderboard>)
+  } as unknown as ReturnType<typeof useRanking>)
 })
 
 describe('GroupDetailPage', () => {

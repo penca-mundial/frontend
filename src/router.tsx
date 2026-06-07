@@ -18,6 +18,7 @@ import { GroupDetailPage } from '@/pages/app/GroupDetailPage'
 import { FixturePage } from '@/pages/app/FixturePage'
 import { MatchPage } from '@/pages/app/MatchPage'
 import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
+import { RankingsPage } from '@/pages/app/RankingsPage'
 import { TournamentPredictionPage } from '@/pages/app/TournamentPredictionPage'
 
 /**
@@ -39,24 +40,6 @@ function NotFound() {
       <h1 className="text-2xl font-semibold">404</h1>
       <p className="text-muted-foreground">Página no encontrada.</p>
     </main>
-  )
-}
-
-/**
- * Rankings landing until Phase 7 builds it — keeps the existing "Ranking"
- * navbar item from 404ing.
- */
-function RankingsComingSoon() {
-  return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <h1 className="text-display-lg font-display font-semibold">Ranking</h1>
-      <div className="border-border bg-surface rounded-xl border border-dashed p-8 text-center">
-        <p className="text-text-primary text-body font-semibold">Próximamente</p>
-        <p className="text-text-secondary text-body-sm mx-auto mt-1 max-w-md">
-          El ranking global llega en la próxima fase.
-        </p>
-      </div>
-    </div>
   )
 }
 
@@ -140,7 +123,7 @@ export const routes: RouteObject[] = [
       { path: '/app/groups/new', element: <CreateGroupPage /> },
       { path: '/app/groups/join', element: <JoinGroupPage /> },
       { path: '/app/groups/:id', element: <GroupDetailPage /> },
-      { path: '/app/rankings', element: <RankingsComingSoon /> },
+      { path: '/app/rankings', element: <RankingsPage /> },
     ],
   },
 

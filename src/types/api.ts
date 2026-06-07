@@ -138,12 +138,13 @@ export interface RankingEntryResponse {
 }
 
 /**
- * A group's leaderboard slice (`GET /rankings/groups/:id`). With
- * `include_me=true`, `me` is a small window of rows around the current user
- * (their row + neighbours), so the caller must pick the row whose `user_id`
- * matches the current user — it is NOT `me[0]`. Null when there is no row yet.
+ * A leaderboard slice (`GET /rankings/global` and `/rankings/groups/:id`,
+ * same shape — SCRUM-155). With `include_me=true`, `me` is a small window of
+ * rows around the current user (their row + neighbours), so the caller must
+ * pick the row whose `user_id` matches the current user — it is NOT `me[0]`.
+ * Null when there is no row yet.
  */
-export interface GroupRankingResponse {
+export interface LeaderboardResponse {
   entries: RankingEntryResponse[]
   me: RankingEntryResponse[] | null
 }
