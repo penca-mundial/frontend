@@ -240,3 +240,41 @@ If signup, login, or any auth request returns a generic error like "Algo salió 
 4. If status is network error (no response), the backend is not running. Start it with `docker compose up -d` in the backend folder.
 
 The "Algo salió mal" generic toast is a known UX issue — backend errors should surface their specific message. Tracked for Phase 9 (Polish).
+
+---
+
+# Reglas de trabajo (Claude Code)
+
+Estas reglas aplican a TODO el trabajo en este repo (el skill `/ticket` las ejecuta; ver `.claude/commands/ticket.md`).
+
+- **Regression-test-first.** Para un **fix**, escribí el test ANTES del fix y confirmá que **FALLA** contra el código sin el fix; recién entonces aplicá el fix y volvé el test verde. Los tests deben reflejar **data real de producción** (p.ej. ids numéricos del backend), **no** sólo mocks con strings — los mocks con strings ya enmascararon bugs reales (el id `number` vs `string` de SCRUM-145, arreglado de raíz en SCRUM-277).
+
+- **STOP antes de tocar archivos compartidos / de alto blast-radius.** Antes de editar:
+  - el cliente API base (`src/api/client.ts`),
+  - el router o los route guards (`src/router.tsx`, `ProtectedRoute`, `PublicOnlyRoute`),
+  - primitivas del design-system (`src/components/ui/*`),
+  - hooks compartidos (`src/hooks/*`, `src/contexts/*`),
+  
+  **frená y reportá el approach** (qué archivos vas a tocar y por qué) antes de editarlos. Un cambio acá impacta muchas pantallas; el costo de un approach equivocado es alto.
+
+- **Verificación real del repo:** `pnpm lint && pnpm typecheck && pnpm test` (+ `pnpm build`). No hay un script `verify`; corré los tres (cuatro con build).
+
+- **Nunca mergear sin OK visual explícito de Santiago.** El review de código no alcanza. Merge + Done es un paso **separado**, humano-gated (squash con subject `"…(#PR)"` + `--delete-branch` → Done id `41` → SHA final). Nunca encadenar el merge al cierre del PR.
+
+---
+
+# Convenciones del proyecto (frontend)
+
+- **IDs normalizados en el boundary.** El backend serializa los ids como `number`; los mappers (`mapUser`, `mapGroup`, `mapEntry`, …) los convierten con `String(id)`. **Comparaciones de id SIEMPRE en forma normalizada (string)** — nunca `entry.userId === currentUser.id` confiando en que ambos sean del mismo tipo sin pasar por el mapper. (Ver ADR 0004.)
+
+- **Usernames sin `@`** (pelados) en toda la UI (leaderboard, header "creada por", lista de miembros).
+
+- **Surface teal con textura** (`bg-brand-primary` + un degradé sutil + rayas diagonales a baja opacidad, patrón espejado del CTA de la landing) es un patrón **reutilizable** — no lo rehagas/dupliques. Hoy vive en `GeneralPoolHero`; cuando aparezca un 2º consumidor (p.ej. una card "TU POSICIÓN"), extraelo a un componente compartido (Open/Closed) en vez de copiarlo.
+
+- **Design tokens / primitivas:**
+  - `brand-primary` = teal `#0f766e`; `brand-accent` = amber `#f59e0b`.
+  - **Card del proyecto** = `border border-border bg-surface rounded-xl` (+ tokens Cancha). **NO** el `Card` de shadcn (`src/components/ui/card.tsx`).
+  - **`Button` real**: variants `default | secondary | outline | ghost | link` (NO existe "primary" ni "white"); `asChild` para envolver un `<Link>`.
+  - **`SectionLabel size="sm" tone="secondary"`** = label chico, uppercase, sutil (encabezados de sección).
+
+- **Iteración visual:** el flujo es **mock/delta de Santiago → instrucciones a nivel token → iterar in-branch → no mergear sin OK visual explícito**. Las iteraciones visuales se acumulan en la MISMA branch/PR (no abrir un PR por tweak).
