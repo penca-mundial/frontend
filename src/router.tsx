@@ -1,6 +1,7 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom'
 import { PublicOnlyRoute } from '@/components/layout/PublicOnlyRoute'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
+import { AdminRoute } from '@/components/layout/AdminRoute'
 import { AppShell } from '@/components/layout/AppShell'
 import { LoginPage } from '@/pages/public/LoginPage'
 import { ChooseUsernamePage } from '@/pages/onboarding/ChooseUsernamePage'
@@ -20,6 +21,8 @@ import { MatchPage } from '@/pages/app/MatchPage'
 import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
 import { RankingsPage } from '@/pages/app/RankingsPage'
 import { TournamentPredictionPage } from '@/pages/app/TournamentPredictionPage'
+import { ProfilePage } from '@/pages/app/ProfilePage'
+import { NotFoundPage } from '@/pages/public/NotFoundPage'
 
 /**
  * Placeholder page. Real pages and layouts arrive in their feature tickets;
@@ -30,15 +33,6 @@ function Placeholder({ title }: { title: string }) {
   return (
     <main className="p-8">
       <h1 className="text-2xl font-semibold">{title}</h1>
-    </main>
-  )
-}
-
-function NotFound() {
-  return (
-    <main className="p-8">
-      <h1 className="text-2xl font-semibold">404</h1>
-      <p className="text-muted-foreground">Página no encontrada.</p>
     </main>
   )
 }
@@ -124,14 +118,23 @@ export const routes: RouteObject[] = [
       { path: '/app/groups/join', element: <JoinGroupPage /> },
       { path: '/app/groups/:id', element: <GroupDetailPage /> },
       { path: '/app/rankings', element: <RankingsPage /> },
+      { path: '/app/profile', element: <ProfilePage /> },
     ],
   },
 
-  // Admin
-  { path: '/admin', element: <Placeholder title="Administración" /> },
+  // Admin — gated: non-admins are redirected to /app/home. The panel itself
+  // is still a placeholder (Phase 8).
+  {
+    path: '/admin',
+    element: (
+      <AdminRoute>
+        <Placeholder title="Administración" />
+      </AdminRoute>
+    ),
+  },
 
   // 404 fallback
-  { path: '*', element: <NotFound /> },
+  { path: '*', element: <NotFoundPage /> },
 ]
 
 export const router = createBrowserRouter(routes)

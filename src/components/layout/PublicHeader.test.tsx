@@ -15,7 +15,7 @@ describe('PublicHeader', () => {
   it('renders the logo linking home and the auth CTAs', () => {
     renderHeader()
     expect(
-      screen.getByRole('link', { name: /Penca Mundial/i }),
+      screen.getByRole('link', { name: /Magic Penca/i }),
     ).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Ingresar' })).toHaveAttribute(
       'href',

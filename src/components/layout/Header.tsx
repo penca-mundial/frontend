@@ -41,7 +41,7 @@ export function Logo() {
         <span className="bg-brand-accent absolute -right-0.5 bottom-0.5 size-1.5 rounded-full" />
       </span>
       <span className="font-display text-text-primary leading-none font-bold tracking-tight">
-        Penca <span className="font-serif font-normal italic opacity-70">Mundial</span>
+        Magic <span className="font-serif font-normal italic opacity-70">Penca</span>
       </span>
     </span>
   )
@@ -78,7 +78,7 @@ export function Header() {
   return (
     <header className="bg-surface border-border sticky top-0 z-40 border-b">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
-        <Link to="/app/home" aria-label="Penca Mundial" className="shrink-0">
+        <Link to="/app/home" aria-label="Magic Penca" className="shrink-0">
           <Logo />
         </Link>
 

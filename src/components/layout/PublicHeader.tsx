@@ -12,7 +12,7 @@ export function PublicHeader() {
   return (
     <header className="border-border bg-surface/85 sticky top-0 z-10 border-b backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 md:px-10">
-        <Link to="/" aria-label="Penca Mundial — inicio">
+        <Link to="/" aria-label="Magic Penca — inicio">
           <Logo />
         </Link>
         <nav className="flex items-center gap-2" aria-label="Acceso">

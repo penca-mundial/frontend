@@ -27,7 +27,7 @@ export function GroupDetailHeader({ group }: GroupDetailHeaderProps) {
     const url = `${window.location.origin}/app/groups/join?code=${group.code}`
     const shareData = {
       title: `Penca ${group.name}`,
-      text: `Sumate a "${group.name}" en Penca Mundial con el código ${group.code}.`,
+      text: `Sumate a "${group.name}" en Magic Penca con el código ${group.code}.`,
       url,
     }
     // Decide by device, NOT by `navigator.share` existence: Safari desktop has

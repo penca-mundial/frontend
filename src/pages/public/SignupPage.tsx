@@ -15,10 +15,10 @@ export function SignupPage() {
       <header className="border-border bg-surface flex h-[60px] items-center justify-center border-b px-5">
         <Link
           to="/"
-          aria-label="Penca Mundial — inicio"
+          aria-label="Magic Penca — inicio"
           className="font-display text-brand-primary text-lg font-extrabold tracking-tight"
         >
-          Penca Mundial
+          Magic Penca
         </Link>
       </header>
 
@@ -60,7 +60,7 @@ export function SignupPage() {
       </main>
 
       <footer className="text-text-disabled px-5 py-4 text-center font-mono text-[11px]">
-        © {new Date().getFullYear()} Penca Mundial
+        © {new Date().getFullYear()} Magic Penca
       </footer>
     </div>
   )
