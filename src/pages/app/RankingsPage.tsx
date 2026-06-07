@@ -28,11 +28,12 @@ function isRankingWindow(value: string): value is RankingWindow {
 export function RankingsPage() {
   const { data: groups, isLoading: groupsLoading } = useGroups()
   const [scope, setScope] = useState<string>(GLOBAL_SCOPE)
-  const [window, setWindow] = useState<RankingWindow>('total')
+  // Named rankingWindow (not `window`) to avoid shadowing the browser global.
+  const [rankingWindow, setRankingWindow] = useState<RankingWindow>('total')
 
   const ranking = useRanking({
     scope: scope === GLOBAL_SCOPE ? 'global' : { groupId: scope },
-    window,
+    window: rankingWindow,
   })
   const entries = ranking.data?.entries ?? []
   const me = ranking.data?.me ?? []
@@ -57,9 +58,9 @@ export function RankingsPage() {
       />
 
       <Tabs
-        value={window}
+        value={rankingWindow}
         onValueChange={(value) => {
-          if (isRankingWindow(value)) setWindow(value)
+          if (isRankingWindow(value)) setRankingWindow(value)
         }}
         className="gap-4"
       >
@@ -72,7 +73,7 @@ export function RankingsPage() {
         </TabsList>
         {/* One panel tracks the active window: the data refetches per window,
             the markup stays the same. */}
-        <TabsContent value={window}>
+        <TabsContent value={rankingWindow}>
           <Leaderboard
             entries={entries}
             me={me}
