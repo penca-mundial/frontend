@@ -25,9 +25,14 @@ const useMatchesMock = vi.mocked(useMatches)
 const usePredictionsMock = vi.mocked(usePredictions)
 const useStandingsMock = vi.mocked(useStandings)
 
-function mockStandings(groups: GroupStandings[] | undefined) {
+function mockStandings(
+  groups: GroupStandings[] | undefined,
+  state: { isLoading?: boolean; isError?: boolean } = {},
+) {
   useStandingsMock.mockReturnValue({
     data: groups,
+    isLoading: state.isLoading ?? false,
+    isError: state.isError ?? false,
   } as unknown as ReturnType<typeof useStandings>)
 }
 
@@ -291,6 +296,71 @@ describe('FixturePage', () => {
     expect(screen.getByText('Grupo A')).toBeInTheDocument()
     expect(screen.getByText('Grupo L')).toBeInTheDocument()
     expect(screen.getAllByText(/^Grupo [A-L]$/)).toHaveLength(12)
+    expect(
+      screen.queryByText(/Los grupos se mostrarán/i),
+    ).not.toBeInTheDocument()
+  })
+
+  it('requests the projected standings variant for the Grupos tab', async () => {
+    const user = userEvent.setup()
+    mockQuery({
+      data: { matches: [makeMatch({ group: 'A' })], totalCount: 1, page: 1, perPage: 100 },
+    })
+    renderPage()
+
+    await user.click(screen.getByRole('tab', { name: 'Grupos' }))
+    expect(useStandingsMock).toHaveBeenCalledWith(
+      '1',
+      expect.objectContaining({ projected: true }),
+    )
+  })
+
+  it('shows the "Según tus pronósticos" note above the group tables', async () => {
+    const user = userEvent.setup()
+    mockQuery({
+      data: { matches: [makeMatch({ group: 'A' })], totalCount: 1, page: 1, perPage: 100 },
+    })
+    mockStandings([
+      {
+        group: 'A',
+        rows: [
+          {
+            id: 's1',
+            group: 'A',
+            position: 1,
+            playedGames: 0,
+            won: 0,
+            draw: 0,
+            lost: 0,
+            goalsFor: 2,
+            goalsAgainst: 0,
+            goalDifference: 2,
+            points: 3, // projected points with nothing played — the hybrid
+            form: null,
+            team: { id: '1', name: 'Uruguay', code3: 'URU', flagUrl: null },
+          },
+        ],
+      },
+    ])
+    renderPage()
+
+    await user.click(screen.getByRole('tab', { name: 'Grupos' }))
+    expect(screen.getByText(/Según tus pronósticos/i)).toBeInTheDocument()
+    expect(screen.getByText('Grupo A')).toBeInTheDocument()
+  })
+
+  it('shows an error message (not the "Próximamente" placeholder) when standings fail', async () => {
+    const user = userEvent.setup()
+    mockQuery({
+      data: { matches: [makeMatch({ group: 'A' })], totalCount: 1, page: 1, perPage: 100 },
+    })
+    mockStandings(undefined, { isError: true })
+    renderPage()
+
+    await user.click(screen.getByRole('tab', { name: 'Grupos' }))
+    expect(
+      screen.getByText(/No pudimos cargar las posiciones/i),
+    ).toBeInTheDocument()
     expect(
       screen.queryByText(/Los grupos se mostrarán/i),
     ).not.toBeInTheDocument()

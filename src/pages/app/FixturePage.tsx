@@ -5,6 +5,7 @@ import { MatchFilters, type TeamFilter } from '@/features/matches/components/Mat
 import { MatchList } from '@/features/matches/components/MatchList'
 import { FixtureTabs, type FixtureTab } from '@/features/matches/components/FixtureTabs'
 import { GroupStandingsCard } from '@/features/matches/components/GroupStandingsCard'
+import { ProjectedStandingsNote } from '@/features/matches/components/ProjectedStandingsNote'
 import { EliminationView } from '@/components/matches/EliminationView'
 import { useMatches } from '@/features/matches/hooks/useMatches'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
@@ -60,10 +61,11 @@ function GruposPlaceholder() {
  * Public fixture with three views (segmented tabs):
  * - Calendario: every match grouped by day, predicted inline via
  *   `MatchCardExpandable`, with team/date filters.
- * - Grupos: one `GroupStandingsCard` per group from the computed standings
- *   endpoint (`GET /tournaments/:id/standings`, derived from the matches —
- *   every group at 0 pre-tournament, live during) plus collapsible inline-
- *   predictable matches; a skeleton while loading, placeholder only when empty.
+ * - Grupos: one `GroupStandingsCard` per group from the PROJECTED standings
+ *   endpoint (`GET /tournaments/:id/standings/projected` — official results
+ *   blended with the user's predictions, flagged by `ProjectedStandingsNote`)
+ *   plus collapsible inline-predictable matches; a skeleton while loading, an
+ *   error message on failure, placeholder only when empty.
  * - Eliminación: knockout matches as a sub-phase-filterable, inline-predictable
  *   list (default) or the read-only bracket, toggled via `EliminationView`.
  *
@@ -117,10 +119,15 @@ export function FixturePage() {
     [allMatches],
   )
   const tournamentId = allMatches[0]?.tournamentId
-  const { data: standingsGroups, isLoading: standingsLoading } = useStandings(
-    tournamentId,
-    { hasLiveMatches, enabled: tab === 'grupos' },
-  )
+  const {
+    data: standingsGroups,
+    isLoading: standingsLoading,
+    isError: standingsError,
+  } = useStandings(tournamentId, {
+    hasLiveMatches,
+    enabled: tab === 'grupos',
+    projected: true,
+  })
   const matchesByGroup = useMemo(
     () => matchesByGroupLetter(allMatches),
     [allMatches],
@@ -175,8 +182,13 @@ export function FixturePage() {
               <Skeleton key={index} className="h-48 w-full rounded-xl" />
             ))}
           </div>
+        ) : standingsError ? (
+          <p className="text-danger text-body">
+            No pudimos cargar las posiciones. Intentá de nuevo.
+          </p>
         ) : standingsGroups && standingsGroups.length > 0 ? (
           <div className="flex flex-col gap-4">
+            <ProjectedStandingsNote />
             {standingsGroups.map((g) => (
               <GroupStandingsCard
                 key={g.group}

@@ -34,8 +34,10 @@ function Flag({ team }: { team: MatchTeam | null }) {
 
 /**
  * A single group's standings table plus its (collapsible) matches, rendered in
- * the fixture "Grupos" tab. Standings come from the computed
- * `GET /tournaments/:id/standings` endpoint (see `useStandings`); matches reuse
+ * the fixture "Grupos" tab. Standings come from `useStandings` (the projected
+ * variant in the fixture — official results blended with the user's
+ * predictions); the "jugados" badge stays derived from the real matches'
+ * status, never from the (possibly projected) rows. Matches reuse
  * `MatchCardExpandable` (inline-predictable). The mobile layout keeps
  * Equipo / DG / Pts and hides the secondary columns via Tailwind responsive
  * utilities.
