@@ -11,7 +11,7 @@ import { usePredictions } from '@/features/predictions/hooks/usePredictions'
 import { useStandings } from '@/features/matches/hooks/useStandings'
 import type { Match, MatchTeam } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
-import { matchDayKey } from '@/lib/date'
+import { matchDayKey, todayDayKey } from '@/lib/date'
 import { detectUserTimezone } from '@/lib/timezone'
 
 /** Distinct teams appearing in a set of matches, sorted by name. */
@@ -74,8 +74,10 @@ export function FixturePage() {
   const navigate = useNavigate()
 
   const [tab, setTab] = useState<FixtureTab>('calendario')
-  // null = the user hasn't touched it yet → defaults to the first matchday.
-  const [dateFrom, setDateFrom] = useState<string | null>(null)
+  // "Desde" defaults to today (user's timezone) so the fixture opens on the
+  // matches still open for predictions; once the user edits it, their choice
+  // wins (state is only seeded on mount).
+  const [dateFrom, setDateFrom] = useState(() => todayDayKey(timezone))
   const [dateTo, setDateTo] = useState('')
   const [teamId, setTeamId] = useState<TeamFilter>('all')
 
@@ -92,19 +94,6 @@ export function FixturePage() {
     return map
   }, [predictionData])
 
-  // Tournament's first matchday (in the viewer's timezone), used as the default
-  // lower bound for the date filter so the fixture opens at kick-off, not on
-  // long-past test data.
-  const earliestDay = useMemo(() => {
-    if (allMatches.length === 0) return ''
-    const earliest = allMatches.reduce(
-      (min, match) => (match.kickoffAt < min ? match.kickoffAt : min),
-      allMatches[0].kickoffAt,
-    )
-    return matchDayKey(earliest, timezone)
-  }, [allMatches, timezone])
-  const effectiveDateFrom = dateFrom ?? earliestDay
-
   const visibleMatches = useMemo(
     () =>
       allMatches.filter((match) => {
@@ -116,11 +105,11 @@ export function FixturePage() {
           return false
         }
         const day = matchDayKey(match.kickoffAt, timezone)
-        if (effectiveDateFrom && day < effectiveDateFrom) return false
+        if (dateFrom && day < dateFrom) return false
         if (dateTo && day > dateTo) return false
         return true
       }),
-    [allMatches, teamId, effectiveDateFrom, dateTo, timezone],
+    [allMatches, teamId, dateFrom, dateTo, timezone],
   )
 
   const hasLiveMatches = useMemo(
@@ -146,7 +135,7 @@ export function FixturePage() {
       {tab === 'calendario' && (
         <div className="flex flex-col gap-5">
           <MatchFilters
-            dateFrom={effectiveDateFrom}
+            dateFrom={dateFrom}
             dateTo={dateTo}
             onDateFromChange={setDateFrom}
             onDateToChange={setDateTo}
