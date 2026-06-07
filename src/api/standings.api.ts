@@ -27,6 +27,16 @@ function mapStanding(row: ComputedStandingRow, group: string): Standing {
   }
 }
 
+/** Shared mapping for both standings variants (same blueprint server-side). */
+function mapGroups(groups: ComputedGroupStandings[] | null): GroupStandings[] {
+  return (groups ?? [])
+    .map((group) => ({
+      group: group.name,
+      rows: group.standings.map((row) => mapStanding(row, group.name)),
+    }))
+    .sort((a, b) => a.group.localeCompare(b.group, 'es'))
+}
+
 export const standingsApi = {
   /**
    * Computed group standings for a tournament
@@ -40,11 +50,20 @@ export const standingsApi = {
     const response = await apiClient.get<ComputedGroupStandings[]>(
       `/tournaments/${tournamentId}/standings`,
     )
-    return (response.data ?? [])
-      .map((group) => ({
-        group: group.name,
-        rows: group.standings.map((row) => mapStanding(row, group.name)),
-      }))
-      .sort((a, b) => a.group.localeCompare(b.group, 'es'))
+    return mapGroups(response.data)
+  },
+
+  /**
+   * Group standings PROJECTED for the current user
+   * (`GET /tournaments/:id/standings/projected`, SCRUM-294 — authenticated).
+   * Same shape as the official variant: `played/won/drawn/lost` are official,
+   * while `points/goals_for/goals_against/goal_difference/position` come
+   * already blended with the user's predictions (the backend does the mix).
+   */
+  async listProjected(tournamentId: string): Promise<GroupStandings[]> {
+    const response = await apiClient.get<ComputedGroupStandings[]>(
+      `/tournaments/${tournamentId}/standings/projected`,
+    )
+    return mapGroups(response.data)
   },
 }

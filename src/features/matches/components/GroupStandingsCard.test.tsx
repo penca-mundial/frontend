@@ -75,6 +75,23 @@ describe('GroupStandingsCard', () => {
     expect(within(rows[1]).getByText('-3')).toBeInTheDocument()
   })
 
+  it('derives the played badge from real finished matches, not from projected stats', () => {
+    // Projected standings can show points with nothing played (the user's
+    // prediction counts); the badge must keep reflecting OFFICIAL progress.
+    render(
+      <GroupStandingsCard
+        groupLetter="A"
+        standings={[standing({ points: 3, playedGames: 0 })]}
+        matches={[
+          { ...match('m1'), status: 'finished' as const },
+          match('m2'),
+        ]}
+      />,
+    )
+
+    expect(screen.getByText('1 / 2 jugados')).toBeInTheDocument()
+  })
+
   it('shows the group match count in the collapsible toggle', () => {
     render(
       <GroupStandingsCard

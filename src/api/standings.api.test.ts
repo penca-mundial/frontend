@@ -127,3 +127,67 @@ describe('standingsApi.list', () => {
     expect(await standingsApi.list('1')).toEqual([])
   })
 })
+
+describe('standingsApi.listProjected', () => {
+  it('hits the projected path with the tournament id', async () => {
+    let capturedPath: string | null = null
+    server.use(
+      http.get('*/tournaments/:id/standings/projected', ({ request }) => {
+        capturedPath = new URL(request.url).pathname
+        return HttpResponse.json([])
+      }),
+    )
+
+    await standingsApi.listProjected('7')
+    expect(capturedPath).toMatch(/\/tournaments\/7\/standings\/projected$/)
+  })
+
+  it('maps the blended rows: official played/won/drawn/lost with projected points', async () => {
+    // The hybrid the backend produces pre-match: nothing played officially,
+    // but the user's predictions already project points and positions.
+    server.use(
+      http.get('*/tournaments/:id/standings/projected', () =>
+        HttpResponse.json([
+          group('A', [
+            row({
+              position: 1,
+              played: 0,
+              won: 0,
+              drawn: 0,
+              lost: 0,
+              goals_for: 2,
+              goals_against: 0,
+              goal_difference: 2,
+              points: 3,
+            }),
+          ]),
+        ]),
+      ),
+    )
+
+    const result = await standingsApi.listProjected('1')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].rows[0]).toMatchObject({
+      playedGames: 0, // official
+      won: 0,
+      draw: 0,
+      lost: 0,
+      points: 3, // projected
+      goalDifference: 2,
+      position: 1,
+      team: { id: '1', name: 'Uruguay' },
+    })
+    expect(result[0].rows[0].id).toBe('A-1')
+  })
+
+  it('sorts groups alphabetically like the official variant', async () => {
+    server.use(
+      http.get('*/tournaments/:id/standings/projected', () =>
+        HttpResponse.json([group('B', [row({})]), group('A', [row({})])]),
+      ),
+    )
+    const result = await standingsApi.listProjected('1')
+    expect(result.map((g) => g.group)).toEqual(['A', 'B'])
+  })
+})
