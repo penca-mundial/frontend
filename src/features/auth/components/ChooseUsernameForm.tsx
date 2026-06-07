@@ -7,6 +7,7 @@ import { AlertCircle, Check } from 'lucide-react'
 import { usersApi } from '@/api/users.api'
 import { getApiError } from '@/api/auth.api'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
+import { takeReturnTo } from '@/features/auth/returnTo'
 import { USERNAME_PATTERN } from '@/features/auth/schemas'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -50,13 +51,14 @@ export function ChooseUsernameForm() {
     try {
       await usersApi.setUsername(values.username)
       refetch()
-      navigate('/app/home', { replace: true })
+      // Resume the invite destination stashed before OAuth, if any.
+      navigate(takeReturnTo() ?? '/app/home', { replace: true })
     } catch (error) {
       const apiError = getApiError(error)
       if (apiError?.code === 'username_already_set') {
         // Already has a username — nothing to do here, send them in.
         refetch()
-        navigate('/app/home', { replace: true })
+        navigate(takeReturnTo() ?? '/app/home', { replace: true })
         return
       }
       const message = apiError?.details?.errors?.[0]

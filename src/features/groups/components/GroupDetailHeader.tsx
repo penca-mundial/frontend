@@ -30,7 +30,13 @@ export function GroupDetailHeader({ group }: GroupDetailHeaderProps) {
       text: `Sumate a "${group.name}" en Penca Mundial con el código ${group.code}.`,
       url,
     }
-    if (navigator.share) {
+    // Decide by device, NOT by `navigator.share` existence: Safari desktop has
+    // it but the native sheet isn't what we want there. Touch devices get the
+    // share sheet (enables WhatsApp/Telegram); desktop always copies the link.
+    const isTouch =
+      window.matchMedia?.('(pointer: coarse)')?.matches ||
+      navigator.maxTouchPoints > 0
+    if (isTouch && navigator.share) {
       try {
         await navigator.share(shareData)
       } catch {
@@ -39,10 +45,10 @@ export function GroupDetailHeader({ group }: GroupDetailHeaderProps) {
       return
     }
     try {
-      await navigator.clipboard.writeText(group.code)
-      toast({ title: 'Código copiado', description: group.code })
+      await navigator.clipboard.writeText(url)
+      toast({ title: 'Link de invitación copiado' })
     } catch {
-      toast({ variant: 'destructive', title: 'No se pudo copiar el código' })
+      toast({ variant: 'destructive', title: 'No se pudo copiar el link' })
     }
   }
 

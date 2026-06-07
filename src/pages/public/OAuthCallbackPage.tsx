@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AlertCircle } from 'lucide-react'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
+import { takeReturnTo } from '@/features/auth/returnTo'
 import { Button } from '@/components/ui/button'
 
 const ERROR_COPY: Record<string, string> = {
@@ -32,12 +33,12 @@ export function OAuthCallbackPage() {
   useEffect(() => {
     if (errorParam || isLoading) return
     if (currentUser) {
-      navigate(
-        currentUser.needsUsername ? '/onboarding/username' : '/app/home',
-        {
-          replace: true,
-        },
-      )
+      if (currentUser.needsUsername) {
+        // Keep the stashed returnTo for after onboarding completes.
+        navigate('/onboarding/username', { replace: true })
+      } else {
+        navigate(takeReturnTo() ?? '/app/home', { replace: true })
+      }
     } else {
       // No session resolved — treat as a failed sign-in.
       navigate('/login?error=oauth_failed', { replace: true })

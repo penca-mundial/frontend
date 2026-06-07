@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { GroupDetailHeader } from '@/features/groups/components/GroupDetailHeader'
 import type { Group } from '@/types/domain'
 
@@ -39,6 +39,32 @@ function renderHeader(group: Group) {
 
 beforeEach(() => vi.clearAllMocks())
 
+afterEach(() => {
+  delete (navigator as { share?: unknown }).share
+  delete (window as { matchMedia?: unknown }).matchMedia
+})
+
+function setPointer(coarse: boolean) {
+  window.matchMedia = vi.fn().mockReturnValue({
+    matches: coarse,
+  }) as unknown as typeof window.matchMedia
+}
+
+function stubShare() {
+  const share = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'share', { value: share, configurable: true })
+  return share
+}
+
+function stubClipboard() {
+  const writeText = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'clipboard', {
+    value: { writeText },
+    configurable: true,
+  })
+  return writeText
+}
+
 describe('GroupDetailHeader', () => {
   it('renders name, description, member count and a back link', () => {
     renderHeader(makeGroup())
@@ -67,21 +93,42 @@ describe('GroupDetailHeader', () => {
     expect(screen.queryByText(/creada por/)).not.toBeInTheDocument()
   })
 
-  it('shows the code + share on private pencas and copies as a fallback', async () => {
+  it('on desktop copies the invite LINK even if navigator.share exists', async () => {
     const user = userEvent.setup()
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(navigator, 'clipboard', {
-      value: { writeText },
-      configurable: true,
-    })
-    // No navigator.share in jsdom → the fallback (copy) path runs.
+    setPointer(false) // fine pointer = desktop
+    const share = stubShare()
+    const writeText = stubClipboard()
     renderHeader(makeGroup())
 
     expect(screen.getByText('PIZZA124')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /Compartir código/ }))
 
-    expect(writeText).toHaveBeenCalledWith('PIZZA124')
-    await waitFor(() => expect(toastMock).toHaveBeenCalled())
+    expect(share).not.toHaveBeenCalled()
+    expect(writeText).toHaveBeenCalledWith(
+      expect.stringContaining('/app/groups/join?code=PIZZA124'),
+    )
+    await waitFor(() =>
+      expect(toastMock).toHaveBeenCalledWith({
+        title: 'Link de invitación copiado',
+      }),
+    )
+  })
+
+  it('on touch devices shares the invite LINK via the native sheet', async () => {
+    const user = userEvent.setup()
+    setPointer(true) // coarse pointer = touch
+    const share = stubShare()
+    const writeText = stubClipboard()
+    renderHeader(makeGroup())
+
+    await user.click(screen.getByRole('button', { name: /Compartir código/ }))
+
+    expect(share).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: expect.stringContaining('/app/groups/join?code=PIZZA124'),
+      }),
+    )
+    expect(writeText).not.toHaveBeenCalled()
   })
 
   it('hides the code and share action on the general pool', () => {

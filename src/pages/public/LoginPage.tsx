@@ -2,6 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { LoginForm } from '@/features/auth/components/LoginForm'
 import { GoogleSignInButton } from '@/features/auth/components/GoogleSignInButton'
+import { RETURN_TO_PARAM, readReturnTo } from '@/features/auth/returnTo'
 
 /** Maps an OAuth `?error=` redirect code to user-facing copy. */
 const OAUTH_ERROR_COPY: Record<string, string> = {
@@ -16,6 +17,11 @@ export function LoginPage() {
   const [searchParams] = useSearchParams()
   const resetSuccess = searchParams.get('reset') === 'success'
   const oauthErrorCopy = OAUTH_ERROR_COPY[searchParams.get('error') ?? '']
+  // Carry the invite destination onward to the signup page.
+  const returnTo = readReturnTo(`?${searchParams.toString()}`)
+  const signupHref = returnTo
+    ? `/signup?${RETURN_TO_PARAM}=${encodeURIComponent(returnTo)}`
+    : '/signup'
 
   return (
     <div className="bg-background flex min-h-screen flex-col">
@@ -82,7 +88,7 @@ export function LoginPage() {
             <div className="border-border text-text-secondary mt-5 border-t pt-4 text-center text-[13px]">
               ¿Todavía no tenés cuenta?{' '}
               <Link
-                to="/signup"
+                to={signupHref}
                 className="text-brand-primary font-semibold hover:underline"
               >
                 Crear cuenta

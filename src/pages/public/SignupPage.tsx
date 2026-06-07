@@ -1,8 +1,15 @@
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { SignupForm } from '@/features/auth/components/SignupForm'
 import { GoogleSignInButton } from '@/features/auth/components/GoogleSignInButton'
+import { RETURN_TO_PARAM, readReturnTo } from '@/features/auth/returnTo'
 
 export function SignupPage() {
+  const [searchParams] = useSearchParams()
+  const returnTo = readReturnTo(`?${searchParams.toString()}`)
+  const loginHref = returnTo
+    ? `/login?${RETURN_TO_PARAM}=${encodeURIComponent(returnTo)}`
+    : '/login'
+
   return (
     <div className="bg-background flex min-h-screen flex-col">
       <header className="border-border bg-surface flex h-[60px] items-center justify-center border-b px-5">
@@ -42,7 +49,7 @@ export function SignupPage() {
             <div className="border-border text-text-secondary mt-5 border-t pt-4 text-center text-[13px]">
               ¿Ya tenés cuenta?{' '}
               <Link
-                to="/login"
+                to={loginHref}
                 className="text-brand-primary font-semibold hover:underline"
               >
                 Iniciar sesión
