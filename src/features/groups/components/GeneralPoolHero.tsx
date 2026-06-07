@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
+import { BrandSurface } from '@/components/brand/BrandSurface'
 import { Badge } from '@/components/ui/badge'
 import { useGroupRank } from '@/features/groups/hooks/useGroupRank'
-import { formatThousands } from '@/features/groups/utils'
+import { formatThousands } from '@/lib/format'
 import type { Group } from '@/types/domain'
 
 export interface GeneralPoolHeroProps {
@@ -18,30 +19,12 @@ export function GeneralPoolHero({ group }: GeneralPoolHeroProps) {
   const { rankPosition, isLoading } = useGroupRank(group.id)
 
   return (
-    <Link
+    <BrandSurface
+      as={Link}
       to={`/app/groups/${group.id}`}
-      className="bg-brand-primary focus-visible:ring-brand-primary relative block overflow-hidden rounded-xl text-white shadow-sm transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+      className="focus-visible:ring-brand-primary shadow-sm transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
     >
-      {/* Texture: a leve diagonal sheen + subtle diagonal stripes over the
-          teal, mirroring the landing CTA. Decorative, low-opacity. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            'linear-gradient(150deg, rgba(255,255,255,0.12), rgba(0,0,0,0.10))',
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-10"
-        style={{
-          backgroundImage:
-            'repeating-linear-gradient(135deg, transparent 0 18px, rgba(255,255,255,0.45) 18px 19px)',
-        }}
-      />
-
-      <div className="relative flex items-center gap-4 p-5">
+      <div className="flex items-center gap-4 p-5">
         <div className="min-w-0 flex-1">
           <Badge className="bg-brand-accent-soft border-transparent text-[11px] tracking-wide text-[#92400e]">
             POOL GENERAL
@@ -72,6 +55,6 @@ export function GeneralPoolHero({ group }: GeneralPoolHeroProps) {
           className="size-5 shrink-0 text-white/70"
         />
       </div>
-    </Link>
+    </BrandSurface>
   )
 }

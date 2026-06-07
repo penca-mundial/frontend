@@ -50,7 +50,7 @@ describe('rankingsApi.groupLeaderboard', () => {
     expect((await rankingsApi.groupLeaderboard('7')).me).toEqual([])
   })
 
-  it('requests include_me with the given limit at the right path', async () => {
+  it('requests include_me with the given limit at the right path, defaulting window=total', async () => {
     let params: URLSearchParams | null = null
     let path: string | null = null
     server.use(
@@ -67,5 +67,56 @@ describe('rankingsApi.groupLeaderboard', () => {
     expect(path).toMatch(/\/rankings\/groups\/42$/)
     expect(params!.get('include_me')).toBe('true')
     expect(params!.get('limit')).toBe('100')
+    expect(params!.get('window')).toBe('total')
+  })
+
+  it('passes the requested window', async () => {
+    let params: URLSearchParams | null = null
+    server.use(
+      http.get('*/rankings/groups/:id', ({ request }) => {
+        params = new URL(request.url).searchParams
+        return HttpResponse.json({ entries: [], me: [] })
+      }),
+    )
+
+    await rankingsApi.groupLeaderboard('42', 100, 'week')
+
+    expect(params!.get('window')).toBe('week')
+  })
+})
+
+describe('rankingsApi.global', () => {
+  it('maps the slice from /rankings/global with the same camelCase shape', async () => {
+    let params: URLSearchParams | null = null
+    let path: string | null = null
+    server.use(
+      http.get('*/rankings/global', ({ request }) => {
+        const url = new URL(request.url)
+        params = url.searchParams
+        path = url.pathname
+        return HttpResponse.json({
+          entries: [entry(1, 9)],
+          me: [entry(12, 5)],
+        })
+      }),
+    )
+
+    const slice = await rankingsApi.global(100, 'today')
+
+    expect(path).toMatch(/\/rankings\/global$/)
+    expect(params!.get('include_me')).toBe('true')
+    expect(params!.get('limit')).toBe('100')
+    expect(params!.get('window')).toBe('today')
+    expect(slice.entries[0]).toMatchObject({ userId: '9', position: 1 })
+    expect(slice.me[0]).toMatchObject({ userId: '5', position: 12 })
+  })
+
+  it('returns an empty me window when null', async () => {
+    server.use(
+      http.get('*/rankings/global', () =>
+        HttpResponse.json({ entries: [], me: null }),
+      ),
+    )
+    expect((await rankingsApi.global()).me).toEqual([])
   })
 })

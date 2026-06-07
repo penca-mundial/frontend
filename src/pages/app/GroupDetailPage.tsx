@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GroupDetailHeader } from '@/features/groups/components/GroupDetailHeader'
-import { GroupLeaderboard } from '@/features/groups/components/GroupLeaderboard'
 import { GroupMembersList } from '@/features/groups/components/GroupMembersList'
 import { useGroup } from '@/features/groups/hooks/useGroup'
+import { Leaderboard } from '@/features/rankings/components/Leaderboard'
+import { useRanking } from '@/features/rankings/hooks/useRanking'
 
 /** Placeholder for tabs built in follow-up tickets (Estadísticas). */
 function SoonPlaceholder({ children }: { children: string }) {
@@ -24,6 +25,9 @@ export function GroupDetailPage() {
   const { id } = useParams()
   const groupId = id ?? ''
   const { data: group, isLoading, isError } = useGroup(groupId)
+  // The detail's Ranking tab shows the cumulative table (windows live in
+  // /app/rankings). Fetched here so the tab content stays presentational.
+  const ranking = useRanking({ scope: { groupId } })
 
   if (isLoading) {
     return (
@@ -67,7 +71,12 @@ export function GroupDetailPage() {
         </TabsList>
 
         <TabsContent value="ranking">
-          <GroupLeaderboard groupId={group.id} />
+          <Leaderboard
+            entries={ranking.data?.entries ?? []}
+            me={ranking.data?.me ?? []}
+            isLoading={ranking.isLoading}
+            isError={ranking.isError}
+          />
         </TabsContent>
         {!group.isGeneralPool && (
           <TabsContent value="members">
