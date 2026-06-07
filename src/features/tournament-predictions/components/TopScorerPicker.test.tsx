@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { TopScorerPicker } from '@/features/tournament-predictions/components/TopScorerPicker'
@@ -56,5 +56,22 @@ describe('TopScorerPicker', () => {
     await user.click(screen.getByText('Lionel Messi'))
 
     expect(onChange).toHaveBeenCalledWith('9')
+  })
+
+  it('resets the list scroll to the top while typing (top match stays visible)', async () => {
+    const user = userEvent.setup()
+    render(
+      <TopScorerPicker players={PLAYERS} value={null} onChange={vi.fn()} />,
+    )
+
+    await user.click(screen.getByRole('combobox'))
+    const list = document.querySelector('[data-slot="command-list"]')!
+    expect(list).not.toBeNull()
+    // Simulate a list scrolled down (e.g. the user browsed before typing).
+    list.scrollTop = 80
+
+    await user.type(screen.getByPlaceholderText('Buscar jugador…'), 'Mes')
+
+    await waitFor(() => expect(list.scrollTop).toBe(0))
   })
 })

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -37,7 +37,17 @@ export function TopScorerPicker({
   disabled,
 }: TopScorerPickerProps) {
   const [open, setOpen] = useState(false)
+  const listRef = useRef<HTMLDivElement>(null)
   const selected = players.find((player) => player.id === value) ?? null
+
+  // cmdk re-renders the filtered items but keeps the list's previous
+  // scrollTop, so after browsing down and then typing, the top match could sit
+  // out of view. Reset on every query change (after cmdk paints, hence rAF).
+  const scrollListToTop = () => {
+    requestAnimationFrame(() => {
+      if (listRef.current) listRef.current.scrollTop = 0
+    })
+  }
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -67,8 +77,11 @@ export function TopScorerPicker({
           align="start"
         >
           <Command>
-            <CommandInput placeholder="Buscar jugador…" />
-            <CommandList>
+            <CommandInput
+              placeholder="Buscar jugador…"
+              onValueChange={scrollListToTop}
+            />
+            <CommandList ref={listRef}>
               <CommandEmpty>Sin resultados.</CommandEmpty>
               <CommandGroup>
                 {players.map((player) => (

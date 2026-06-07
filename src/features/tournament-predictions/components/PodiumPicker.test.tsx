@@ -39,4 +39,30 @@ describe('PodiumPicker', () => {
     expect(optionNames).toContain('Argentina')
     expect(optionNames).toContain('Brasil')
   })
+
+  it('opens the dropdown in popper mode (anchored to the trigger, native scroll)', async () => {
+    const user = userEvent.setup()
+    render(
+      <PodiumPicker
+        teams={TEAMS}
+        value={{
+          championId: null,
+          runnerUpId: null,
+          thirdPlaceId: null,
+          fourthPlaceId: null,
+        }}
+        onChange={vi.fn()}
+      />,
+    )
+
+    await user.click(screen.getAllByRole('combobox')[0])
+
+    // The popper-only offset classes are applied only when SelectContent runs
+    // with position="popper" (the primitive's default since SCRUM-288) —
+    // item-aligned mode (the old default) stretched/shrank and reset its
+    // scroll while scrolling.
+    const content = document.querySelector('[data-slot="select-content"]')!
+    expect(content).not.toBeNull()
+    expect(content.className).toContain('data-[side=bottom]:translate-y-1')
+  })
 })
