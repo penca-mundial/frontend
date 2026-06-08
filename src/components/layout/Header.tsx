@@ -117,6 +117,9 @@ export function Header() {
                 <DropdownMenuItem asChild>
                   <Link to="/app/profile">Perfil</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/app/rules">Reglas</Link>
+                </DropdownMenuItem>
                 {currentUser.isAdmin && (
                   <DropdownMenuItem asChild>
                     <Link to="/admin">Panel de administración</Link>

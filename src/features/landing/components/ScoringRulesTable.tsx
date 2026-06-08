@@ -1,25 +1,17 @@
+import { Skeleton } from '@/components/ui/skeleton'
+import { ScoringTables } from '@/features/scoring/components/ScoringTables'
+import { useScoringConfig } from '@/features/scoring/hooks/useScoringConfig'
+
 /**
- * Static scoring rules. Base points follow the design reference; the per-phase
- * multipliers are the seed's PhaseMultiplier values (hardcoded — Landing is
- * fully static, no live data).
+ * Landing scoring section. Consumes the same `GET /scoring_rules` config as the
+ * in-app rules page (SCRUM-296) through the shared `ScoringTables` — one source
+ * of truth, no hardcoded points. The section chrome (eyebrow + heading + note)
+ * stays here. On error the tables are simply omitted: the landing is marketing,
+ * not a critical flow, so it degrades quietly rather than showing an alert.
  */
-const BASE_POINTS: { label: string; example: string; points: string }[] = [
-  { label: 'Resultado exacto', example: '3–1 → 3–1', points: '10' },
-  { label: 'Misma diferencia', example: '2–0 → 3–1', points: '6' },
-  { label: 'Solo el ganador', example: 'acertás quién gana', points: '3' },
-]
-
-const PHASE_MULTIPLIERS: { phase: string; multiplier: string }[] = [
-  { phase: 'Fase de grupos', multiplier: '×1.0' },
-  { phase: 'Dieciseisavos', multiplier: '×1.5' },
-  { phase: 'Octavos', multiplier: '×2.0' },
-  { phase: 'Cuartos', multiplier: '×2.5' },
-  { phase: 'Semis', multiplier: '×3.0' },
-  { phase: '3er puesto', multiplier: '×3.5' },
-  { phase: 'Final', multiplier: '×4.0' },
-]
-
 export function ScoringRulesTable() {
+  const { data: config, isLoading, isError } = useScoringConfig()
+
   return (
     <section className="px-5 py-12 md:px-10 md:py-16">
       <div className="mx-auto max-w-5xl">
@@ -30,46 +22,15 @@ export function ScoringRulesTable() {
           Cómo se reparten los puntos.
         </h2>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <table className="border-border bg-surface w-full overflow-hidden rounded-2xl border text-left">
-            <caption className="text-text-secondary px-4 pt-4 pb-1 text-left text-body-sm font-semibold">
-              Puntos base por partido
-            </caption>
-            <tbody>
-              {BASE_POINTS.map((row) => (
-                <tr key={row.label} className="border-border border-t">
-                  <th scope="row" className="text-body-sm px-4 py-3 font-semibold">
-                    {row.label}
-                  </th>
-                  <td className="text-text-secondary px-2 py-3 font-mono text-xs">
-                    {row.example}
-                  </td>
-                  <td className="text-brand-primary font-display px-4 py-3 text-right text-xl font-bold tabular-nums">
-                    {row.points}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <table className="border-border bg-surface w-full overflow-hidden rounded-2xl border text-left">
-            <caption className="text-text-secondary px-4 pt-4 pb-1 text-left text-body-sm font-semibold">
-              Multiplicador por fase
-            </caption>
-            <tbody>
-              {PHASE_MULTIPLIERS.map((row) => (
-                <tr key={row.phase} className="border-border border-t">
-                  <th scope="row" className="text-body-sm px-4 py-2.5 font-medium">
-                    {row.phase}
-                  </th>
-                  <td className="text-brand-primary font-display px-4 py-2.5 text-right text-body-lg font-bold tabular-nums">
-                    {row.multiplier}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {isLoading ? (
+          <div className="grid gap-6 md:grid-cols-2" aria-busy="true">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <Skeleton key={index} className="h-44 w-full rounded-2xl" />
+            ))}
+          </div>
+        ) : isError || !config ? null : (
+          <ScoringTables config={config} />
+        )}
 
         <p className="text-text-secondary text-body-sm mt-4 leading-relaxed">
           El puntaje de cada partido se multiplica según la fase. Además, al
