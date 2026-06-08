@@ -34,6 +34,37 @@ beforeEach(() => {
 })
 
 describe('SignupForm', () => {
+  it('shows the password requirements as discreet help text from the start', () => {
+    renderForm()
+
+    // Requirements visible before any interaction (AC1), wording exact.
+    const hint = screen.getByText(
+      'Mínimo 8 caracteres, con al menos un número.',
+    )
+    expect(hint).toBeInTheDocument()
+    // It must be help text, not an error: the password input is described by it.
+    expect(screen.getByLabelText('Contraseña')).toHaveAttribute(
+      'aria-describedby',
+      expect.stringContaining(hint.id),
+    )
+    // AC3: no mention of uppercase, symbols or breach/pwned checks.
+    expect(hint.textContent).not.toMatch(/may[úu]scula|s[íi]mbolo|filtrad/i)
+  })
+
+  it('keeps the requirements help text visible alongside a password error', async () => {
+    const user = userEvent.setup()
+    renderForm()
+
+    await user.type(screen.getByLabelText('Contraseña'), 'short')
+    await user.click(screen.getByRole('button', { name: 'Crear cuenta' }))
+
+    expect(screen.getByText('Mínimo 8 caracteres.')).toBeInTheDocument()
+    // The proactive requirements stay put even while the error shows.
+    expect(
+      screen.getByText('Mínimo 8 caracteres, con al menos un número.'),
+    ).toBeInTheDocument()
+  })
+
   it('gives live feedback on the username field as the user types', async () => {
     const user = userEvent.setup()
     renderForm()
