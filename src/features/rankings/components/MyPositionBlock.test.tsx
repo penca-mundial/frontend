@@ -30,6 +30,26 @@ beforeEach(() => {
 })
 
 describe('MyPositionBlock', () => {
+  it('keeps the surface positioned at every breakpoint (texture containment)', () => {
+    // Regression (SCRUM-297): BrandSurface contains its absolute inset-0
+    // texture overlays via its own `relative`, but tailwind-merge drops it
+    // when the caller passes another position class. `md:static` left the
+    // element unpositioned on desktop, so the overlays anchored to the
+    // viewport and painted a gray gradient over the whole page.
+    const { container } = render(
+      <MyPositionBlock
+        entries={[ent({ userId: '9', position: 1, points: 10 })]}
+        me={[ent({ userId: '9', position: 1, points: 10 })]}
+      />,
+    )
+
+    const surface = container.firstElementChild!
+    expect(surface.className).not.toMatch(/md:static/)
+    // Sticky on mobile + positioned (relative) on desktop.
+    expect(surface.className).toMatch(/sticky/)
+    expect(surface.className).toMatch(/md:relative/)
+  })
+
   it('shows the rank, points and the gap to the leader', () => {
     render(
       <MyPositionBlock
