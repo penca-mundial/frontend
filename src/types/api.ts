@@ -127,6 +127,30 @@ export interface ComputedGroupStandings {
   standings: ComputedStandingRow[]
 }
 
+/**
+ * One scoring rule (`GET /scoring_rules`, SCRUM-296). `rule_type` is the
+ * machine key (`exact_score`, `champion_correct`, …); `label` is already
+ * localized (es) by the backend, so the SPA renders it verbatim.
+ */
+export interface ScoringRuleResponse {
+  rule_type: string
+  points: number
+  label: string
+}
+
+/** One per-phase multiplier (`GET /scoring_rules`). `multiplier` is a number. */
+export interface PhaseMultiplierResponse {
+  phase: string
+  multiplier: number
+  label: string
+}
+
+/** The full scoring configuration (`GET /scoring_rules`, public). */
+export interface ScoringConfigResponse {
+  scoring_rules: ScoringRuleResponse[]
+  phase_multipliers: PhaseMultiplierResponse[]
+}
+
 /** One leaderboard row (`RankingEntryBlueprint`, SCRUM-276). */
 export interface RankingEntryResponse {
   user_id: number

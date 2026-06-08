@@ -91,6 +91,16 @@ describe('AppShell', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('links to the rules page from the user dropdown', async () => {
+    const user = userEvent.setup()
+    renderShell('/app/home', member)
+    await user.click(screen.getByRole('button', { name: /member/ }))
+
+    const rules = await screen.findByRole('menuitem', { name: 'Reglas' })
+    expect(rules).toBeInTheDocument()
+    expect(rules).toHaveAttribute('href', '/app/rules')
+  })
+
   it('shows the admin panel dropdown item to admins', async () => {
     const user = userEvent.setup()
     renderShell('/app/home', { ...member, isAdmin: true })
