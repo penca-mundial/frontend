@@ -147,6 +147,10 @@ export interface RankingEntryResponse {
 export interface LeaderboardResponse {
   entries: RankingEntryResponse[]
   me: RankingEntryResponse[] | null
+  /** 1-based page echo (SCRUM-280). */
+  page: number
+  /** True while more ranked pages exist past this one. */
+  has_more: boolean
 }
 
 /** One member row (`GET /groups/:id/members`, `GroupMemberBlueprint`). */

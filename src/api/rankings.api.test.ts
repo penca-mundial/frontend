@@ -14,18 +14,27 @@ function entry(rankPosition: number, userId = 9) {
   }
 }
 
+/** Paginated body as the backend renders it (SCRUM-280). */
+function body(overrides: Partial<Record<string, unknown>> = {}) {
+  return { entries: [], me: null, page: 1, has_more: false, ...overrides }
+}
+
 describe('rankingsApi.groupLeaderboard', () => {
-  it('maps entries and the me window to camelCase, incl. exactCount + avatarUrl', async () => {
+  it('maps entries, the me window and pagination to camelCase', async () => {
     server.use(
       http.get('*/rankings/groups/:id', () =>
-        HttpResponse.json({
-          entries: [entry(1, 9)],
-          me: [entry(3, 5), entry(4, 9)],
-        }),
+        HttpResponse.json(
+          body({
+            entries: [entry(1, 9)],
+            me: [entry(3, 5), entry(4, 9)],
+            page: 1,
+            has_more: true,
+          }),
+        ),
       ),
     )
 
-    const slice = await rankingsApi.groupLeaderboard('7')
+    const slice = await rankingsApi.groupLeaderboard('7', { includeMe: true })
 
     expect(slice.entries).toEqual([
       {
@@ -39,18 +48,18 @@ describe('rankingsApi.groupLeaderboard', () => {
     ])
     expect(slice.me.map((e) => e.userId)).toEqual(['5', '9'])
     expect(slice.me[0]).toMatchObject({ position: 3, exactCount: 3, avatarUrl: null })
+    expect(slice.page).toBe(1)
+    expect(slice.hasMore).toBe(true)
   })
 
   it('returns an empty me window when null', async () => {
     server.use(
-      http.get('*/rankings/groups/:id', () =>
-        HttpResponse.json({ entries: [], me: null }),
-      ),
+      http.get('*/rankings/groups/:id', () => HttpResponse.json(body())),
     )
     expect((await rankingsApi.groupLeaderboard('7')).me).toEqual([])
   })
 
-  it('requests include_me with the given limit at the right path, defaulting window=total', async () => {
+  it('requests 1-based page/per_page at the right path, defaulting window=total', async () => {
     let params: URLSearchParams | null = null
     let path: string | null = null
     server.use(
@@ -58,35 +67,43 @@ describe('rankingsApi.groupLeaderboard', () => {
         const url = new URL(request.url)
         params = url.searchParams
         path = url.pathname
-        return HttpResponse.json({ entries: [], me: [] })
+        return HttpResponse.json(body())
       }),
     )
 
-    await rankingsApi.groupLeaderboard('42', 100)
+    await rankingsApi.groupLeaderboard('42', { page: 3 })
 
     expect(path).toMatch(/\/rankings\/groups\/42$/)
-    expect(params!.get('include_me')).toBe('true')
-    expect(params!.get('limit')).toBe('100')
+    expect(params!.get('page')).toBe('3')
+    expect(params!.get('per_page')).toBe('25')
     expect(params!.get('window')).toBe('total')
+    // include_me only travels when explicitly requested (page 1 use-case).
+    expect(params!.get('include_me')).toBeNull()
   })
 
-  it('passes the requested window', async () => {
+  it('passes window and include_me when requested', async () => {
     let params: URLSearchParams | null = null
     server.use(
       http.get('*/rankings/groups/:id', ({ request }) => {
         params = new URL(request.url).searchParams
-        return HttpResponse.json({ entries: [], me: [] })
+        return HttpResponse.json(body())
       }),
     )
 
-    await rankingsApi.groupLeaderboard('42', 100, 'week')
+    await rankingsApi.groupLeaderboard('42', {
+      window: 'week',
+      includeMe: true,
+      perPage: 1,
+    })
 
     expect(params!.get('window')).toBe('week')
+    expect(params!.get('include_me')).toBe('true')
+    expect(params!.get('per_page')).toBe('1')
   })
 })
 
 describe('rankingsApi.global', () => {
-  it('maps the slice from /rankings/global with the same camelCase shape', async () => {
+  it('maps the page from /rankings/global with the same camelCase shape', async () => {
     let params: URLSearchParams | null = null
     let path: string | null = null
     server.use(
@@ -94,28 +111,36 @@ describe('rankingsApi.global', () => {
         const url = new URL(request.url)
         params = url.searchParams
         path = url.pathname
-        return HttpResponse.json({
-          entries: [entry(1, 9)],
-          me: [entry(12, 5)],
-        })
+        return HttpResponse.json(
+          body({
+            entries: [entry(1, 9)],
+            me: [entry(12, 5)],
+            page: 2,
+            has_more: false,
+          }),
+        )
       }),
     )
 
-    const slice = await rankingsApi.global(100, 'today')
+    const slice = await rankingsApi.global({
+      page: 2,
+      window: 'today',
+      includeMe: true,
+    })
 
     expect(path).toMatch(/\/rankings\/global$/)
+    expect(params!.get('page')).toBe('2')
     expect(params!.get('include_me')).toBe('true')
-    expect(params!.get('limit')).toBe('100')
     expect(params!.get('window')).toBe('today')
     expect(slice.entries[0]).toMatchObject({ userId: '9', position: 1 })
     expect(slice.me[0]).toMatchObject({ userId: '5', position: 12 })
+    expect(slice.page).toBe(2)
+    expect(slice.hasMore).toBe(false)
   })
 
   it('returns an empty me window when null', async () => {
     server.use(
-      http.get('*/rankings/global', () =>
-        HttpResponse.json({ entries: [], me: null }),
-      ),
+      http.get('*/rankings/global', () => HttpResponse.json(body())),
     )
     expect((await rankingsApi.global()).me).toEqual([])
   })

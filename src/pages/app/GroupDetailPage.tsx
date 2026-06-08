@@ -72,10 +72,13 @@ export function GroupDetailPage() {
 
         <TabsContent value="ranking">
           <Leaderboard
-            entries={ranking.data?.entries ?? []}
-            me={ranking.data?.me ?? []}
+            entries={ranking.entries}
+            me={ranking.me}
             isLoading={ranking.isLoading}
             isError={ranking.isError}
+            hasMore={ranking.hasMore}
+            onLoadMore={ranking.loadMore}
+            isLoadingMore={ranking.isLoadingMore}
           />
         </TabsContent>
         {!group.isGeneralPool && (
