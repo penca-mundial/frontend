@@ -41,6 +41,7 @@ export function SignupForm() {
   const [genericError, setGenericError] = useState<string | null>(null)
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null)
   const passwordErrorId = useId()
+  const passwordHintId = useId()
   const confirmErrorId = useId()
 
   const {
@@ -187,7 +188,11 @@ export function SignupForm() {
             autoComplete="new-password"
             className="pr-10"
             aria-invalid={Boolean(passwordError) || undefined}
-            aria-describedby={passwordError ? passwordErrorId : undefined}
+            aria-describedby={
+              passwordError
+                ? `${passwordHintId} ${passwordErrorId}`
+                : passwordHintId
+            }
             {...register('password')}
           />
           <button
@@ -201,6 +206,16 @@ export function SignupForm() {
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
+        {/* Requirements stay visible as proactive help text (not an error), so
+            the user knows the rules before submitting. Mirrors the backend:
+            8–128 chars + at least one digit (no uppercase/symbols). The breach
+            check is reactive and surfaces as an error only if it trips. */}
+        <p
+          id={passwordHintId}
+          className="text-text-secondary mt-1.5 text-[11.5px] leading-snug"
+        >
+          Mínimo 8 caracteres, con al menos un número.
+        </p>
         {passwordError && (
           <FieldError id={passwordErrorId}>{passwordError}</FieldError>
         )}

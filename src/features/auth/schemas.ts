@@ -34,6 +34,7 @@ export const signupSchema = z
     password: z
       .string()
       .min(8, 'Mínimo 8 caracteres.')
+      .max(128, 'Máximo 128 caracteres.')
       .regex(/\d/, 'Incluí al menos un número.'),
     passwordConfirm: z.string().min(1, 'Repetí la contraseña.'),
   })
@@ -58,6 +59,7 @@ export const resetPasswordSchema = z
     password: z
       .string()
       .min(8, 'Mínimo 8 caracteres.')
+      .max(128, 'Máximo 128 caracteres.')
       .regex(/\d/, 'Incluí al menos un número.'),
     passwordConfirm: z.string().min(1, 'Repetí la contraseña.'),
   })
