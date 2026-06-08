@@ -7,19 +7,8 @@ import { GroupDetailHeader } from '@/features/groups/components/GroupDetailHeade
 import { GroupMembersList } from '@/features/groups/components/GroupMembersList'
 import { useGroup } from '@/features/groups/hooks/useGroup'
 import { Leaderboard } from '@/features/rankings/components/Leaderboard'
+import { PencaStats } from '@/features/rankings/components/PencaStats'
 import { useRanking } from '@/features/rankings/hooks/useRanking'
-
-/** Placeholder for tabs built in follow-up tickets (Estadísticas). */
-function SoonPlaceholder({ children }: { children: string }) {
-  return (
-    <div className="border-border bg-surface rounded-xl border border-dashed p-8 text-center">
-      <p className="text-text-primary text-body font-semibold">Próximamente</p>
-      <p className="text-text-secondary text-body-sm mx-auto mt-1 max-w-sm">
-        {children}
-      </p>
-    </div>
-  )
-}
 
 export function GroupDetailPage() {
   const { id } = useParams()
@@ -87,7 +76,7 @@ export function GroupDetailPage() {
           </TabsContent>
         )}
         <TabsContent value="stats">
-          <SoonPlaceholder>Las estadísticas de la penca llegan pronto.</SoonPlaceholder>
+          <PencaStats groupId={group.id} />
         </TabsContent>
       </Tabs>
     </div>

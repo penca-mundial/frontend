@@ -102,6 +102,56 @@ describe('rankingsApi.groupLeaderboard', () => {
   })
 })
 
+describe('rankingsApi.groupEvolution', () => {
+  it('maps the evolution payload to camelCase with string ids (ADR 0004)', async () => {
+    server.use(
+      http.get('*/rankings/groups/:id/evolution', () =>
+        HttpResponse.json({
+          available: true,
+          lines: [
+            {
+              user: { id: 9, username: 'santi', avatar_url: 'https://a/9.png' },
+              series: [
+                { date: '2026-06-12', points: 7, rank: 3 },
+                { date: '2026-06-13', points: 13, rank: 1 },
+              ],
+            },
+          ],
+        }),
+      ),
+    )
+
+    const result = await rankingsApi.groupEvolution('7')
+
+    expect(result.available).toBe(true)
+    expect(result.lines).toEqual([
+      {
+        userId: '9',
+        username: 'santi',
+        avatarUrl: 'https://a/9.png',
+        series: [
+          { date: '2026-06-12', points: 7, rank: 3 },
+          { date: '2026-06-13', points: 13, rank: 1 },
+        ],
+      },
+    ])
+  })
+
+  it('hits the group evolution path and maps the empty/gated payload', async () => {
+    let path: string | null = null
+    server.use(
+      http.get('*/rankings/groups/:id/evolution', ({ request }) => {
+        path = new URL(request.url).pathname
+        return HttpResponse.json({ available: false, lines: [] })
+      }),
+    )
+
+    const result = await rankingsApi.groupEvolution('42')
+    expect(path).toMatch(/\/rankings\/groups\/42\/evolution$/)
+    expect(result).toEqual({ available: false, lines: [] })
+  })
+})
+
 describe('rankingsApi.global', () => {
   it('maps the page from /rankings/global with the same camelCase shape', async () => {
     let params: URLSearchParams | null = null

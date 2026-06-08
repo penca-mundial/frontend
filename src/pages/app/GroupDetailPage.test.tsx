@@ -16,6 +16,15 @@ vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
 vi.mock('@/features/groups/components/GroupManagementMenu', () => ({
   GroupManagementMenu: () => null,
 }))
+// The stats tab is covered by PencaStats' own tests; stub the evolution hook
+// it uses so the Estadísticas tab renders without a QueryClient here.
+vi.mock('@/features/rankings/hooks/useGroupEvolution', () => ({
+  useGroupEvolution: vi.fn(() => ({
+    data: { available: false, lines: [] },
+    isLoading: false,
+    isError: false,
+  })),
+}))
 
 import { useGroup } from '@/features/groups/hooks/useGroup'
 import { useRanking } from '@/features/rankings/hooks/useRanking'
@@ -94,13 +103,15 @@ describe('GroupDetailPage', () => {
     expect(screen.getByText('santi')).toBeInTheDocument()
   })
 
-  it('shows a "Próximamente" placeholder on the Estadísticas tab', async () => {
+  it('shows the penca stats on the Estadísticas tab', async () => {
     const user = userEvent.setup()
     mockGroup({ data: GROUP })
     renderPage()
 
     await user.click(screen.getByRole('tab', { name: 'Estadísticas' }))
-    expect(screen.getByText('Próximamente')).toBeInTheDocument()
+    // Summary card + the evolution section render (gated empty-state here).
+    expect(screen.getByText('Puntos')).toBeInTheDocument()
+    expect(screen.getByText('Evolución')).toBeInTheDocument()
   })
 
   it('hides the Miembros tab on the general pool', () => {

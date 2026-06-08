@@ -151,6 +151,33 @@ export interface ScoringConfigResponse {
   phase_multipliers: PhaseMultiplierResponse[]
 }
 
+/**
+ * One point of a penca evolution line (`GET /rankings/groups/:id/evolution`,
+ * SCRUM-286/302). `date` is an ISO date (UTC snapshot day); `rank` is the
+ * user's position among the group's members on that day (ties share a rank).
+ */
+export interface EvolutionPointResponse {
+  date: string
+  points: number
+  rank: number
+}
+
+/** One chart line: the user identity plus their dated series. */
+export interface EvolutionLineResponse {
+  user: { id: number; username: string | null; avatar_url: string | null }
+  series: EvolutionPointResponse[]
+}
+
+/**
+ * Per-penca points/rank evolution (`GET /rankings/groups/:id/evolution`). Up to
+ * 5 lines (group top 4 + the current user). `available` is false — with no
+ * lines — until the tournament has ≥5 finished matches.
+ */
+export interface GroupEvolutionResponse {
+  available: boolean
+  lines: EvolutionLineResponse[]
+}
+
 /** One leaderboard row (`RankingEntryBlueprint`, SCRUM-276). */
 export interface RankingEntryResponse {
   user_id: number
