@@ -35,8 +35,7 @@ export function RankingsPage() {
     scope: scope === GLOBAL_SCOPE ? 'global' : { groupId: scope },
     window: rankingWindow,
   })
-  const entries = ranking.data?.entries ?? []
-  const me = ranking.data?.me ?? []
+  const { entries, me } = ranking
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
@@ -79,6 +78,9 @@ export function RankingsPage() {
             me={me}
             isLoading={ranking.isLoading}
             isError={ranking.isError}
+            hasMore={ranking.hasMore}
+            onLoadMore={ranking.loadMore}
+            isLoadingMore={ranking.isLoadingMore}
           />
         </TabsContent>
       </Tabs>

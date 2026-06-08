@@ -43,6 +43,8 @@ describe('useGroupRank', () => {
         { userId: '5', username: 'u5', points: 0, position: 2, exactCount: 0, avatarUrl: null },
         { userId: '9', username: 'u9', points: 0, position: 3, exactCount: 0, avatarUrl: null },
       ],
+      page: 1,
+      hasMore: false,
     })
 
     const { result } = renderHook(() => useGroupRank('7'), { wrapper: Wrapper })
@@ -52,7 +54,7 @@ describe('useGroupRank', () => {
   })
 
   it('returns null when the user has no row in the window', async () => {
-    groupLeaderboardMock.mockResolvedValue({ entries: [], me: [] })
+    groupLeaderboardMock.mockResolvedValue({ entries: [], me: [], page: 1, hasMore: false })
 
     const { result } = renderHook(() => useGroupRank('7'), { wrapper: Wrapper })
 

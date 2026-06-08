@@ -59,15 +59,16 @@ beforeEach(() => {
     isError: false,
   } as unknown as ReturnType<typeof useGroups>)
   useRankingMock.mockReturnValue({
-    data: {
-      entries: [
-        ent({ userId: '1', username: 'leo', position: 1, points: 134 }),
-        ent({ userId: '9', username: 'santi', position: 2, points: 35 }),
-      ],
-      me: [ent({ userId: '9', username: 'santi', position: 2, points: 35 })],
-    },
+    entries: [
+      ent({ userId: '1', username: 'leo', position: 1, points: 134 }),
+      ent({ userId: '9', username: 'santi', position: 2, points: 35 }),
+    ],
+    me: [ent({ userId: '9', username: 'santi', position: 2, points: 35 })],
     isLoading: false,
     isError: false,
+    hasMore: false,
+    loadMore: vi.fn(),
+    isLoadingMore: false,
   } as unknown as ReturnType<typeof useRanking>)
 })
 
@@ -123,6 +124,31 @@ describe('RankingsPage', () => {
       scope: { groupId: '7' },
       window: 'total',
     })
+  })
+
+  it('wires "Ver más jugadores" to the ranking loadMore (AC1/AC3)', async () => {
+    const user = userEvent.setup()
+    const loadMore = vi.fn()
+    useRankingMock.mockReturnValue({
+      entries: [ent({ userId: '1', username: 'leo', position: 1, points: 134 })],
+      me: [],
+      isLoading: false,
+      isError: false,
+      hasMore: true,
+      loadMore,
+      isLoadingMore: false,
+    } as unknown as ReturnType<typeof useRanking>)
+    render(<RankingsPage />)
+
+    await user.click(screen.getByRole('button', { name: 'Ver más jugadores' }))
+    expect(loadMore).toHaveBeenCalledTimes(1)
+  })
+
+  it('hides "Ver más jugadores" when there are no more pages (AC2)', () => {
+    render(<RankingsPage />)
+    expect(
+      screen.queryByRole('button', { name: 'Ver más jugadores' }),
+    ).not.toBeInTheDocument()
   })
 
   it('shows pill skeletons while the groups load', () => {

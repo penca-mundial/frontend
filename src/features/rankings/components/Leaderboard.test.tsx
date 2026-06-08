@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Leaderboard } from '@/features/rankings/components/Leaderboard'
 import type { RankingEntry } from '@/types/domain'
@@ -110,5 +111,49 @@ describe('Leaderboard', () => {
     expect(screen.getByText('santi')).toBeInTheDocument()
     expect(screen.getByText(/· vos/)).toBeInTheDocument()
     expect(screen.getByText('142')).toBeInTheDocument()
+  })
+
+  it('shows "Ver más jugadores" when hasMore and forwards the click (AC1)', async () => {
+    const user = userEvent.setup()
+    const onLoadMore = vi.fn()
+    render(
+      <Leaderboard
+        entries={[ent({ userId: '1', username: 'leo', position: 1 })]}
+        me={[]}
+        hasMore
+        onLoadMore={onLoadMore}
+      />,
+    )
+
+    const button = screen.getByRole('button', { name: 'Ver más jugadores' })
+    await user.click(button)
+    expect(onLoadMore).toHaveBeenCalledTimes(1)
+  })
+
+  it('hides the button when there are no more pages (AC2)', () => {
+    render(
+      <Leaderboard
+        entries={[ent({ userId: '1', username: 'leo', position: 1 })]}
+        me={[]}
+        hasMore={false}
+        onLoadMore={vi.fn()}
+      />,
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Ver más jugadores' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('disables the button while the next page loads', () => {
+    render(
+      <Leaderboard
+        entries={[ent({ userId: '1', username: 'leo', position: 1 })]}
+        me={[]}
+        hasMore
+        onLoadMore={vi.fn()}
+        isLoadingMore
+      />,
+    )
+    expect(screen.getByRole('button', { name: /Cargando/ })).toBeDisabled()
   })
 })

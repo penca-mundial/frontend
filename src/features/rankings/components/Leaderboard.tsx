@@ -1,29 +1,40 @@
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { LeaderboardEntry } from '@/features/rankings/components/LeaderboardEntry'
 import type { RankingEntry } from '@/types/domain'
 
 export interface LeaderboardProps {
-  /** Top rows, already ranked (ties share a position: 1, 1, 1, 4). */
+  /** Loaded rows, already ranked (ties share a position: 1, 1, 1, 4). */
   entries: RankingEntry[]
   /** The `me` window (current user's row + neighbours) from `include_me`. */
   me: RankingEntry[]
   isLoading?: boolean
   isError?: boolean
+  /** True while more pages exist — shows "Ver más jugadores" (SCRUM-280). */
+  hasMore?: boolean
+  /** Loads-and-appends the next page; required for the button to render. */
+  onLoadMore?: () => void
+  /** Disables the button with a loading label while the next page fetches. */
+  isLoadingMore?: boolean
 }
 
 /**
- * A ranking table (global or per group): top rows plus the current user's own
- * row, always visible — highlighted in place when in the top, or pinned at
- * the bottom (from the `me` window) with a separator when ranked lower.
- * Purely presentational: the caller fetches the slice (via `useRanking`).
- * Pagination ("Ver más jugadores") is a follow-up (SCRUM-280).
+ * A ranking table (global or per group): the loaded rows plus the current
+ * user's own row, always visible — highlighted in place when loaded, or
+ * pinned at the bottom (from the `me` window) with a separator when ranked
+ * past the loaded depth. Purely presentational: the caller fetches the pages
+ * (via `useRanking`) and wires "Ver más jugadores" through
+ * `hasMore`/`onLoadMore` (SCRUM-280).
  */
 export function Leaderboard({
   entries,
   me,
   isLoading = false,
   isError = false,
+  hasMore = false,
+  onLoadMore,
+  isLoadingMore = false,
 }: LeaderboardProps) {
   const { currentUser } = useCurrentUser()
 
@@ -67,25 +78,38 @@ export function Leaderboard({
       : null
 
   return (
-    <ol className="flex flex-col gap-1.5">
-      {entries.map((entry) => (
-        <LeaderboardEntry
-          key={entry.userId}
-          entry={entry}
-          isMe={entry.userId === myId}
-        />
-      ))}
-      {pinnedMe && (
-        <>
-          <li
-            aria-hidden="true"
-            className="text-text-disabled py-1 text-center text-body-sm"
-          >
-            ···
-          </li>
-          <LeaderboardEntry entry={pinnedMe} isMe />
-        </>
+    <div className="flex flex-col gap-3">
+      <ol className="flex flex-col gap-1.5">
+        {entries.map((entry) => (
+          <LeaderboardEntry
+            key={entry.userId}
+            entry={entry}
+            isMe={entry.userId === myId}
+          />
+        ))}
+        {pinnedMe && (
+          <>
+            <li
+              aria-hidden="true"
+              className="text-text-disabled py-1 text-center text-body-sm"
+            >
+              ···
+            </li>
+            <LeaderboardEntry entry={pinnedMe} isMe />
+          </>
+        )}
+      </ol>
+      {hasMore && onLoadMore && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onLoadMore}
+          disabled={isLoadingMore}
+          className="w-full sm:w-auto sm:self-center"
+        >
+          {isLoadingMore ? 'Cargando…' : 'Ver más jugadores'}
+        </Button>
       )}
-    </ol>
+    </div>
   )
 }

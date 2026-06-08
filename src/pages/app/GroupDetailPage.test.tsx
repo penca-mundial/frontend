@@ -71,9 +71,13 @@ beforeEach(() => {
     currentUser: { id: '9' },
   } as unknown as ReturnType<typeof useCurrentUser>)
   useRankingMock.mockReturnValue({
-    data: { entries: [ENTRY], me: [] },
+    entries: [ENTRY],
+    me: [],
     isLoading: false,
     isError: false,
+    hasMore: false,
+    loadMore: vi.fn(),
+    isLoadingMore: false,
   } as unknown as ReturnType<typeof useRanking>)
 })
 
@@ -112,5 +116,24 @@ describe('GroupDetailPage', () => {
     mockGroup({ isError: true })
     renderPage()
     expect(screen.getByText(/No pudimos cargar la penca/i)).toBeInTheDocument()
+  })
+
+  it('wires "Ver más jugadores" to the group ranking loadMore (AC3)', async () => {
+    const user = userEvent.setup()
+    const loadMore = vi.fn()
+    useRankingMock.mockReturnValue({
+      entries: [ENTRY],
+      me: [],
+      isLoading: false,
+      isError: false,
+      hasMore: true,
+      loadMore,
+      isLoadingMore: false,
+    } as unknown as ReturnType<typeof useRanking>)
+    mockGroup({ data: GROUP })
+    renderPage()
+
+    await user.click(screen.getByRole('button', { name: 'Ver más jugadores' }))
+    expect(loadMore).toHaveBeenCalledTimes(1)
   })
 })
