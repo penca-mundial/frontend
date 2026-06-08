@@ -1,5 +1,9 @@
 import { get } from '@/api/client'
-import type { LeaderboardResponse, RankingEntryResponse } from '@/types/api'
+import type {
+  GroupEvolutionResponse,
+  LeaderboardResponse,
+  RankingEntryResponse,
+} from '@/types/api'
 import type { RankingEntry } from '@/types/domain'
 
 /**
@@ -33,6 +37,27 @@ export interface LeaderboardPageOptions {
    * request it on the first page only.
    */
   includeMe?: boolean
+}
+
+/** One point of an evolution line (the series shape passes through verbatim). */
+export interface EvolutionPoint {
+  date: string
+  points: number
+  rank: number
+}
+
+/** One chart line: the user identity plus their dated series. */
+export interface EvolutionLine {
+  userId: string
+  username: string | null
+  avatarUrl: string | null
+  series: EvolutionPoint[]
+}
+
+/** Per-penca points/rank evolution (`GET /rankings/groups/:id/evolution`). */
+export interface GroupEvolution {
+  available: boolean
+  lines: EvolutionLine[]
 }
 
 /** One leaderboard page: the ranked rows plus the optional `me` window. */
@@ -95,5 +120,27 @@ export const rankingsApi = {
       params: toParams(options),
     })
     return mapPage(data)
+  },
+
+  /**
+   * A penca's points/rank evolution (`GET /rankings/groups/:id/evolution`,
+   * SCRUM-286/302). Up to 5 lines (group top 4 + the current user); `available`
+   * is false with no lines until the tournament has ≥5 finished matches. Ids
+   * are normalized to strings at the boundary (ADR 0004); the series passes
+   * through verbatim.
+   */
+  async groupEvolution(groupId: string): Promise<GroupEvolution> {
+    const data = await get<GroupEvolutionResponse>(
+      `/rankings/groups/${groupId}/evolution`,
+    )
+    return {
+      available: data.available,
+      lines: (data.lines ?? []).map((line) => ({
+        userId: String(line.user.id),
+        username: line.user.username,
+        avatarUrl: line.user.avatar_url,
+        series: line.series,
+      })),
+    }
   },
 }
