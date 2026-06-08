@@ -32,7 +32,12 @@ export function MyPositionBlock({
 }: MyPositionBlockProps) {
   const { currentUser } = useCurrentUser()
 
-  const stickyClasses = 'sticky top-18 z-30 md:static'
+  // `md:relative` (not `md:static`): tailwind-merge drops BrandSurface's own
+  // `relative` when the caller passes a position class, and the surface's
+  // absolute texture overlays need a positioned ancestor at EVERY breakpoint —
+  // static let them anchor to the viewport and paint a gray gradient over the
+  // whole page (SCRUM-297). Relative without offsets renders like static.
+  const stickyClasses = 'sticky top-18 z-30 md:relative md:top-auto md:z-auto'
 
   if (isLoading) {
     return <Skeleton className={`h-24 w-full rounded-xl ${stickyClasses}`} />
