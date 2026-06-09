@@ -20,6 +20,8 @@ describe('usersApi.updateProfile', () => {
             avatar_url: 'https://cdn/9.png',
             timezone: 'UTC',
             confirmed_at: '2026-01-01T00:00:00Z',
+            provider: 'google_oauth2',
+            created_at: '2026-03-15T00:00:00Z',
           },
         })
       }),
@@ -37,7 +39,31 @@ describe('usersApi.updateProfile', () => {
       username: 'santi',
       avatarUrl: 'https://cdn/9.png',
       isAdmin: false,
+      provider: 'google_oauth2',
+      createdAt: '2026-03-15T00:00:00Z',
     })
+  })
+
+  it('degrades provider/createdAt to null when the backend omits them', async () => {
+    server.use(
+      http.patch('*/users/me', () =>
+        HttpResponse.json({
+          user: {
+            id: 9,
+            email: 'santi@penca.dev',
+            username: 'santi',
+            admin: false,
+            avatar_url: null,
+            timezone: 'UTC',
+            confirmed_at: null,
+          },
+        }),
+      ),
+    )
+
+    const user = await usersApi.updateProfile({ username: 'santi' })
+    expect(user.provider).toBeNull()
+    expect(user.createdAt).toBeNull()
   })
 
   it('omits keys that are not provided (no timezone is ever sent)', async () => {

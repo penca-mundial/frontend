@@ -45,6 +45,7 @@ describe('useGroupRank', () => {
       ],
       page: 1,
       hasMore: false,
+      total: null,
     })
 
     const { result } = renderHook(() => useGroupRank('7'), { wrapper: Wrapper })
@@ -54,7 +55,7 @@ describe('useGroupRank', () => {
   })
 
   it('returns null when the user has no row in the window', async () => {
-    groupLeaderboardMock.mockResolvedValue({ entries: [], me: [], page: 1, hasMore: false })
+    groupLeaderboardMock.mockResolvedValue({ entries: [], me: [], page: 1, hasMore: false, total: null })
 
     const { result } = renderHook(() => useGroupRank('7'), { wrapper: Wrapper })
 

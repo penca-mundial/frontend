@@ -29,6 +29,8 @@ function mapUser(
     // login/signup/reset don't send needs_username; a missing username is the
     // only way to need one, so fall back to that.
     needsUsername: user.needs_username ?? user.username === null,
+    provider: user.provider ?? null,
+    createdAt: user.created_at ?? null,
   }
 }
 

@@ -23,6 +23,8 @@ function mapUser(user: AuthUserResponse): AuthUser {
     timezone: user.timezone,
     confirmedAt: user.confirmed_at,
     needsUsername: user.username === null,
+    provider: user.provider ?? null,
+    createdAt: user.created_at ?? null,
   }
 }
 

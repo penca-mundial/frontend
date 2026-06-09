@@ -66,6 +66,8 @@ export interface LeaderboardPage {
   me: RankingEntry[]
   page: number
   hasMore: boolean
+  /** Total ranked participants, or null until the backend exposes it. */
+  total: number | null
 }
 
 function mapPage(data: LeaderboardResponse): LeaderboardPage {
@@ -74,6 +76,7 @@ function mapPage(data: LeaderboardResponse): LeaderboardPage {
     me: (data.me ?? []).map(mapEntry),
     page: data.page,
     hasMore: data.has_more,
+    total: data.total ?? null,
   }
 }
 

@@ -6,6 +6,14 @@ import { AccountSection } from '@/features/users/components/AccountSection'
 import { SectionLabel } from '@/components/ui/section-label'
 import { Skeleton } from '@/components/ui/skeleton'
 
+/** "junio de 2026" — coarse month/year, locale es. Date-only, TZ-insensitive. */
+function memberSince(iso: string): string {
+  return new Intl.DateTimeFormat('es', {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(iso))
+}
+
 /**
  * "Mi perfil" (`/app/profile`, SCRUM-199). Header card (avatar with
  * click-to-upload + username + email) over the headline stats, an "Información"
@@ -44,6 +52,11 @@ export function ProfilePage() {
           <p className="text-text-secondary truncate text-body-sm">
             {currentUser.email}
           </p>
+          {currentUser.createdAt && (
+            <p className="text-text-disabled mt-0.5 text-body-sm">
+              Miembro desde {memberSince(currentUser.createdAt)}
+            </p>
+          )}
         </div>
       </section>
 
@@ -57,7 +70,7 @@ export function ProfilePage() {
         <ProfileForm username={currentUser.username} />
       </section>
 
-      <AccountSection />
+      <AccountSection provider={currentUser.provider} />
     </div>
   )
 }

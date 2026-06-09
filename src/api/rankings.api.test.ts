@@ -19,6 +19,22 @@ function body(overrides: Partial<Record<string, unknown>> = {}) {
   return { entries: [], me: null, page: 1, has_more: false, ...overrides }
 }
 
+describe('rankingsApi total', () => {
+  it('maps the participant total when present, null otherwise', async () => {
+    server.use(
+      http.get('*/rankings/global', () =>
+        HttpResponse.json(body({ total: 1247 })),
+      ),
+    )
+    expect((await rankingsApi.global()).total).toBe(1247)
+
+    server.use(
+      http.get('*/rankings/global', () => HttpResponse.json(body())),
+    )
+    expect((await rankingsApi.global()).total).toBeNull()
+  })
+})
+
 describe('rankingsApi.groupLeaderboard', () => {
   it('maps entries, the me window and pagination to camelCase', async () => {
     server.use(
