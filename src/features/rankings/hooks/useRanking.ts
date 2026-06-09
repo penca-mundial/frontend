@@ -28,6 +28,8 @@ export interface UseRankingResult {
   /** Fetch-and-append the next page ("Ver más jugadores"). */
   loadMore: () => void
   isLoadingMore: boolean
+  /** Total ranked participants (from the first page), or null if not exposed. */
+  total: number | null
 }
 
 /**
@@ -79,5 +81,6 @@ export function useRanking({
     hasMore: query.hasNextPage,
     loadMore: query.fetchNextPage,
     isLoadingMore: query.isFetchingNextPage,
+    total: query.data?.pages[0]?.total ?? null,
   }
 }

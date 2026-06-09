@@ -49,12 +49,12 @@ function renderAt(path: string, user: CurrentUser | null = member) {
 }
 
 describe('router', () => {
-  it('renders the Perfil placeholder at /app/profile instead of a 404', () => {
+  it('renders the profile page at /app/profile (not a 404)', () => {
     renderAt('/app/profile')
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Perfil' }),
+      screen.getByRole('heading', { level: 1, name: 'Mi perfil' }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/en construcción/i)).toBeInTheDocument()
+    expect(screen.getByText('Información')).toBeInTheDocument()
   })
 
   it('renders the styled not-found page for unknown routes', () => {

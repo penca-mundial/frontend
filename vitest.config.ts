@@ -7,7 +7,7 @@ export default mergeConfig(
   defineConfig({
     test: {
       globals: true,
-      environment: 'jsdom',
+      environment: 'happy-dom',
       setupFiles: ['./src/test/setup.ts'],
       css: false,
       // Phase 0 ships the harness without any tests yet.

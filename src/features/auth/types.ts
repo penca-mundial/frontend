@@ -14,6 +14,14 @@ export interface AuthUser {
   confirmedAt: string | null
   /** True for OAuth users who haven't picked a username yet. */
   needsUsername: boolean
+  /**
+   * OAuth provider (`google_oauth2`) or null for password accounts. Optional —
+   * absent until the backend field ships (SCRUM-199); treat absent as "unknown"
+   * and degrade (the profile then shows the password row).
+   */
+  provider?: string | null
+  /** Account creation timestamp (ISO 8601). Optional — see `provider`. */
+  createdAt?: string | null
 }
 
 /**

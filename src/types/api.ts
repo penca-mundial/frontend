@@ -80,6 +80,13 @@ export interface AuthUserResponse {
   avatar_url: string | null
   timezone: string | null
   confirmed_at: string | null
+  /**
+   * OAuth provider (`google_oauth2`) or null for password accounts. Optional:
+   * shipping in parallel on the backend (SCRUM-199) — absent until deployed.
+   */
+  provider?: string | null
+  /** Account creation timestamp (ISO 8601). Optional — see `provider`. */
+  created_at?: string
 }
 
 /** Envelope returned by login / signup / reset-password. */
@@ -202,6 +209,11 @@ export interface LeaderboardResponse {
   page: number
   /** True while more ranked pages exist past this one. */
   has_more: boolean
+  /**
+   * Total ranked participants (for "Posición N de TOTAL"). Optional: shipping
+   * in parallel on the backend (SCRUM-199) — absent until deployed.
+   */
+  total?: number
 }
 
 /** One member row (`GET /groups/:id/members`, `GroupMemberBlueprint`). */

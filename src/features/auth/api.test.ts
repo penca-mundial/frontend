@@ -49,6 +49,9 @@ describe('authApi.login', () => {
       timezone: 'America/Montevideo',
       confirmedAt: '2026-01-01T00:00:00Z',
       needsUsername: false,
+      // Optional fields degrade to null when the backend omits them (SCRUM-199).
+      provider: null,
+      createdAt: null,
     })
   })
 
