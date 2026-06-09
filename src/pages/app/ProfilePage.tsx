@@ -1,6 +1,5 @@
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { AvatarUploader } from '@/features/users/components/AvatarUploader'
-import { ProfileStats } from '@/features/users/components/ProfileStats'
 import { ProfileForm } from '@/features/users/components/ProfileForm'
 import { AccountSection } from '@/features/users/components/AccountSection'
 import { SectionLabel } from '@/components/ui/section-label'
@@ -16,11 +15,11 @@ function memberSince(iso: string): string {
 
 /**
  * "Mi perfil" (`/app/profile`, SCRUM-199). Header card (avatar with
- * click-to-upload + username + email) over the headline stats, an "Información"
- * section to edit the username, and a "Cuenta" section (change password +
- * logout). No timezone field, no avatar-URL input, and no account-deletion
- * section — see the AC deviations on the ticket. Timezone is auto-detected from
- * the browser everywhere, so it isn't managed here.
+ * click-to-upload + username + email + member-since), an "Información" section
+ * to edit the username, and an auth-aware "Cuenta" section. No timezone field,
+ * no avatar-URL input, and no account-deletion section — see the AC deviations
+ * on the ticket. Timezone is auto-detected from the browser everywhere, so it
+ * isn't managed here.
  */
 export function ProfilePage() {
   const { currentUser } = useCurrentUser()
@@ -59,8 +58,6 @@ export function ProfilePage() {
           )}
         </div>
       </section>
-
-      <ProfileStats />
 
       {/* Información */}
       <section className="border-border bg-surface flex flex-col gap-4 rounded-xl border p-5">
