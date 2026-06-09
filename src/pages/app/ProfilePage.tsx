@@ -1,27 +1,63 @@
-import { Construction } from 'lucide-react'
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
+import { AvatarUploader } from '@/features/users/components/AvatarUploader'
+import { ProfileStats } from '@/features/users/components/ProfileStats'
+import { ProfileForm } from '@/features/users/components/ProfileForm'
+import { AccountSection } from '@/features/users/components/AccountSection'
+import { SectionLabel } from '@/components/ui/section-label'
+import { Skeleton } from '@/components/ui/skeleton'
 
 /**
- * Profile placeholder. The user dropdown already links here; the real profile
- * editor (avatar, timezone, password) arrives in its own ticket. Until then
- * this renders a styled "under construction" state instead of a 404.
+ * "Mi perfil" (`/app/profile`, SCRUM-199). Header card (avatar with
+ * click-to-upload + username + email) over the headline stats, an "Información"
+ * section to edit the username, and a "Cuenta" section (change password +
+ * logout). No timezone field, no avatar-URL input, and no account-deletion
+ * section — see the AC deviations on the ticket. Timezone is auto-detected from
+ * the browser everywhere, so it isn't managed here.
  */
 export function ProfilePage() {
-  return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <h1 className="text-display-lg font-display font-semibold">Perfil</h1>
+  const { currentUser } = useCurrentUser()
 
-      <section className="border-border bg-surface flex flex-col items-center rounded-xl border px-6 py-12 text-center">
-        <div className="bg-brand-primary-soft text-brand-primary inline-flex size-12 items-center justify-center rounded-full">
-          <Construction size={24} strokeWidth={2} aria-hidden="true" />
+  if (!currentUser) {
+    return (
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <h1 className="text-display-lg font-display font-semibold">Mi perfil</h1>
+
+      {/* Header card */}
+      <section className="border-border bg-surface flex items-center gap-4 rounded-xl border p-5">
+        <AvatarUploader
+          avatarUrl={currentUser.avatarUrl}
+          username={currentUser.username}
+          email={currentUser.email}
+        />
+        <div className="min-w-0">
+          <p className="font-display text-text-primary truncate text-lg font-bold">
+            {currentUser.username ?? 'Sin nombre de usuario'}
+          </p>
+          <p className="text-text-secondary truncate text-body-sm">
+            {currentUser.email}
+          </p>
         </div>
-        <h2 className="font-display text-text-primary mt-4 text-lg font-bold tracking-tight">
-          Esta sección está en construcción
-        </h2>
-        <p className="text-text-secondary mx-auto mt-1 max-w-[360px] text-sm leading-relaxed">
-          Pronto vas a poder editar tu perfil desde acá. Mientras tanto, podés
-          seguir jugando con normalidad.
-        </p>
       </section>
+
+      <ProfileStats />
+
+      {/* Información */}
+      <section className="border-border bg-surface flex flex-col gap-4 rounded-xl border p-5">
+        <SectionLabel as="h2" className="text-text-primary">
+          Información
+        </SectionLabel>
+        <ProfileForm username={currentUser.username} />
+      </section>
+
+      <AccountSection />
     </div>
   )
 }
