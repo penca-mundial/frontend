@@ -5,13 +5,13 @@ import { cn } from '@/lib/cn'
 function Flag({ team }: { team: MatchTeam | null }) {
   if (team?.flagUrl) {
     return (
-      <span className="inline-flex h-[56px] w-[84px] overflow-hidden rounded-[4px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
+      <span className="inline-flex h-9 w-[54px] shrink-0 overflow-hidden rounded-[4px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)] sm:h-[56px] sm:w-[84px]">
         <img src={team.flagUrl} alt="" className="block size-full object-cover" />
       </span>
     )
   }
   return (
-    <span className="bg-surface-muted text-text-secondary inline-flex h-[56px] w-[84px] items-center justify-center rounded-[4px] text-[11px]">
+    <span className="bg-surface-muted text-text-secondary inline-flex h-9 w-[54px] shrink-0 items-center justify-center rounded-[4px] text-[11px] sm:h-[56px] sm:w-[84px]">
       {team?.code3 ?? '—'}
     </span>
   )
@@ -43,7 +43,7 @@ function TeamInfo({
 /** A score digit, tall enough to span the flag + name stack. */
 function Score({ value }: { value: number | null }) {
   return (
-    <span className="font-display text-6xl leading-none font-bold tabular-nums">
+    <span className="font-display text-4xl leading-none font-bold tabular-nums sm:text-6xl">
       {value ?? 0}
     </span>
   )
@@ -58,9 +58,9 @@ export function MatchScoreboard({ match }: { match: Match }) {
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
       <TeamInfo team={match.homeTeam} align="left" />
-      <div className="flex items-center gap-16">
+      <div className="flex items-center gap-4 sm:gap-16">
         <Score value={match.homeScore} />
-        <span className="text-text-disabled text-2xl">–</span>
+        <span className="text-text-disabled text-xl sm:text-2xl">–</span>
         <Score value={match.awayScore} />
       </div>
       <TeamInfo team={match.awayTeam} align="right" />
