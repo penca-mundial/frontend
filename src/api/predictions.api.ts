@@ -22,6 +22,8 @@ export function mapPrediction(prediction: PredictionResponse): Prediction {
         : String(prediction.predicted_advancing_team_id),
     lockedAt: prediction.locked_at,
     locked: prediction.locked,
+    // Present on finished-match payloads once scored; null otherwise.
+    points: prediction.points ?? null,
   }
 }
 

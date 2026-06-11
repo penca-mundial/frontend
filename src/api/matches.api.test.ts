@@ -138,6 +138,53 @@ describe('matchesApi.next / lastFinished', () => {
   })
 })
 
+describe('matchesApi.recentFinished', () => {
+  it('maps the array (most recent first) incl. the prediction points', async () => {
+    server.use(
+      http.get('*/matches/recent_finished', () =>
+        HttpResponse.json([
+          {
+            ...matchResponse,
+            id: 11,
+            status: 'finished',
+            home_score: 2,
+            away_score: 1,
+            my_prediction: {
+              id: 7,
+              match_id: 11,
+              predicted_home_score: 2,
+              predicted_away_score: 1,
+              predicted_advancing_team_id: null,
+              locked_at: null,
+              locked: true,
+              points: 8,
+            },
+          },
+          { ...matchResponse, id: 10, status: 'finished', home_score: 0, away_score: 0 },
+        ]),
+      ),
+    )
+
+    const result = await matchesApi.recentFinished()
+    expect(result).toHaveLength(2)
+    expect(result[0]).toMatchObject({ id: '11', status: 'finished' })
+    expect(result[0].myPrediction).toMatchObject({
+      predictedHomeScore: 2,
+      points: 8,
+    })
+  })
+
+  it('degrades to an empty array when the endpoint is not deployed (404)', async () => {
+    server.use(
+      http.get(
+        '*/matches/recent_finished',
+        () => new HttpResponse(null, { status: 404 }),
+      ),
+    )
+    expect(await matchesApi.recentFinished()).toEqual([])
+  })
+})
+
 describe('matchesApi.get', () => {
   it('maps a single match including the user prediction', async () => {
     server.use(

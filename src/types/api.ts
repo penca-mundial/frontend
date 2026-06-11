@@ -326,6 +326,12 @@ export interface PredictionResponse {
   predicted_advancing_team_id: number | null
   locked_at: string | null
   locked: boolean
+  /**
+   * Points this prediction earned for its match, once scored. Present on
+   * finished-match payloads (e.g. `GET /matches/recent_finished`); absent/null
+   * until the backend computes it.
+   */
+  points?: number | null
 }
 
 /**

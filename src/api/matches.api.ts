@@ -132,6 +132,22 @@ export const matchesApi = {
   async lastFinished(): Promise<Match | null> {
     return getOptionalMatch('/matches/last_finished')
   },
+
+  /**
+   * The last few finished fixtures (`GET /matches/recent_finished`, up to 3,
+   * most recent first) — each with the user's prediction (incl. its `points`)
+   * for the dashboard's result cards. Degrades to an empty list while the
+   * endpoint is still undeployed (404 → []).
+   */
+  async recentFinished(): Promise<Match[]> {
+    try {
+      const data = await get<MatchResponse[]>('/matches/recent_finished')
+      return data.map(mapMatch)
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) return []
+      throw error
+    }
+  },
 }
 
 /**

@@ -1,6 +1,6 @@
 import { HomeHeader } from '@/features/home/components/HomeHeader'
 import { NowMatchCard } from '@/features/home/components/NowMatchCard'
-import { LastResultCard } from '@/features/home/components/LastResultCard'
+import { RecentResults } from '@/features/home/components/RecentResults'
 import { RankingCard } from '@/features/home/components/RankingCard'
 import { PencasCard } from '@/features/home/components/PencasCard'
 import { HomeTournamentPredictionCard } from '@/features/tournament-predictions/components/HomeTournamentPredictionCard'
@@ -21,7 +21,7 @@ export function HomePage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
           <NowMatchCard />
-          <LastResultCard />
+          <RecentResults />
         </div>
         <div className="flex flex-col gap-6">
           <RankingCard />
