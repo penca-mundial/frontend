@@ -62,8 +62,6 @@ export function mapMatch(match: MatchResponse): Match {
         : match.my_prediction === null
           ? null
           : mapPrediction(match.my_prediction),
-    // Only on the live endpoint once the backend embeds it; null otherwise.
-    projectedPoints: match.projected_points ?? null,
   }
 }
 

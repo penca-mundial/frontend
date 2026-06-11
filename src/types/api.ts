@@ -307,12 +307,6 @@ export interface MatchResponse {
   home_team: MatchTeamResponse | null
   away_team: MatchTeamResponse | null
   my_prediction?: PredictionResponse | null
-  /**
-   * Points the user's prediction would earn if the match ended at the current
-   * score ("si termina así, +Z pts"). Embedded alongside `my_prediction` on the
-   * live endpoint (backend, in parallel); absent until then.
-   */
-  projected_points?: number | null
 }
 
 // ─── Predictions ────────────────────────────────────────────────────────────

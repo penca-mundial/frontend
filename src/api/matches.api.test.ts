@@ -64,23 +64,33 @@ describe('matchesApi.list', () => {
 })
 
 describe('matchesApi.live', () => {
-  it('maps the bare array of in-play matches, incl. projected points', async () => {
+  it('maps the bare array of in-play matches, incl. the prediction points', async () => {
     server.use(
       http.get('*/matches/live', () =>
         HttpResponse.json([
-          { ...matchResponse, status: 'live', minute: 57, projected_points: 6 },
+          {
+            ...matchResponse,
+            status: 'live',
+            minute: 57,
+            my_prediction: {
+              id: 7,
+              match_id: 10,
+              predicted_home_score: 2,
+              predicted_away_score: 1,
+              predicted_advancing_team_id: null,
+              locked_at: null,
+              locked: true,
+              points: 6,
+            },
+          },
         ]),
       ),
     )
 
     const result = await matchesApi.live()
     expect(result).toHaveLength(1)
-    expect(result[0]).toMatchObject({
-      id: '10',
-      status: 'live',
-      minute: 57,
-      projectedPoints: 6,
-    })
+    expect(result[0]).toMatchObject({ id: '10', status: 'live', minute: 57 })
+    expect(result[0].myPrediction).toMatchObject({ points: 6 })
   })
 })
 

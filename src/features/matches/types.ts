@@ -49,12 +49,6 @@ export interface Match {
   homeTeam: MatchTeam | null
   awayTeam: MatchTeam | null
   myPrediction?: Prediction | null
-  /**
-   * Points `myPrediction` would earn if the match ended at the current score
-   * ("si termina así, +Z pts"). Only present on the live endpoint once the
-   * backend embeds it; null/undefined otherwise.
-   */
-  projectedPoints?: number | null
 }
 
 /** One column of the knockout bracket: a phase and its matches, in order. */

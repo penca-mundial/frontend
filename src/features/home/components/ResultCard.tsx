@@ -7,12 +7,19 @@ import { cn } from '@/lib/cn'
 
 type ResultCategory = 'exact' | 'partial' | 'wrong' | 'none'
 
-/** Pastel card background + subtle tinted border per outcome category. */
+/**
+ * A subtle top-to-bottom wash per outcome category: the pastel tint is hinted at
+ * the top and fades to the card surface by the bottom (not a flat saturated
+ * fill). Green exact / yellow winner / red wrong; neutral with no prediction.
+ */
 const CATEGORY_CARD: Record<ResultCategory, string> = {
-  exact: 'bg-success-soft border-success/30', // verde — acierto exacto
-  partial: 'bg-warning-soft border-warning/40', // amarillo — ganador, no exacto
-  wrong: 'bg-danger-soft border-danger/30', // rojo — erró
-  none: 'bg-surface border-border', // sin pronóstico
+  exact:
+    'bg-gradient-to-b from-success-soft/70 via-surface via-30% to-surface border-success/15',
+  partial:
+    'bg-gradient-to-b from-warning-soft/70 via-surface via-30% to-surface border-warning/20',
+  wrong:
+    'bg-gradient-to-b from-danger-soft/70 via-surface via-30% to-surface border-danger/15',
+  none: 'bg-surface border-border',
 }
 
 /** Outcome category for the card background (none when the user didn't predict). */
@@ -27,13 +34,13 @@ function categoryOf(match: Match): ResultCategory {
 function Flag({ team }: { team: MatchTeam | null }) {
   if (team?.flagUrl) {
     return (
-      <span className="inline-flex h-[30px] w-[44px] shrink-0 overflow-hidden rounded-[3px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
+      <span className="inline-flex h-[20px] w-[30px] shrink-0 overflow-hidden rounded-[3px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]">
         <img src={team.flagUrl} alt="" className="block size-full object-cover" />
       </span>
     )
   }
   return (
-    <span className="bg-surface-muted text-text-secondary inline-flex h-[30px] w-[44px] shrink-0 items-center justify-center rounded-[3px] text-[11px]">
+    <span className="bg-surface-muted text-text-secondary inline-flex h-[20px] w-[30px] shrink-0 items-center justify-center rounded-[3px] text-[10px]">
       {team?.code3 ?? '—'}
     </span>
   )
@@ -85,21 +92,10 @@ export function ResultCard({ match, showEyebrow = false, timezone }: ResultCardP
         CATEGORY_CARD[categoryOf(match)],
       )}
     >
-      {(showEyebrow || points != null) && (
-        <div className="flex items-center justify-between gap-2">
-          {showEyebrow ? (
-            <h2 className="text-text-secondary text-[11px] font-semibold tracking-wide uppercase">
-              Último resultado
-            </h2>
-          ) : (
-            <span />
-          )}
-          {points != null && (
-            <span className="bg-surface/70 text-text-primary inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums">
-              +{points} pts
-            </span>
-          )}
-        </div>
+      {showEyebrow && (
+        <h2 className="text-text-secondary text-[11px] font-semibold tracking-wide uppercase">
+          Último resultado
+        </h2>
       )}
 
       <div className="text-text-secondary flex items-center gap-1.5 text-[11px] font-semibold tracking-wide uppercase">
@@ -116,12 +112,19 @@ export function ResultCard({ match, showEyebrow = false, timezone }: ResultCardP
       </div>
 
       {prediction && (
-        <span className="bg-surface/70 text-text-secondary inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide uppercase">
-          Pronosticaste
-          <span className="text-text-primary font-bold">
-            {prediction.predictedHomeScore} – {prediction.predictedAwayScore}
+        <div className="flex items-center justify-between gap-2">
+          <span className="bg-surface/70 text-text-secondary inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide uppercase">
+            Pronosticaste
+            <span className="text-text-primary font-bold">
+              {prediction.predictedHomeScore} – {prediction.predictedAwayScore}
+            </span>
           </span>
-        </span>
+          {points != null && (
+            <span className="bg-surface/70 text-text-primary inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums">
+              +{points} pts
+            </span>
+          )}
+        </div>
       )}
     </section>
   )

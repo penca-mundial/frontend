@@ -25,9 +25,10 @@ export interface LiveMatchCardProps {
  * (flag + team name, big centred scores), the group/kickoff meta (no venue — we
  * don't have it), a live badge, and the user's "Pronosticaste X – Y · Si termina
  * así, +Z pts" line. Read-only: no "Ver detalle" link. The red live border
- * reuses the Fixture's shared `LIVE_MATCH_CARD_BORDER`. The prediction/projection
- * only show once `my_prediction` and `projected_points` ride the live payload
- * (backend, in parallel); they degrade to nothing until then.
+ * reuses the Fixture's shared `LIVE_MATCH_CARD_BORDER`. Both the prediction and
+ * its projected points (`my_prediction` + `my_prediction.points`) only show once
+ * they ride the live payload (backend, in parallel) and a prediction exists;
+ * otherwise they degrade to nothing.
  */
 export function LiveMatchCard({ match, timezone }: LiveMatchCardProps) {
   const tz = timezone ?? detectUserTimezone()
@@ -62,11 +63,11 @@ export function LiveMatchCard({ match, timezone }: LiveMatchCardProps) {
                 {prediction.predictedHomeScore} – {prediction.predictedAwayScore}
               </span>
             </span>
-            {match.projectedPoints != null && (
+            {prediction.points != null && (
               <span className="text-text-secondary text-body-sm">
                 Si termina así,{' '}
                 <span className="text-text-primary font-semibold">
-                  {match.projectedPoints} pts
+                  +{prediction.points} pts
                 </span>
               </span>
             )}

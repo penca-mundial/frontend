@@ -45,7 +45,7 @@ describe('ResultCard', () => {
   it('colors the card green and shows the eyebrow + neutral points chip on an exact hit', () => {
     render(<ResultCard match={finished(prediction(2, 1, 8))} showEyebrow timezone="UTC" />)
 
-    expect(sectionClass()).toContain('bg-success-soft')
+    expect(sectionClass()).toContain('from-success-soft')
     expect(screen.getByText('Último resultado')).toBeInTheDocument()
     expect(screen.getByText('+8 pts')).toBeInTheDocument()
     expect(screen.getByText('2 – 1')).toBeInTheDocument() // the prediction
@@ -54,14 +54,14 @@ describe('ResultCard', () => {
   it('colors the card yellow for a correct winner that is not exact', () => {
     // Predicted 3–1 (home win), result 2–1 (home win) → partial.
     render(<ResultCard match={finished(prediction(3, 1, 3))} timezone="UTC" />)
-    expect(sectionClass()).toContain('bg-warning-soft')
+    expect(sectionClass()).toContain('from-warning-soft')
     // Not the first card: no eyebrow.
     expect(screen.queryByText('Último resultado')).not.toBeInTheDocument()
   })
 
   it('colors the card red for a wrong outcome', () => {
     render(<ResultCard match={finished(prediction(0, 2, 0))} timezone="UTC" />)
-    expect(sectionClass()).toContain('bg-danger-soft')
+    expect(sectionClass()).toContain('from-danger-soft')
     expect(screen.getByText('+0 pts')).toBeInTheDocument()
   })
 

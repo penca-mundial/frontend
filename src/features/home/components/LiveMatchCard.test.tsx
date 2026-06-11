@@ -65,7 +65,7 @@ describe('LiveMatchCard', () => {
     expect(screen.queryByText(/pts/)).not.toBeInTheDocument()
   })
 
-  it('appends the "Si termina así, +Z pts" projection when projected_points is present', () => {
+  it('appends the "Si termina así, +Z pts" projection from my_prediction.points', () => {
     const prediction: Prediction = {
       id: 'p1',
       matchId: '10',
@@ -74,14 +74,31 @@ describe('LiveMatchCard', () => {
       predictedAdvancingTeamId: null,
       lockedAt: null,
       locked: true,
+      points: 6,
     }
-    const match = { ...liveMatch(prediction), projectedPoints: 6 }
-    render(<LiveMatchCard match={match} timezone="UTC" />)
+    render(<LiveMatchCard match={liveMatch(prediction)} timezone="UTC" />)
 
     expect(screen.getByText(/Pronosticaste/)).toBeInTheDocument()
-    expect(screen.getByText("2 – 1")).toBeInTheDocument()
+    expect(screen.getByText('2 – 1')).toBeInTheDocument()
     expect(screen.getByText(/Si termina así/)).toBeInTheDocument()
-    expect(screen.getByText('6 pts')).toBeInTheDocument()
+    expect(screen.getByText('+6 pts')).toBeInTheDocument()
+  })
+
+  it('shows the projection even when the points are 0 (regression: 0 is not falsy-hidden)', () => {
+    const prediction: Prediction = {
+      id: 'p1',
+      matchId: '10',
+      predictedHomeScore: 1,
+      predictedAwayScore: 0,
+      predictedAdvancingTeamId: null,
+      lockedAt: null,
+      locked: true,
+      points: 0,
+    }
+    render(<LiveMatchCard match={liveMatch(prediction)} timezone="UTC" />)
+
+    expect(screen.getByText(/Si termina así/)).toBeInTheDocument()
+    expect(screen.getByText('+0 pts')).toBeInTheDocument()
   })
 
   it('omits the prediction pill when the match has no embedded prediction', () => {
