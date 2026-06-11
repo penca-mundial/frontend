@@ -125,8 +125,12 @@ export function HomeTournamentPredictionCard() {
   return (
     <DashboardCard
       title="Pronóstico del torneo"
-      headerAccessory={locked ? <Badge variant="secondary">Bloqueado</Badge> : null}
-      action={prediction ? { to: TOURNAMENT_PREDICTION_PATH, label: 'Ver/editar' } : undefined}
+      headerRight={locked ? <Badge variant="secondary">Bloqueado</Badge> : null}
+      action={
+        prediction && !locked
+          ? { to: TOURNAMENT_PREDICTION_PATH, label: 'Ver/editar' }
+          : undefined
+      }
     >
       {loading ? (
         <div className="flex flex-col gap-2" aria-busy="true">
@@ -148,7 +152,7 @@ export function HomeTournamentPredictionCard() {
                 key={row.spot}
                 className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
               >
-                <dd className="flex min-w-0 items-center gap-2.5 text-body font-semibold">
+                <dd className="text-body-sm flex min-w-0 items-center gap-2.5 font-semibold">
                   <RankMedallion rank={rank} />
                   <TeamFlag flagUrl={flagUrl} />
                   <span className="truncate">{name}</span>

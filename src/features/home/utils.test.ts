@@ -31,6 +31,20 @@ describe('tournamentProgress', () => {
     ).toEqual({ day: 3, total: null })
   })
 
+  it('reads day 1 on the start date for a 00:00Z start in a UTC-negative zone (regression)', () => {
+    // Live data: starts_at = 2026-06-11T00:00:00Z. In Montevideo (UTC-3) that
+    // instant is 2026-06-10 21:00 — converting it would land on June 10 and
+    // wrongly show "Día 2" on June 11. Day 1 must anchor on the UTC date.
+    expect(
+      tournamentProgress(
+        '2026-06-11T00:00:00Z',
+        END,
+        'America/Montevideo',
+        new Date('2026-06-11T06:03:00Z'), // 03:03 Montevideo, June 11
+      ),
+    ).toEqual({ day: 1, total: 39 })
+  })
+
   it('rolls over at local midnight in the user timezone', () => {
     // Start at Montevideo (UTC-3) midnight on Jun 11.
     const startMvd = '2026-06-11T03:00:00Z'

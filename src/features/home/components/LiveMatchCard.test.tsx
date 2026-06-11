@@ -59,9 +59,29 @@ describe('LiveMatchCard', () => {
     }
     render(<LiveMatchCard match={liveMatch(prediction)} timezone="UTC" />)
 
-    expect(screen.getByText(/Pronosticaste 2 – 1/)).toBeInTheDocument()
-    // The live points projection is intentionally absent (not exposed yet).
+    expect(screen.getByText(/Pronosticaste/)).toBeInTheDocument()
+    expect(screen.getByText("2 – 1")).toBeInTheDocument()
+    // No projection until projected_points rides the payload.
     expect(screen.queryByText(/pts/)).not.toBeInTheDocument()
+  })
+
+  it('appends the "Si termina así, +Z pts" projection when projected_points is present', () => {
+    const prediction: Prediction = {
+      id: 'p1',
+      matchId: '10',
+      predictedHomeScore: 2,
+      predictedAwayScore: 1,
+      predictedAdvancingTeamId: null,
+      lockedAt: null,
+      locked: true,
+    }
+    const match = { ...liveMatch(prediction), projectedPoints: 6 }
+    render(<LiveMatchCard match={match} timezone="UTC" />)
+
+    expect(screen.getByText(/Pronosticaste/)).toBeInTheDocument()
+    expect(screen.getByText("2 – 1")).toBeInTheDocument()
+    expect(screen.getByText(/Si termina así/)).toBeInTheDocument()
+    expect(screen.getByText('6 pts')).toBeInTheDocument()
   })
 
   it('omits the prediction pill when the match has no embedded prediction', () => {

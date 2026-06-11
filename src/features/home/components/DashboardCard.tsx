@@ -49,7 +49,10 @@ export function DashboardCard({
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <h2 id={titleId} className="font-display text-body font-semibold">
+          <h2
+            id={titleId}
+            className="text-text-secondary text-[11px] font-semibold tracking-wide uppercase"
+          >
             {title}
           </h2>
           {headerAccessory}

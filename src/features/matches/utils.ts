@@ -1,6 +1,14 @@
 import type { BracketRound, Match, MatchPhase } from '@/features/matches/types'
 
 /**
+ * The live-match card treatment: a red border + soft red glow. Single source
+ * shared by the Fixture's `MatchCardExpandable` and the dashboard's
+ * `LiveMatchCard` so the "in play" look never drifts between them.
+ */
+export const LIVE_MATCH_CARD_BORDER =
+  'border-live/45 shadow-[0_0_0_3px_rgba(239,68,68,0.08)]'
+
+/**
  * Spanish (rioplatense) labels for each tournament phase. Note the 48-team
  * 2026 bracket: the first knockout round is "Dieciseisavos" (round_of_32),
  * NOT "Octavos" — see CLAUDE.md.

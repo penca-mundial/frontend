@@ -136,7 +136,7 @@ describe('HomeTournamentPredictionCard', () => {
     expect(screen.queryByText('Bloqueado')).not.toBeInTheDocument()
   })
 
-  it('shows the full podium + scorer, a Bloqueado badge, and a Ver/editar link when locked', () => {
+  it('shows the full podium + scorer and a Bloqueado badge, with NO Ver/editar link when locked', () => {
     setup({ prediction, tournamentOverrides: { isLocked: true } })
     renderCard()
 
@@ -153,6 +153,17 @@ describe('HomeTournamentPredictionCard', () => {
     expect(screen.getAllByText('—')).toHaveLength(2)
 
     expect(screen.getByText('Bloqueado')).toBeInTheDocument()
+    // Locked: editing is off, so the Ver/editar affordance is hidden.
+    expect(
+      screen.queryByRole('link', { name: /Ver\/editar/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows a Ver/editar link when there is a prediction and it is not locked', () => {
+    setup({ prediction })
+    renderCard()
+
+    expect(screen.queryByText('Bloqueado')).not.toBeInTheDocument()
     const link = screen.getByRole('link', { name: /Ver\/editar/ })
     expect(link).toHaveAttribute('href', '/app/predictions/tournament')
   })

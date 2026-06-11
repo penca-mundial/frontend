@@ -9,15 +9,12 @@ vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
 vi.mock('@/features/tournament-predictions/hooks/useTournament', () => ({
   useTournament: vi.fn(),
 }))
-vi.mock('@/features/home/hooks/useMyRanking', () => ({ useMyRanking: vi.fn() }))
 
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
-import { useMyRanking } from '@/features/home/hooks/useMyRanking'
 
 const useCurrentUserMock = vi.mocked(useCurrentUser)
 const useTournamentMock = vi.mocked(useTournament)
-const useMyRankingMock = vi.mocked(useMyRanking)
 
 const tournament: Tournament = {
   id: '1',
@@ -43,46 +40,32 @@ function mockUser(username: string | null) {
 beforeEach(() => vi.clearAllMocks())
 
 describe('HomeHeader', () => {
-  it('greets the user with the day and global standing', () => {
+  it('greets the user with the tournament day and name', () => {
     mockUser('santi')
     useTournamentMock.mockReturnValue({
       data: tournament,
       isLoading: false,
     } as unknown as ReturnType<typeof useTournament>)
-    useMyRankingMock.mockReturnValue({
-      position: 12,
-      points: 340,
-      total: 1247,
-      isLoading: false,
-      isError: false,
-    })
 
     render(<HomeHeader />)
 
     expect(screen.getByText('Hola, santi!')).toBeInTheDocument()
-    expect(screen.getByText(/Día \d+ de 39/)).toBeInTheDocument()
-    expect(screen.getByText(/Vas Nº 12 de 1\.247/)).toBeInTheDocument()
-    expect(screen.getByText(/340 puntos/)).toBeInTheDocument()
+    expect(screen.getByText(/Día \d+ de 39 · Mundial 2026/)).toBeInTheDocument()
+    // The ranking/points moved to the "Tu ranking" card.
+    expect(screen.queryByText(/Vas Nº/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/puntos/)).not.toBeInTheDocument()
   })
 
-  it('degrades gracefully before tournament/ranking data is available', () => {
+  it('degrades gracefully before the tournament loads', () => {
     mockUser(null)
     useTournamentMock.mockReturnValue({
       data: undefined,
       isLoading: true,
     } as unknown as ReturnType<typeof useTournament>)
-    useMyRankingMock.mockReturnValue({
-      position: null,
-      points: null,
-      total: null,
-      isLoading: true,
-      isError: false,
-    })
 
     render(<HomeHeader />)
 
     expect(screen.getByText('Hola, jugador!')).toBeInTheDocument()
     expect(screen.queryByText(/Día/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/Vas Nº/)).not.toBeInTheDocument()
   })
 })
