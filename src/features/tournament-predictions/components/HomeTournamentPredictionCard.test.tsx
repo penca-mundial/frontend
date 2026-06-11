@@ -136,19 +136,34 @@ describe('HomeTournamentPredictionCard', () => {
     expect(screen.queryByText('Bloqueado')).not.toBeInTheDocument()
   })
 
-  it('shows the compact summary, a Bloqueado badge, and a Ver/editar link when locked', () => {
+  it('shows the full podium + scorer and a Bloqueado badge, with NO Ver/editar link when locked', () => {
     setup({ prediction, tournamentOverrides: { isLocked: true } })
     renderCard()
 
-    // Compact set: champion + runner-up + scorer, with flags. No 3rd/4th.
+    // Mock layout: all five role labels on the right, full podium + scorer.
     expect(screen.getByText('Campeón')).toBeInTheDocument()
     expect(screen.getByText('Subcampeón')).toBeInTheDocument()
+    expect(screen.getByText('Tercer puesto')).toBeInTheDocument()
+    expect(screen.getByText('Cuarto puesto')).toBeInTheDocument()
     expect(screen.getByText('Goleador')).toBeInTheDocument()
+    // Resolved picks (champion ARG, runner-up FRA, scorer Messi); unset → "—".
     expect(screen.getByText('Argentina')).toBeInTheDocument()
+    expect(screen.getByText('Francia')).toBeInTheDocument()
     expect(screen.getByText('Lionel Messi')).toBeInTheDocument()
-    expect(screen.queryByText('Tercer puesto')).not.toBeInTheDocument()
+    expect(screen.getAllByText('—')).toHaveLength(2)
 
     expect(screen.getByText('Bloqueado')).toBeInTheDocument()
+    // Locked: editing is off, so the Ver/editar affordance is hidden.
+    expect(
+      screen.queryByRole('link', { name: /Ver\/editar/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows a Ver/editar link when there is a prediction and it is not locked', () => {
+    setup({ prediction })
+    renderCard()
+
+    expect(screen.queryByText('Bloqueado')).not.toBeInTheDocument()
     const link = screen.getByRole('link', { name: /Ver\/editar/ })
     expect(link).toHaveAttribute('href', '/app/predictions/tournament')
   })

@@ -14,4 +14,9 @@ export interface Prediction {
   /** ISO 8601 timestamp once the prediction is hard-locked, else null. */
   lockedAt: string | null
   locked: boolean
+  /**
+   * Points this prediction earned for its (finished) match. Present on
+   * finished-match payloads; null/undefined until the backend scores it.
+   */
+  points?: number | null
 }

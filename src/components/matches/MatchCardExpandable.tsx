@@ -6,7 +6,11 @@ import { getApiError } from '@/api/auth.api'
 import { useUpsertPrediction } from '@/features/matches/hooks/useUpsertPrediction'
 import type { Match, MatchTeam } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
-import { getPhaseLabel, isMatchLocked } from '@/features/matches/utils'
+import {
+  getPhaseLabel,
+  isMatchLocked,
+  LIVE_MATCH_CARD_BORDER,
+} from '@/features/matches/utils'
 import {
   predictionResultStatus,
   type PredictionResultStatus,
@@ -309,7 +313,7 @@ export function MatchCardExpandable({
         : 'bg-surface',
     // Live matches get a red border + glow; expanded desktop cards a brand edge.
     isLive
-      ? 'border-live/45 shadow-[0_0_0_3px_rgba(239,68,68,0.08)]'
+      ? LIVE_MATCH_CARD_BORDER
       : expanded && isDesktop
         ? 'border-brand-primary/50'
         : 'border-border',

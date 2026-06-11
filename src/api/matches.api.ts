@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios'
 import { apiClient, get } from '@/api/client'
 import { mapPrediction } from '@/api/predictions.api'
 import type { MatchResponse, MatchTeamResponse } from '@/types/api'
@@ -100,4 +101,64 @@ export const matchesApi = {
     const response = await get<MatchResponse>(`/matches/${id}`)
     return mapMatch(response)
   },
+
+  /**
+   * The currently in-play matches (`GET /matches/live`), ordered by kickoff.
+   * A bare JSON array; usually 0–1 rows for the dashboard's "Ahora mismo" card.
+   */
+  async live(): Promise<Match[]> {
+    const data = await get<MatchResponse[]>('/matches/live')
+    return data.map(mapMatch)
+  },
+
+  /**
+   * The next scheduled fixture (`GET /matches/next`), the "Ahora mismo" fallback
+   * when nothing is live. Includes the user's prediction (`my_prediction`) like
+   * `GET /matches/:id`. Degrades to `null` while the backend endpoint is still
+   * undeployed: until then the route falls through to `matches/:id` with
+   * id="next" and 404s — which we read as "no data yet" (backend gap A/B).
+   */
+  async next(): Promise<Match | null> {
+    return getOptionalMatch('/matches/next')
+  },
+
+  /**
+   * The most recently finished fixture (`GET /matches/last_finished`) with the
+   * user's prediction, for the "Último resultado" card. Same graceful-404
+   * degradation as `next()` until the backend ships it.
+   */
+  async lastFinished(): Promise<Match | null> {
+    return getOptionalMatch('/matches/last_finished')
+  },
+
+  /**
+   * The last few finished fixtures (`GET /matches/recent_finished`, up to 3,
+   * most recent first) — each with the user's prediction (incl. its `points`)
+   * for the dashboard's result cards. Degrades to an empty list while the
+   * endpoint is still undeployed (404 → []).
+   */
+  async recentFinished(): Promise<Match[]> {
+    try {
+      const data = await get<MatchResponse[]>('/matches/recent_finished')
+      return data.map(mapMatch)
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) return []
+      throw error
+    }
+  },
+}
+
+/**
+ * Fetch a single optional match, mapping a 404 (route not deployed yet, or no
+ * such match) to `null` so the dashboard degrades gracefully instead of error.
+ * Any other failure rejects as usual.
+ */
+async function getOptionalMatch(path: string): Promise<Match | null> {
+  try {
+    const data = await get<MatchResponse | null>(path)
+    return data ? mapMatch(data) : null
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 404) return null
+    throw error
+  }
 }
