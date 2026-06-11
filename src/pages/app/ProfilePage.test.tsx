@@ -92,10 +92,10 @@ describe('ProfilePage', () => {
     expect(screen.queryByText('@')).not.toBeInTheDocument()
   })
 
-  it('offers click-to-upload on the avatar', () => {
+  it('renders a display-only avatar (no click-to-upload affordance)', () => {
     renderPage()
     expect(
-      screen.getByRole('button', { name: 'Cambiar foto de perfil' }),
-    ).toBeInTheDocument()
+      screen.queryByRole('button', { name: 'Cambiar foto de perfil' }),
+    ).not.toBeInTheDocument()
   })
 })

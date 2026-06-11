@@ -14,8 +14,8 @@ function memberSince(iso: string): string {
 }
 
 /**
- * "Mi perfil" (`/app/profile`, SCRUM-199). Header card (avatar with
- * click-to-upload + username + email + member-since), an "Información" section
+ * "Mi perfil" (`/app/profile`, SCRUM-199). Header card (display-only avatar +
+ * username + email + member-since), an "Información" section
  * to edit the username, and an auth-aware "Cuenta" section. No timezone field,
  * no avatar-URL input, and no account-deletion section — see the AC deviations
  * on the ticket. Timezone is auto-detected from the browser everywhere, so it
