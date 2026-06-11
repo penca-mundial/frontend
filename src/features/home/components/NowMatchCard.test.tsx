@@ -4,7 +4,12 @@ import { NowMatchCard } from '@/features/home/components/NowMatchCard'
 import type { Match } from '@/features/matches/types'
 
 vi.mock('@/features/home/hooks/useNowMatch', () => ({ useNowMatch: vi.fn() }))
-// Stub the heavy match card: assert wiring, not its internals.
+// Stub the heavy child cards: assert routing between states, not their internals.
+vi.mock('@/features/home/components/LiveMatchCard', () => ({
+  LiveMatchCard: ({ match }: { match: Match }) => (
+    <div data-testid="live-card">{match.id}</div>
+  ),
+}))
 vi.mock('@/components/matches/MatchCardExpandable', () => ({
   MatchCardExpandable: ({ match }: { match: Match }) => (
     <div data-testid="match-card">{match.id}</div>
@@ -20,22 +25,23 @@ const match = { id: '10' } as Match
 beforeEach(() => vi.clearAllMocks())
 
 describe('NowMatchCard', () => {
-  it('titles the card "Ahora mismo" and renders the card when a match is live', () => {
+  it('renders the live card when a match is in play', () => {
     useNowMatchMock.mockReturnValue({ match, isLive: true, isLoading: false })
     render(<NowMatchCard />)
 
-    expect(screen.getByRole('heading', { name: 'Ahora mismo' })).toBeInTheDocument()
-    expect(screen.getByTestId('match-card')).toHaveTextContent('10')
+    expect(screen.getByTestId('live-card')).toHaveTextContent('10')
+    expect(screen.queryByTestId('match-card')).not.toBeInTheDocument()
   })
 
-  it('titles the card "Próximo partido" for the scheduled fallback', () => {
+  it('renders the predictable card under "Próximo partido" for the scheduled fallback', () => {
     useNowMatchMock.mockReturnValue({ match, isLive: false, isLoading: false })
     render(<NowMatchCard />)
 
     expect(
       screen.getByRole('heading', { name: 'Próximo partido' }),
     ).toBeInTheDocument()
-    expect(screen.getByTestId('match-card')).toBeInTheDocument()
+    expect(screen.getByTestId('match-card')).toHaveTextContent('10')
+    expect(screen.queryByTestId('live-card')).not.toBeInTheDocument()
   })
 
   it('shows an empty note when nothing is live or upcoming', () => {

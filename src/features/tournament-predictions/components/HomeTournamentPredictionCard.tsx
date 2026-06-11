@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Goal } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionLabel } from '@/components/ui/section-label'
+import { SoccerBall } from '@/components/icons/SoccerBall'
 import { DashboardCard } from '@/features/home/components/DashboardCard'
 import { TeamFlag } from '@/features/tournament-predictions/components/TeamFlag'
 import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
@@ -56,7 +57,7 @@ function RankMedallion({ rank }: { rank: RowConfig['rank'] }) {
         MEDAL_TINT[rank],
       )}
     >
-      {rank === 'scorer' ? <Goal className="size-3.5" /> : rank}
+      {rank === 'scorer' ? <SoccerBall className="size-3.5" /> : rank}
     </span>
   )
 }

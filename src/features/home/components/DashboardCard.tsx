@@ -14,6 +14,11 @@ export interface DashboardCardProps {
   headerAccessory?: ReactNode
   /** Optional "see more" link rendered at the card's top-right. */
   action?: DashboardCardAction
+  /**
+   * Optional node pinned to the card's top-right (e.g. a live badge or a trophy
+   * icon). Ignored when `action` is set — the link takes that slot.
+   */
+  headerRight?: ReactNode
   className?: string
   children: ReactNode
 }
@@ -29,6 +34,7 @@ export function DashboardCard({
   title,
   headerAccessory,
   action,
+  headerRight,
   className,
   children,
 }: DashboardCardProps) {
@@ -48,7 +54,7 @@ export function DashboardCard({
           </h2>
           {headerAccessory}
         </div>
-        {action && (
+        {action ? (
           <Link
             to={action.to}
             className="text-brand-primary focus-visible:ring-ring inline-flex items-center gap-1 rounded-sm text-body-sm font-medium focus-visible:ring-2 focus-visible:outline-none"
@@ -56,6 +62,8 @@ export function DashboardCard({
             {action.label}
             <ArrowRight aria-hidden="true" className="size-4" />
           </Link>
+        ) : (
+          headerRight
         )}
       </div>
       {children}

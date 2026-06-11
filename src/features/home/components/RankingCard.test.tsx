@@ -32,7 +32,7 @@ describe('RankingCard', () => {
     renderCard()
 
     expect(screen.getByText('12º')).toBeInTheDocument()
-    expect(screen.getByText(/de 1\.247 jugadores/)).toBeInTheDocument()
+    expect(screen.getByText(/de 1\.247/)).toBeInTheDocument()
     expect(screen.getByText('340')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Ver ranking/ })).toHaveAttribute(
       'href',

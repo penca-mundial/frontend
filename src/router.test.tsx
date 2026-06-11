@@ -72,7 +72,7 @@ describe('router', () => {
     renderAt('/admin')
     // The dashboard greets the user by name; its presence marks the redirect home.
     expect(
-      await screen.findByRole('heading', { name: 'Hola, member' }),
+      await screen.findByRole('heading', { name: 'Hola, member!' }),
     ).toBeInTheDocument()
     expect(screen.queryByText('Administración')).not.toBeInTheDocument()
   })

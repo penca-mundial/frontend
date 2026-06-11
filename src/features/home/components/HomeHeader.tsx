@@ -41,7 +41,7 @@ export function HomeHeader() {
     <BrandSurface className="shadow-sm">
       <div className="flex flex-col gap-1 p-5">
         <h1 className="font-display text-display-md font-semibold">
-          Hola, {name}
+          Hola, {name}!
         </h1>
         {segments.length > 0 && (
           <p className="text-body-sm text-white/85">{segments.join(' · ')}</p>

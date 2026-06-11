@@ -47,7 +47,7 @@ function renderCard() {
 beforeEach(() => vi.clearAllMocks())
 
 describe('PencasCard', () => {
-  it('lists pencas with the user rank ("Nº de M"), owner badge and a Nueva action', () => {
+  it('lists private pencas (excluding the general pool) with rank, owner badge and a Nueva action', () => {
     useGroupsMock.mockReturnValue({
       data: [general, mine],
       isLoading: false,
@@ -61,7 +61,8 @@ describe('PencasCard', () => {
 
     renderCard()
 
-    expect(screen.getByText('Penca general')).toBeInTheDocument()
+    // The general tournament pool is excluded from this card.
+    expect(screen.queryByText('Penca general')).not.toBeInTheDocument()
     expect(screen.getByText('Los del fondo')).toBeInTheDocument()
     // "3º de 14" splits across spans; assert the pieces.
     expect(screen.getByText('3º')).toBeInTheDocument()
@@ -90,5 +91,24 @@ describe('PencasCard', () => {
     renderCard()
 
     expect(screen.getByText(/14 jugadores/)).toBeInTheDocument()
+  })
+
+  it('shows the empty state when the user is only in the general pool', () => {
+    useGroupsMock.mockReturnValue({
+      data: [general],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGroups>)
+    useGroupRankMock.mockReturnValue({
+      rankPosition: 87,
+      isLoading: false,
+      isError: false,
+    })
+
+    renderCard()
+
+    expect(screen.queryByText('Penca general')).not.toBeInTheDocument()
+    expect(
+      screen.getByText(/Todavía no estás en ninguna penca/),
+    ).toBeInTheDocument()
   })
 })

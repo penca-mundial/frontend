@@ -59,7 +59,7 @@ describe('HomeHeader', () => {
 
     render(<HomeHeader />)
 
-    expect(screen.getByText('Hola, santi')).toBeInTheDocument()
+    expect(screen.getByText('Hola, santi!')).toBeInTheDocument()
     expect(screen.getByText(/Día \d+ de 39/)).toBeInTheDocument()
     expect(screen.getByText(/Vas Nº 12 de 1\.247/)).toBeInTheDocument()
     expect(screen.getByText(/340 puntos/)).toBeInTheDocument()
@@ -81,7 +81,7 @@ describe('HomeHeader', () => {
 
     render(<HomeHeader />)
 
-    expect(screen.getByText('Hola, jugador')).toBeInTheDocument()
+    expect(screen.getByText('Hola, jugador!')).toBeInTheDocument()
     expect(screen.queryByText(/Día/)).not.toBeInTheDocument()
     expect(screen.queryByText(/Vas Nº/)).not.toBeInTheDocument()
   })

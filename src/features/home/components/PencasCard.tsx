@@ -8,11 +8,6 @@ import { useGroupRank } from '@/features/groups/hooks/useGroupRank'
 import { formatThousands } from '@/lib/format'
 import type { Group } from '@/types/domain'
 
-/** A penca's display name — fixed copy for the general pool, else its name. */
-function groupName(group: Group): string {
-  return group.isGeneralPool ? 'Penca general' : group.name
-}
-
 /** One penca row: name + the user's "Nº de M" standing, linking to its detail. */
 function PencaRow({ group }: { group: Group }) {
   const { rankPosition, isLoading } = useGroupRank(group.id)
@@ -23,7 +18,7 @@ function PencaRow({ group }: { group: Group }) {
       className="hover:bg-surface-muted focus-visible:ring-ring -mx-2 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="truncate text-body font-medium">{groupName(group)}</span>
+        <span className="truncate text-body font-medium">{group.name}</span>
         {group.isOwner && (
           <Badge variant="outline" className="shrink-0 text-[10px]">
             Creador
@@ -48,13 +43,15 @@ function PencaRow({ group }: { group: Group }) {
 }
 
 /**
- * "Tus pencas": the user's groups (general pool first) with their standing in
- * each ("3º de 14"), plus a "Nueva" action. The per-group rank comes from one
- * `useGroupRank` query per row (cached/parallelised). Degrades to member counts
- * if a rank isn't available.
+ * "Tus pencas": the user's PRIVATE pencas with their standing in each
+ * ("3º de 14"), plus a "Nueva" action. The general tournament pool
+ * (`isGeneralPool`) is excluded here — it has its own hero elsewhere. The
+ * per-group rank comes from one `useGroupRank` query per row
+ * (cached/parallelised). Degrades to member counts if a rank isn't available.
  */
 export function PencasCard() {
   const { data: groups, isLoading } = useGroups()
+  const pencas = (groups ?? []).filter((group) => !group.isGeneralPool)
 
   return (
     <DashboardCard title="Tus pencas">
@@ -63,9 +60,9 @@ export function PencasCard() {
           <Skeleton className="h-9 w-full rounded-lg" />
           <Skeleton className="h-9 w-full rounded-lg" />
         </div>
-      ) : groups && groups.length > 0 ? (
+      ) : pencas.length > 0 ? (
         <div className="flex flex-col">
-          {groups.map((group) => (
+          {pencas.map((group) => (
             <PencaRow key={group.id} group={group} />
           ))}
         </div>
