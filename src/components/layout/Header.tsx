@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ChevronDown, Menu } from 'lucide-react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -26,10 +26,21 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: '/app/home', label: 'Inicio' },
-  { to: '/app/matches', label: 'Fixture' },
+  { to: '/app/matches', label: 'Partidos' },
   { to: '/app/predictions/mine', label: 'Mis pronósticos' },
   { to: '/app/groups', label: 'Pencas' },
   { to: '/app/rankings', label: 'Ranking' },
+]
+
+/**
+ * The account-menu links (everything reached via the avatar, not the main
+ * nav). Single source of truth so the desktop dropdown and the mobile avatar
+ * menu never drift — that drift is exactly what left Perfil/Reglas unreachable
+ * on mobile.
+ */
+const ACCOUNT_ITEMS: NavItem[] = [
+  { to: '/app/profile', label: 'Perfil' },
+  { to: '/app/rules', label: 'Reglas' },
 ]
 
 /** Brand mark: green "P" tile with an amber dot, next to the wordmark. */
@@ -59,6 +70,47 @@ function desktopNavClass({ isActive }: { isActive: boolean }) {
 function initialsOf(name: string | null, email: string): string {
   const source = name ?? email
   return source.slice(0, 2).toUpperCase()
+}
+
+/**
+ * The account dropdown (Perfil / Reglas / admin / logout), driven by the shared
+ * `ACCOUNT_ITEMS`. The same menu backs both the desktop pill and the mobile
+ * avatar button — only the `trigger` differs — so the two breakpoints expose
+ * the identical set of links.
+ */
+function AccountMenu({
+  trigger,
+  isAdmin,
+  onLogout,
+}: {
+  trigger: ReactNode
+  isAdmin: boolean
+  onLogout: () => void
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        {ACCOUNT_ITEMS.map((item) => (
+          <DropdownMenuItem key={item.to} asChild>
+            <Link to={item.to}>{item.label}</Link>
+          </DropdownMenuItem>
+        ))}
+        {isAdmin && (
+          <DropdownMenuItem asChild>
+            <Link to="/admin">Panel de administración</Link>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={onLogout}
+          className="text-danger focus:text-danger"
+        >
+          Cerrar sesión
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
 }
 
 export function Header() {
@@ -98,12 +150,17 @@ export function Header() {
           ))}
         </nav>
 
-        {/* Desktop user menu */}
+        {/* Desktop user menu: avatar pill = account. */}
         {currentUser && (
           <div className="ml-auto hidden md:block">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="border-border bg-surface-muted hover:bg-surface focus-visible:ring-ring inline-flex items-center gap-2 rounded-full border py-1 pr-2.5 pl-1 focus-visible:ring-2 focus-visible:outline-none">
+            <AccountMenu
+              isAdmin={currentUser.isAdmin}
+              onLogout={handleLogout}
+              trigger={
+                <button
+                  type="button"
+                  className="border-border bg-surface-muted hover:bg-surface focus-visible:ring-ring inline-flex items-center gap-2 rounded-full border py-1 pr-2.5 pl-1 focus-visible:ring-2 focus-visible:outline-none"
+                >
                   <span className="bg-brand-primary font-display inline-flex size-7 items-center justify-center rounded-full text-xs font-bold text-white">
                     {initialsOf(currentUser.username, currentUser.email)}
                   </span>
@@ -112,80 +169,67 @@ export function Header() {
                   </span>
                   <ChevronDown size={12} className="text-text-secondary" />
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem asChild>
-                  <Link to="/app/profile">Perfil</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/app/rules">Reglas</Link>
-                </DropdownMenuItem>
-                {currentUser.isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin">Panel de administración</Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="text-danger focus:text-danger"
-                >
-                  Cerrar sesión
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              }
+            />
           </div>
         )}
 
-        {/* Mobile navigation */}
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="ml-auto md:hidden"
-              aria-label="Abrir menú"
-            >
-              <Menu />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right">
-            <SheetHeader>
-              <SheetTitle>
-                <Logo />
-              </SheetTitle>
-            </SheetHeader>
-            <nav className="mt-2 flex flex-col gap-1 px-4" aria-label="Principal">
-              {items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      'rounded-md px-2 py-2 text-body font-medium transition-colors',
-                      isActive
-                        ? 'bg-brand-primary-soft text-brand-primary-hover'
-                        : 'text-text-secondary hover:bg-surface-muted',
-                    )
-                  }
+        {/* Mobile actions: avatar (account) + hamburger (sections), mirroring the
+            desktop mental model. Both stay visible and tappable on mobile. */}
+        <div className="ml-auto flex items-center gap-1 md:hidden">
+          {currentUser && (
+            <AccountMenu
+              isAdmin={currentUser.isAdmin}
+              onLogout={handleLogout}
+              trigger={
+                <button
+                  type="button"
+                  aria-label="Tu cuenta"
+                  className="bg-brand-primary font-display focus-visible:ring-ring focus-visible:ring-offset-surface inline-flex size-9 items-center justify-center rounded-full text-xs font-bold text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
-                  {item.label}
-                </NavLink>
-              ))}
-              {currentUser && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                  onClick={handleLogout}
-                >
-                  Cerrar sesión
-                </Button>
-              )}
-            </nav>
-          </SheetContent>
-        </Sheet>
+                  {initialsOf(currentUser.username, currentUser.email)}
+                </button>
+              }
+            />
+          )}
+
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Abrir menú">
+                <Menu />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <SheetHeader>
+                <SheetTitle>
+                  <Logo />
+                </SheetTitle>
+              </SheetHeader>
+              <nav
+                className="mt-2 flex flex-col gap-1 px-4"
+                aria-label="Principal"
+              >
+                {items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        'rounded-md px-2 py-2 text-body font-medium transition-colors',
+                        isActive
+                          ? 'bg-brand-primary-soft text-brand-primary-hover'
+                          : 'text-text-secondary hover:bg-surface-muted',
+                      )
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   )

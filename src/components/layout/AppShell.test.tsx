@@ -109,4 +109,39 @@ describe('AppShell', () => {
       await screen.findByRole('menuitem', { name: 'Panel de administración' }),
     ).toBeInTheDocument()
   })
+
+  // Regression (SCRUM-305 header fix): on mobile the account menu opens from a
+  // dedicated avatar button — Perfil and Reglas must be reachable there, since
+  // those routes are linked nowhere else.
+  it('exposes Perfil and Reglas from the mobile avatar account menu', async () => {
+    const user = userEvent.setup()
+    renderShell('/app/home', member)
+
+    await user.click(screen.getByRole('button', { name: 'Tu cuenta' }))
+
+    const perfil = await screen.findByRole('menuitem', { name: 'Perfil' })
+    const reglas = await screen.findByRole('menuitem', { name: 'Reglas' })
+    expect(perfil).toHaveAttribute('href', '/app/profile')
+    expect(reglas).toHaveAttribute('href', '/app/rules')
+  })
+
+  it('keeps the mobile hamburger to the main nav only (no account links)', async () => {
+    const user = userEvent.setup()
+    renderShell('/app/home', member)
+
+    await user.click(screen.getByRole('button', { name: 'Abrir menú' }))
+
+    // The 5 nav sections are present…
+    expect(
+      await screen.findByRole('link', { name: 'Inicio' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Pencas' })).toBeInTheDocument()
+    // …but the account links are not duplicated into the hamburger.
+    expect(
+      screen.queryByRole('link', { name: 'Perfil' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Reglas' }),
+    ).not.toBeInTheDocument()
+  })
 })
