@@ -25,8 +25,7 @@ describe('UserProfileHeader', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: /leo/ }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/N\.º 7 de 128/)).toBeInTheDocument()
-    expect(screen.getByText('31 pts')).toBeInTheDocument()
+    expect(screen.getByText(/N\.º 7 de 128 · 31 pts/)).toBeInTheDocument()
   })
 
   it('degrades gracefully when the user has no ranked position', () => {
@@ -37,7 +36,7 @@ describe('UserProfileHeader', () => {
       />,
     )
     expect(
-      screen.getByText(/Todavía sin posición en el ranking/),
+      screen.getByText(/Sin posición en el ranking general/),
     ).toBeInTheDocument()
   })
 
