@@ -305,12 +305,16 @@ export function MatchCardExpandable({
 
   const cardClasses = cn(
     'w-full rounded-xl border p-3 shadow-sm text-left transition-colors',
-    // Subtle result tint once finished: green for an exact hit, red for a miss.
+    // Subtle result tint once finished: green for an exact hit, amber for the
+    // right outcome (winner/draw) without the exact score, red for a miss —
+    // mirroring the home result card.
     isFinished && resultStatus === 'exact'
       ? 'bg-[linear-gradient(180deg,#F0FDF4_0%,#FFFFFF_60%)]'
-      : isFinished && resultStatus === 'wrong'
-        ? 'bg-[linear-gradient(180deg,#FEF2F2_0%,#FFFFFF_60%)]'
-        : 'bg-surface',
+      : isFinished && resultStatus === 'partial'
+        ? 'bg-[linear-gradient(180deg,#FFFBEB_0%,#FFFFFF_60%)]'
+        : isFinished && resultStatus === 'wrong'
+          ? 'bg-[linear-gradient(180deg,#FEF2F2_0%,#FFFFFF_60%)]'
+          : 'bg-surface',
     // Live matches get a red border + glow; expanded desktop cards a brand edge.
     isLive
       ? LIVE_MATCH_CARD_BORDER

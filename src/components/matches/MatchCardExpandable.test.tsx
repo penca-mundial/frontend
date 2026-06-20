@@ -240,4 +240,40 @@ describe('MatchCardExpandable', () => {
       within(dialog).getByRole('button', { name: /Guardar pronóstico/ }),
     ).toBeInTheDocument()
   })
+
+  describe('finished result tint', () => {
+    // Result 3–0 (home win); the prediction varies the outcome category.
+    function renderFinished(prediction: Prediction) {
+      return renderCard({
+        match: makeMatch({
+          status: 'finished',
+          kickoffAt: '2020-01-01T00:00:00Z',
+          homeScore: 3,
+          awayScore: 0,
+        }),
+        prediction,
+      })
+    }
+
+    it('tints amber when the winner is right but the score and diff are not', () => {
+      // Predicted 1–0: correct winner (home), wrong score, wrong goal diff →
+      // "partial" → amber, like the home result card.
+      const { container } = renderFinished(
+        makePrediction({ predictedHomeScore: 1, predictedAwayScore: 0 }),
+      )
+      expect(container.firstElementChild?.className).toContain('FFFBEB')
+    })
+
+    it('tints green for an exact hit and red for a wrong outcome', () => {
+      const exact = renderFinished(
+        makePrediction({ predictedHomeScore: 3, predictedAwayScore: 0 }),
+      )
+      expect(exact.container.firstElementChild?.className).toContain('F0FDF4')
+
+      const wrong = renderFinished(
+        makePrediction({ predictedHomeScore: 0, predictedAwayScore: 2 }),
+      )
+      expect(wrong.container.firstElementChild?.className).toContain('FEF2F2')
+    })
+  })
 })
