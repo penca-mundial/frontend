@@ -40,26 +40,22 @@ export function UserProfilePage() {
   if (isLoading) {
     return (
       <div
-        className="mx-auto flex w-full max-w-2xl flex-col gap-6"
+        className="mx-auto flex w-full max-w-5xl flex-col gap-6"
         aria-busy="true"
       >
         <Skeleton className="h-8 w-20 rounded-md" />
-        <div className="flex items-center gap-4">
-          <Skeleton className="size-16 rounded-full" />
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-7 w-40 rounded-lg" />
-            <Skeleton className="h-4 w-28 rounded" />
-          </div>
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Skeleton className="h-64 w-full rounded-xl lg:col-span-2" />
+          <Skeleton className="h-64 w-full rounded-xl" />
         </div>
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-40 w-full rounded-xl" />
       </div>
     )
   }
 
   if (isError || !profile) {
     return (
-      <div className="mx-auto flex w-full max-w-2xl flex-col items-start gap-4">
+      <div className="mx-auto flex w-full max-w-5xl flex-col items-start gap-4">
         <Button
           asChild
           variant="ghost"
@@ -81,19 +77,25 @@ export function UserProfilePage() {
   const isMe = currentUser?.id === profile.user.id
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <BackButton />
-      <UserProfileHeader
-        user={profile.user}
-        ranking={profile.globalRanking}
-        isMe={isMe}
-      />
-      <SharedGroupsBlock groups={profile.sharedGroups} />
-      <ProfileTournamentPredictionBlock
-        prediction={profile.tournamentPrediction}
-      />
-      <ProfileStatsBlock stats={profile.stats} />
-      <ProfilePredictionsFeed userId={userId} />
+      <UserProfileHeader user={profile.user} isMe={isMe} />
+      {/* Home's two-column rhythm: the picks feed (newest → oldest, as the
+          backend returns it) is the main column; the right sidebar holds the
+          shared pencas, the tournament prediction and the stats, like Home. On
+          mobile they stack info-first, then the feed (via `order`). */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="order-2 flex flex-col gap-6 lg:order-1 lg:col-span-2">
+          <ProfilePredictionsFeed userId={userId} />
+        </div>
+        <div className="order-1 flex flex-col gap-6 lg:order-2">
+          <SharedGroupsBlock groups={profile.sharedGroups} />
+          <ProfileTournamentPredictionBlock
+            prediction={profile.tournamentPrediction}
+          />
+          <ProfileStatsBlock stats={profile.stats} />
+        </div>
+      </div>
     </div>
   )
 }
