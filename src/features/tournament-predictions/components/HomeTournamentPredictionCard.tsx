@@ -2,10 +2,12 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { SectionLabel } from '@/components/ui/section-label'
-import { SoccerBall } from '@/components/icons/SoccerBall'
 import { DashboardCard } from '@/features/home/components/DashboardCard'
-import { TeamFlag } from '@/features/tournament-predictions/components/TeamFlag'
+import {
+  PODIUM_ROLES,
+  TournamentPodium,
+  type PodiumRow,
+} from '@/features/tournament-predictions/components/TournamentPodium'
 import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
 import { useTeams } from '@/features/tournament-predictions/hooks/useTeams'
 import { usePlayers } from '@/features/tournament-predictions/hooks/usePlayers'
@@ -15,86 +17,39 @@ import type {
   Player,
   TournamentPrediction,
 } from '@/features/tournament-predictions/types'
-import { cn } from '@/lib/cn'
 
 const TOURNAMENT_PREDICTION_PATH = '/app/predictions/tournament'
 
-type PodiumSpot = 'championId' | 'runnerUpId' | 'thirdPlaceId' | 'fourthPlaceId'
+/** The podium team ids, in `PODIUM_ROLES` order (champion → fourth place). */
+const PODIUM_TEAM_SPOTS = [
+  'championId',
+  'runnerUpId',
+  'thirdPlaceId',
+  'fourthPlaceId',
+] as const
 
-interface RowConfig {
-  /** Podium rank 1–4, or 'scorer' for the top-scorer row. */
-  rank: 1 | 2 | 3 | 4 | 'scorer'
-  /** Secondary role label shown on the right (Campeón / Goleador / …). */
-  role: string
-  spot: PodiumSpot | 'topScorer'
-}
-
-/** The five rows of the mock, in order: full podium then the top scorer. */
-const ROWS: RowConfig[] = [
-  { rank: 1, role: 'Campeón', spot: 'championId' },
-  { rank: 2, role: 'Subcampeón', spot: 'runnerUpId' },
-  { rank: 3, role: 'Tercer puesto', spot: 'thirdPlaceId' },
-  { rank: 4, role: 'Cuarto puesto', spot: 'fourthPlaceId' },
-  { rank: 'scorer', role: 'Goleador', spot: 'topScorer' },
-]
-
-/** Per-rank medallion tint (gold / silver / bronze / neutral / scorer-teal). */
-const MEDAL_TINT: Record<RowConfig['rank'], string> = {
-  1: 'bg-brand-accent-soft text-[#92400e]',
-  2: 'bg-surface-sunken text-text-secondary',
-  3: 'bg-[#FBE8D3] text-[#9A5B27]',
-  4: 'bg-surface-muted text-text-secondary',
-  scorer: 'bg-brand-primary-soft text-brand-primary-hover',
-}
-
-/** A small medallion: the position number, or a boot icon for the scorer. */
-function RankMedallion({ rank }: { rank: RowConfig['rank'] }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        'font-display inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold',
-        MEDAL_TINT[rank],
-      )}
-    >
-      {rank === 'scorer' ? <SoccerBall className="size-3.5" /> : rank}
-    </span>
-  )
-}
-
-interface ResolvedRow {
-  rank: RowConfig['rank']
-  role: string
-  flagUrl: string | null
-  name: string
-}
-
-/** Resolve a row's pick to a flag + name, '—' when unset. */
-function resolveRow(
-  row: RowConfig,
+/** Resolve the prediction's ids against the team/player lists into podium rows. */
+function resolveRows(
   prediction: TournamentPrediction,
   teams: MatchTeam[],
   players: Player[],
-): ResolvedRow {
-  if (row.spot === 'topScorer') {
-    const player = prediction.topScorerId
-      ? (players.find((p) => p.id === prediction.topScorerId) ?? null)
-      : null
-    return {
-      rank: row.rank,
-      role: row.role,
-      flagUrl: player?.team?.flagUrl ?? null,
-      name: player?.name ?? '—',
+): PodiumRow[] {
+  return PODIUM_ROLES.map(({ rank, role }, index) => {
+    if (rank === 'scorer') {
+      const player = prediction.topScorerId
+        ? (players.find((p) => p.id === prediction.topScorerId) ?? null)
+        : null
+      return {
+        rank,
+        role,
+        flagUrl: player?.team?.flagUrl ?? null,
+        name: player?.name ?? '—',
+      }
     }
-  }
-  const teamId = prediction[row.spot]
-  const team = teamId ? (teams.find((t) => t.id === teamId) ?? null) : null
-  return {
-    rank: row.rank,
-    role: row.role,
-    flagUrl: team?.flagUrl ?? null,
-    name: team?.name ?? '—',
-  }
+    const teamId = prediction[PODIUM_TEAM_SPOTS[index]]
+    const team = teamId ? (teams.find((t) => t.id === teamId) ?? null) : null
+    return { rank, role, flagUrl: team?.flagUrl ?? null, name: team?.name ?? '—' }
+  })
 }
 
 /**
@@ -139,31 +94,13 @@ export function HomeTournamentPredictionCard() {
           <Skeleton className="h-10 w-full rounded-lg" />
         </div>
       ) : prediction ? (
-        <dl className="divide-border divide-y">
-          {ROWS.map((row) => {
-            const { rank, role, flagUrl, name } = resolveRow(
-              row,
-              prediction,
-              teamsQuery.data ?? [],
-              playersQuery.data ?? [],
-            )
-            return (
-              <div
-                key={row.spot}
-                className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
-              >
-                <dd className="text-body-sm flex min-w-0 items-center gap-2.5 font-semibold">
-                  <RankMedallion rank={rank} />
-                  <TeamFlag flagUrl={flagUrl} />
-                  <span className="truncate">{name}</span>
-                </dd>
-                <SectionLabel as="dt" tone="secondary" size="sm" className="shrink-0">
-                  {role}
-                </SectionLabel>
-              </div>
-            )
-          })}
-        </dl>
+        <TournamentPodium
+          rows={resolveRows(
+            prediction,
+            teamsQuery.data ?? [],
+            playersQuery.data ?? [],
+          )}
+        />
       ) : (
         <>
           <p className="text-text-secondary text-body-sm">

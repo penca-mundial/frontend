@@ -339,3 +339,93 @@ export interface UpsertPredictionPayload {
   predicted_away_score: number
   predicted_advancing_team_id?: string | number | null
 }
+
+// ─── Public user profile (SCRUM-305) ─────────────────────────────────────────
+
+/** The viewed user's identity (`GET /users/:id/profile`). */
+export interface ProfileUserResponse {
+  id: number
+  username: string | null
+  avatar_url: string | null
+}
+
+/** The viewed user's row in the global leaderboard + the universe size. */
+export interface ProfileGlobalRankingResponse {
+  /** 1-based rank; null when the user has no scored predictions yet. */
+  rank_position: number | null
+  points: number
+  exact_count: number
+  total: number
+}
+
+/** The viewed user's standing inside a penca both viewer and target share. */
+export interface ProfileSharedGroupResponse {
+  group: { id: number; name: string; is_general_pool: boolean }
+  rank_position: number | null
+  points: number
+  total: number
+}
+
+/**
+ * The viewed user's tournament prediction with the podium teams and the top
+ * scorer embedded (`TournamentPredictionBlueprint` with associations), so the
+ * profile renders the picks without extra `/teams` or `/players` requests.
+ */
+export interface EmbeddedTournamentPredictionResponse
+  extends TournamentPredictionResponse {
+  champion: MatchTeamResponse | null
+  runner_up: MatchTeamResponse | null
+  third_place: MatchTeamResponse | null
+  fourth_place: MatchTeamResponse | null
+  top_scorer: PlayerResponse | null
+}
+
+/**
+ * The gated tournament-prediction block: hidden until the first kickoff
+ * (`available:false` + a `reason`), then the pick (or null if they made none).
+ */
+export type ProfileTournamentPredictionResponse =
+  | { available: false; reason: string }
+  | { available: true; prediction: EmbeddedTournamentPredictionResponse | null }
+
+/** Accuracy buckets over the viewed user's scored predictions. */
+export interface ProfileStatsResponse {
+  exact: number
+  correct_winner: number
+  goal_difference: number
+  missed: number
+  total: number
+}
+
+/** `GET /users/:id/profile`. */
+export interface UserProfileResponse {
+  user: ProfileUserResponse
+  global_ranking: ProfileGlobalRankingResponse
+  shared_groups: ProfileSharedGroupResponse[]
+  tournament_prediction: ProfileTournamentPredictionResponse
+  stats: ProfileStatsResponse
+}
+
+/**
+ * The compact pick projection on a profile predictions entry (`UserScoreboard`
+ * relabels its `my_prediction` to `prediction`): only the picked score and the
+ * points it earns at the match's current score — no id/lock fields.
+ */
+export interface ProfilePredictionPickResponse {
+  predicted_home_score: number
+  predicted_away_score: number
+  points: number
+}
+
+/** One entry of `GET /users/:id/predictions`: a match (MatchBlueprint) + the pick. */
+export interface UserPredictionEntryResponse
+  extends Omit<MatchResponse, 'my_prediction'> {
+  prediction: ProfilePredictionPickResponse
+}
+
+/** `GET /users/:id/predictions` (paginated, live match first then finished). */
+export interface UserPredictionsResponse {
+  entries: UserPredictionEntryResponse[]
+  page: number
+  has_more: boolean
+}
