@@ -33,20 +33,20 @@ export function ProfileStatsBlock({ stats }: ProfileStatsBlockProps) {
 
   return (
     <DashboardCard title="Stats">
-      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <dl className="grid grid-cols-3 gap-1.5">
         {chips.map((chip) => (
           <div
             key={chip.label}
-            className="border-border bg-surface-muted/40 flex flex-col gap-0.5 rounded-lg border px-3 py-2"
+            className="border-border bg-surface-muted/40 flex flex-col items-center gap-0.5 rounded-md border px-1.5 py-1.5 text-center"
           >
             <dd
-              className={`font-display text-xl font-bold tabular-nums ${
+              className={`font-display text-base leading-none font-bold tabular-nums ${
                 chip.tone ? TONE_CLASS[chip.tone] : ''
               }`}
             >
               {chip.value}
             </dd>
-            <dt className="text-text-secondary text-[11px] font-semibold tracking-wide uppercase">
+            <dt className="text-text-secondary text-[10px] leading-tight font-semibold tracking-wide uppercase">
               {chip.label}
             </dt>
           </div>
