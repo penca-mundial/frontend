@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { RankingEntry } from '@/types/domain'
 import { cn } from '@/lib/cn'
@@ -60,19 +61,24 @@ export function LeaderboardEntry({ entry, isMe }: LeaderboardEntryProps) {
         />
       )}
       <Position position={entry.position} />
-      <Avatar size="sm">
-        {entry.avatarUrl && <AvatarImage src={entry.avatarUrl} alt="" />}
-        <AvatarFallback>{initials(entry.username)}</AvatarFallback>
-      </Avatar>
-      <div className="min-w-0 flex-1">
-        <p className="text-body-sm truncate font-semibold">
-          {entry.username ?? 'Jugador'}
-          {isMe && <span className="text-brand-primary"> · vos</span>}
-        </p>
-        <p className="text-text-secondary text-xs">
-          {entry.exactCount} {entry.exactCount === 1 ? 'exacto' : 'exactos'}
-        </p>
-      </div>
+      <Link
+        to={`/app/users/${entry.userId}`}
+        className="focus-visible:ring-ring flex min-w-0 flex-1 items-center gap-3 rounded-md hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none"
+      >
+        <Avatar size="sm">
+          {entry.avatarUrl && <AvatarImage src={entry.avatarUrl} alt="" />}
+          <AvatarFallback>{initials(entry.username)}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="text-body-sm truncate font-semibold">
+            {entry.username ?? 'Jugador'}
+            {isMe && <span className="text-brand-primary"> · vos</span>}
+          </p>
+          <p className="text-text-secondary text-xs">
+            {entry.exactCount} {entry.exactCount === 1 ? 'exacto' : 'exactos'}
+          </p>
+        </div>
+      </Link>
       <span className="font-display shrink-0 font-bold tabular-nums">
         {entry.points}
         <span className="text-text-secondary text-xs font-normal"> pts</span>

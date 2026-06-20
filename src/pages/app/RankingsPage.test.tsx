@@ -1,8 +1,15 @@
-import { render, screen } from '@testing-library/react'
+import { render as rtlRender, screen } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RankingsPage } from '@/pages/app/RankingsPage'
 import type { Group, RankingEntry } from '@/types/domain'
+
+/** Leaderboard rows link to user profiles, so a router context is required. */
+function render(ui: ReactElement) {
+  return rtlRender(<MemoryRouter>{ui}</MemoryRouter>)
+}
 
 vi.mock('@/features/groups/hooks/useGroups', () => ({ useGroups: vi.fn() }))
 vi.mock('@/features/rankings/hooks/useRanking', () => ({ useRanking: vi.fn() }))

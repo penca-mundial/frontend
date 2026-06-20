@@ -1,8 +1,15 @@
-import { render, screen } from '@testing-library/react'
+import { render as rtlRender, screen } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Leaderboard } from '@/features/rankings/components/Leaderboard'
 import type { RankingEntry } from '@/types/domain'
+
+/** Rows link to user profiles, so every render needs a router context. */
+function render(ui: ReactElement) {
+  return rtlRender(<MemoryRouter>{ui}</MemoryRouter>)
+}
 
 vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
   useCurrentUser: vi.fn(),
@@ -61,6 +68,20 @@ describe('Leaderboard', () => {
     expect(screen.getByText('4 exactos')).toBeInTheDocument()
     expect(screen.getByText('1 exacto')).toBeInTheDocument()
     expect(screen.getByText('30')).toBeInTheDocument()
+  })
+
+  it('links each row to the player public profile', () => {
+    render(
+      <Leaderboard
+        entries={[ent({ userId: '42', username: 'leo', position: 1 })]}
+        me={[]}
+      />,
+    )
+
+    expect(screen.getByRole('link', { name: /leo/ })).toHaveAttribute(
+      'href',
+      '/app/users/42',
+    )
   })
 
   it('renders shared positions for ties as given (1, 1, 3)', () => {

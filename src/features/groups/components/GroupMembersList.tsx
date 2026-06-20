@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -37,19 +38,24 @@ function MemberRow({
           className="bg-brand-primary absolute inset-y-0 left-0 w-1"
         />
       )}
-      <Avatar size="sm">
-        {member.avatarUrl && <AvatarImage src={member.avatarUrl} alt="" />}
-        <AvatarFallback>{initials(member.username)}</AvatarFallback>
-      </Avatar>
-      <div className="min-w-0 flex-1">
-        <p className="text-body-sm truncate font-semibold">
-          {member.username ?? 'Jugador'}
-          {isMe && <span className="text-brand-primary"> · vos</span>}
-        </p>
-        <p className="text-text-secondary text-xs">
-          Se unió el {formatKickoff(member.joinedAt, 'date', timezone)}
-        </p>
-      </div>
+      <Link
+        to={`/app/users/${member.userId}`}
+        className="focus-visible:ring-ring flex min-w-0 flex-1 items-center gap-3 rounded-md hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none"
+      >
+        <Avatar size="sm">
+          {member.avatarUrl && <AvatarImage src={member.avatarUrl} alt="" />}
+          <AvatarFallback>{initials(member.username)}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="text-body-sm truncate font-semibold">
+            {member.username ?? 'Jugador'}
+            {isMe && <span className="text-brand-primary"> · vos</span>}
+          </p>
+          <p className="text-text-secondary text-xs">
+            Se unió el {formatKickoff(member.joinedAt, 'date', timezone)}
+          </p>
+        </div>
+      </Link>
       {member.isOwner && <Badge variant="outline">owner</Badge>}
     </li>
   )

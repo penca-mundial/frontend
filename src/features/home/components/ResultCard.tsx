@@ -68,6 +68,12 @@ export interface ResultCardProps {
   /** Show the "Último resultado" eyebrow — only on the most recent card. */
   showEyebrow?: boolean
   timezone?: string
+  /**
+   * Label before the picked score. Defaults to the second-person "Pronosticaste"
+   * (the home dashboard, where the pick is the viewer's own). On another user's
+   * profile pass a neutral noun (e.g. "Pronóstico").
+   */
+  predictionLabel?: string
 }
 
 /**
@@ -78,10 +84,16 @@ export interface ResultCardProps {
  * resultado" eyebrow; the rest repeat the same card without it. Points come from
  * `my_prediction.points`; the chip hides until the backend scores it.
  */
-export function ResultCard({ match, showEyebrow = false, timezone }: ResultCardProps) {
+export function ResultCard({
+  match,
+  showEyebrow = false,
+  timezone,
+  predictionLabel = 'Pronosticaste',
+}: ResultCardProps) {
   const tz = timezone ?? detectUserTimezone()
   const prediction = match.myPrediction ?? null
   const points = prediction?.points
+  const isLive = match.status === 'live'
   const matchup = `${match.homeTeam?.name ?? 'Local'} ${match.homeScore ?? 0} - ${match.awayScore ?? 0} ${match.awayTeam?.name ?? 'Visitante'}`
 
   return (
@@ -99,6 +111,18 @@ export function ResultCard({ match, showEyebrow = false, timezone }: ResultCardP
       )}
 
       <div className="text-text-secondary flex items-center gap-1.5 text-[11px] font-semibold tracking-wide uppercase">
+        {isLive && (
+          <>
+            <span className="text-live inline-flex items-center gap-1">
+              <span
+                className="bg-live size-1.5 animate-pulse rounded-full"
+                aria-hidden="true"
+              />
+              En vivo
+            </span>
+            <span aria-hidden="true">·</span>
+          </>
+        )}
         <span>
           {match.group ? `Grupo ${match.group}` : getPhaseLabel(match.phase)}
         </span>
@@ -114,7 +138,7 @@ export function ResultCard({ match, showEyebrow = false, timezone }: ResultCardP
       {prediction && (
         <div className="flex items-center justify-between gap-2">
           <span className="bg-surface/70 text-text-secondary inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide uppercase">
-            Pronosticaste
+            {predictionLabel}
             <span className="text-text-primary font-bold">
               {prediction.predictedHomeScore} – {prediction.predictedAwayScore}
             </span>

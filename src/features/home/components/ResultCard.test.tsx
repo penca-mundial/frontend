@@ -79,4 +79,26 @@ describe('ResultCard', () => {
     expect(screen.getByText(/Pronosticaste/)).toBeInTheDocument()
     expect(screen.queryByText(/pts/)).not.toBeInTheDocument()
   })
+
+  it('uses a custom prediction label when given (other user profiles)', () => {
+    render(
+      <ResultCard
+        match={finished(prediction(2, 1, 8))}
+        predictionLabel="Pronóstico"
+        timezone="UTC"
+      />,
+    )
+    expect(screen.getByText(/Pronóstico/)).toBeInTheDocument()
+    expect(screen.queryByText(/Pronosticaste/)).not.toBeInTheDocument()
+  })
+
+  it('badges a live match and stays neutral (no outcome colour for a non-final score)', () => {
+    const live: Match = { ...finished(prediction(1, 0, 3)), status: 'live', minute: 67 }
+    render(<ResultCard match={live} timezone="UTC" />)
+
+    expect(screen.getByText(/En vivo/i)).toBeInTheDocument()
+    // Not coloured by outcome — the match has not finished.
+    expect(sectionClass()).toContain('bg-surface')
+    expect(sectionClass()).not.toContain('from-success-soft')
+  })
 })

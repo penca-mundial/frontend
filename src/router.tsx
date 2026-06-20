@@ -22,6 +22,7 @@ import { MyPredictionsPage } from '@/pages/app/MyPredictionsPage'
 import { RankingsPage } from '@/pages/app/RankingsPage'
 import { TournamentPredictionPage } from '@/pages/app/TournamentPredictionPage'
 import { ProfilePage } from '@/pages/app/ProfilePage'
+import { UserProfilePage } from '@/pages/app/UserProfilePage'
 import { RulesPage } from '@/pages/app/RulesPage'
 import { NotFoundPage } from '@/pages/public/NotFoundPage'
 
@@ -119,6 +120,7 @@ export const routes: RouteObject[] = [
       { path: '/app/groups/join', element: <JoinGroupPage /> },
       { path: '/app/groups/:id', element: <GroupDetailPage /> },
       { path: '/app/rankings', element: <RankingsPage /> },
+      { path: '/app/users/:id', element: <UserProfilePage /> },
       { path: '/app/profile', element: <ProfilePage /> },
       { path: '/app/rules', element: <RulesPage /> },
     ],

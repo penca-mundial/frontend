@@ -1,8 +1,15 @@
-import { render, screen } from '@testing-library/react'
+import { render as rtlRender, screen } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GroupMembersList } from '@/features/groups/components/GroupMembersList'
 import type { GroupMember } from '@/types/domain'
+
+/** Member rows link to user profiles, so every render needs a router context. */
+function render(ui: ReactElement) {
+  return rtlRender(<MemoryRouter>{ui}</MemoryRouter>)
+}
 
 vi.mock('@/features/groups/hooks/useGroupMembers', () => ({
   useGroupMembers: vi.fn(),
@@ -87,6 +94,10 @@ describe('GroupMembersList', () => {
     expect(screen.getByText('fede')).toBeInTheDocument()
     expect(screen.getByText('owner')).toBeInTheDocument() // creator only
     expect(screen.getAllByText(/Se unió el/).length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: /leo/ })).toHaveAttribute(
+      'href',
+      '/app/users/1',
+    )
   })
 
   it('highlights the current user row with "· vos"', () => {

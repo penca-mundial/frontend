@@ -4,7 +4,7 @@ import type { PlayerResponse } from '@/types/api'
 import type { Player } from '@/features/tournament-predictions/types'
 
 /** Map the backend (snake_case) player to the domain type. */
-function mapPlayer(player: PlayerResponse): Player {
+export function mapPlayer(player: PlayerResponse): Player {
   return {
     id: String(player.id),
     name: player.name,
