@@ -65,8 +65,8 @@ function GruposPlaceholder() {
  *   blended with the user's predictions, flagged by `ProjectedStandingsNote`)
  *   plus collapsible inline-predictable matches; a skeleton while loading, an
  *   error message on failure, placeholder only when empty.
- * - Eliminación: knockout matches as a sub-phase-filterable, inline-predictable
- *   list (default) or the read-only bracket, toggled via `EliminationView`.
+ * - Eliminación: the read-only, data-driven knockout bracket (`EliminationView`).
+ *   Knockout matches are listed and predicted from the Calendario tab.
  *
  * Kickoff times always render in the viewer's browser timezone.
  */
@@ -202,13 +202,7 @@ export function FixturePage() {
           <GruposPlaceholder />
         ))}
 
-      {tab === 'eliminacion' && (
-        <EliminationView
-          matches={allMatches}
-          predictions={predictionsByMatch}
-          timezone={timezone}
-        />
-      )}
+      {tab === 'eliminacion' && <EliminationView />}
     </div>
   )
 }
