@@ -1,4 +1,4 @@
-import type { BracketRound, Match, MatchPhase } from '@/features/matches/types'
+import type { Match, MatchPhase } from '@/features/matches/types'
 
 /**
  * The live-match card treatment: a red border + soft red glow. Single source
@@ -56,22 +56,6 @@ export const KNOCKOUT_ROUND_ORDER: readonly MatchPhase[] = [
   'final',
 ]
 
-/**
- * Group knockout matches into ordered bracket rounds, dropping group-stage
- * matches and rounds with no matches. Within a round, matches keep chronological
- * order (kickoff ascending) so the bracket reads top-to-bottom consistently.
- */
-export function buildBracketRounds(matches: Match[]): BracketRound[] {
-  return KNOCKOUT_ROUND_ORDER.map((phase) => ({
-    phase,
-    matches: matches
-      .filter((match) => match.phase === phase)
-      .sort(
-        (a, b) =>
-          new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
-      ),
-  })).filter((round) => round.matches.length > 0)
-}
 
 /**
  * Whether the user correctly predicted who advances from a knockout match.

@@ -1,17 +1,35 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EliminationView } from '@/components/matches/EliminationView'
-import type { Match, MatchPhase } from '@/features/matches/types'
+import type {
+  BracketMatch,
+  Match,
+  MatchPhase,
+} from '@/features/matches/types'
+
+vi.mock('@/features/matches/hooks/useBracket', () => ({ useBracket: vi.fn() }))
+vi.mock('@/features/tournament-predictions/hooks/useTournament', () => ({
+  useTournament: vi.fn(),
+}))
+
+import { useBracket } from '@/features/matches/hooks/useBracket'
+import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
+
+const useBracketMock = vi.mocked(useBracket)
+const useTournamentMock = vi.mocked(useTournament)
 
 const URU = { id: '1', name: 'Uruguay', code3: 'URU', flagUrl: null }
 const ARG = { id: '2', name: 'Argentina', code3: 'ARG', flagUrl: null }
 const BRA = { id: '3', name: 'Brasil', code3: 'BRA', flagUrl: null }
 const FRA = { id: '4', name: 'Francia', code3: 'FRA', flagUrl: null }
 
-function makeMatch(id: string, phase: MatchPhase, overrides: Partial<Match> = {}): Match {
+function makeMatch(
+  id: string,
+  phase: MatchPhase,
+  overrides: Partial<Match> = {},
+): Match {
   return {
     id,
     externalId: null,
@@ -31,45 +49,83 @@ function makeMatch(id: string, phase: MatchPhase, overrides: Partial<Match> = {}
   }
 }
 
+function bracketMatch(id: string, phase: MatchPhase): BracketMatch {
+  return {
+    id,
+    phase,
+    status: 'scheduled',
+    kickoffAt: '2026-07-04T18:00:00Z',
+    minute: null,
+    homeScore: null,
+    awayScore: null,
+    advancingTeamId: null,
+    homeTeam: URU,
+    awayTeam: ARG,
+    feedsIntoMatchId: null,
+    feedsIntoSlot: null,
+    bracketPosition: 0,
+    myPrediction: null,
+  }
+}
+
 function renderView(matches: Match[]) {
+  // The list view renders MatchCardExpandable (uses a mutation hook), so a
+  // QueryClient is required even with the bracket hooks mocked.
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        <EliminationView
-          matches={matches}
-          predictions={new Map()}
-          timezone="UTC"
-        />
-      </MemoryRouter>
+      <EliminationView
+        matches={matches}
+        predictions={new Map()}
+        timezone="UTC"
+      />
     </QueryClientProvider>,
   )
 }
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  useTournamentMock.mockReturnValue({
+    data: { id: '1' },
+    isLoading: false,
+  } as unknown as ReturnType<typeof useTournament>)
+  useBracketMock.mockReturnValue({
+    data: [],
+    isLoading: false,
+    isError: false,
+  } as unknown as ReturnType<typeof useBracket>)
+})
 
 describe('EliminationView', () => {
   it('shows the empty state when there are no knockout matches', () => {
     renderView([makeMatch('g1', 'group_stage')])
     expect(
-      screen.getByText(/Las eliminatorias se publicarán/i),
+      screen.getByText(/Las eliminatorias se publican cuando se confirmen/i),
     ).toBeInTheDocument()
   })
 
-  it('lists knockout matches by default and toggles to the bracket', async () => {
+  it('lists knockout matches by default and toggles to the data-driven bracket', async () => {
     const user = userEvent.setup()
+    useBracketMock.mockReturnValue({
+      data: [bracketMatch('r16', 'round_of_16')],
+      isLoading: false,
+      isError: false,
+    } as unknown as ReturnType<typeof useBracket>)
+
     renderView([makeMatch('r16', 'round_of_16')])
 
-    // List view by default: the match's teams are shown.
+    // List view by default.
     expect(screen.getByText('Uruguay')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /Ver cuadro/ }))
 
-    // Bracket view: the filter is gone and the round title shows.
     expect(
       screen.getByRole('button', { name: /Ver lista/ }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Octavos')).toBeInTheDocument()
+    // Bracket renders the round column (from the dedicated endpoint).
+    expect(screen.getAllByText('Octavos').length).toBeGreaterThan(0)
   })
 
   it('filters the list by sub-phase', async () => {

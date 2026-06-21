@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MatchFilters, type TeamFilter } from '@/features/matches/components/MatchFilters'
 import { MatchList } from '@/features/matches/components/MatchList'
@@ -73,7 +72,6 @@ function GruposPlaceholder() {
  */
 export function FixturePage() {
   const timezone = detectUserTimezone()
-  const navigate = useNavigate()
 
   const [tab, setTab] = useState<FixtureTab>('calendario')
   // "Desde" defaults to today (user's timezone) so the fixture opens on the
@@ -209,7 +207,6 @@ export function FixturePage() {
           matches={allMatches}
           predictions={predictionsByMatch}
           timezone={timezone}
-          onSelectMatch={(match) => navigate(`/app/matches/${match.id}`)}
         />
       )}
     </div>

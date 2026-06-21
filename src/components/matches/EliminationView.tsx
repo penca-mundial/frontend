@@ -2,39 +2,66 @@ import { useMemo, useState } from 'react'
 import { LayoutGrid, List } from 'lucide-react'
 import { MatchCardExpandable } from '@/components/matches/MatchCardExpandable'
 import { BracketView } from '@/components/matches/BracketView'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { Match, MatchPhase } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
 import {
-  buildBracketRounds,
   isKnockoutPhase,
   KNOCKOUT_ROUND_ORDER,
   PHASE_LABELS,
 } from '@/features/matches/utils'
+import { useBracket } from '@/features/matches/hooks/useBracket'
+import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
 import { cn } from '@/lib/cn'
 
 type SubPhaseFilter = MatchPhase | 'all'
 
+/** The bracket cuadro: its own data (the dedicated endpoint), loading + error. */
+function BracketSection({ enabled }: { enabled: boolean }) {
+  const tournamentQuery = useTournament()
+  const { data, isLoading, isError } = useBracket(tournamentQuery.data?.id, {
+    enabled,
+  })
+
+  if (isLoading || tournamentQuery.isLoading) {
+    return (
+      <div className="flex gap-6" aria-busy="true">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Skeleton key={index} className="h-72 w-44 rounded-lg" />
+        ))}
+      </div>
+    )
+  }
+
+  if (isError || !data) {
+    return (
+      <p className="text-danger text-body">
+        No pudimos cargar el cuadro. Intentá de nuevo.
+      </p>
+    )
+  }
+
+  return <BracketView matches={data} />
+}
+
 export interface EliminationViewProps {
-  /** All fixtures; knockout matches are selected internally. */
+  /** All fixtures; knockout matches are selected internally for the list view. */
   matches: Match[]
   /** User predictions keyed by match id, for inline prediction in list view. */
   predictions: Map<string, Prediction>
   timezone: string
-  /** Invoked when a bracket match is tapped (e.g. navigate to its detail). */
-  onSelectMatch?: (match: Match) => void
 }
 
 /**
- * Knockout view with two interchangeable presentations of the same matches:
- * a flat, sub-phase-filterable list (default, inline-predictable via
- * `MatchCardExpandable`) and the read-only `BracketView`. Owns its own view
- * mode and sub-phase filter — the parent only supplies data.
+ * Knockout view with two presentations: a flat, sub-phase-filterable list
+ * (default, inline-predictable via `MatchCardExpandable`, from the fixtures
+ * feed) and the read-only data-driven `BracketView` (its own endpoint). Owns its
+ * view mode and sub-phase filter.
  */
 export function EliminationView({
   matches,
   predictions,
   timezone,
-  onSelectMatch,
 }: EliminationViewProps) {
   const [view, setView] = useState<'list' | 'bracket'>('list')
   const [subPhase, setSubPhase] = useState<SubPhaseFilter>('all')
@@ -59,15 +86,10 @@ export function EliminationView({
       : sorted.filter((match) => match.phase === subPhase)
   }, [knockoutMatches, subPhase])
 
-  const rounds = useMemo(
-    () => buildBracketRounds(knockoutMatches),
-    [knockoutMatches],
-  )
-
   if (knockoutMatches.length === 0) {
     return (
       <p className="text-text-secondary text-body-sm py-8 text-center">
-        Las eliminatorias se publicarán cuando se confirmen los cruces.
+        Las eliminatorias se publican cuando se confirmen los cruces.
       </p>
     )
   }
@@ -142,7 +164,7 @@ export function EliminationView({
           </div>
         )
       ) : (
-        <BracketView rounds={rounds} onSelectMatch={onSelectMatch} />
+        <BracketSection enabled={view === 'bracket'} />
       )}
     </div>
   )

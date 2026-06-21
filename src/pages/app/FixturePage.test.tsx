@@ -393,7 +393,7 @@ describe('FixturePage', () => {
 
     await user.click(screen.getByRole('tab', { name: 'Eliminación' }))
     expect(
-      screen.getByText(/Las eliminatorias se publicarán/i),
+      screen.getByText(/Las eliminatorias se publican cuando se confirmen/i),
     ).toBeInTheDocument()
   })
 })

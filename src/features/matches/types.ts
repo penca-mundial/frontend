@@ -51,10 +51,46 @@ export interface Match {
   myPrediction?: Prediction | null
 }
 
-/** One column of the knockout bracket: a phase and its matches, in order. */
-export interface BracketRound {
+/** Which slot of the next-round match a winner feeds into. */
+export type BracketSlot = 'home' | 'away'
+
+/**
+ * The viewer's locked pick on a bracket match (camelCase of
+ * `BracketPredictionResponse`). `pointsEarned` and `predictedAdvancingTeamId`
+ * (the team the viewer said would advance) drive the green/red advance signal.
+ */
+export interface BracketPrediction {
+  id: string
+  matchId: string
+  predictedHomeScore: number
+  predictedAwayScore: number
+  predictedAdvancingTeamId: string | null
+  locked: boolean
+  pointsEarned: number
+}
+
+/**
+ * A knockout match as the bracket consumes it (`GET /tournaments/:id/bracket`):
+ * the fixture plus its topology (`feedsIntoMatchId` / `feedsIntoSlot` /
+ * `bracketPosition`) so the SPA can draw the tree, and the gated `myPrediction`.
+ * Both teams are always resolved (create-on-resolve). Distinct from `Match`
+ * because the prediction shape differs (advance pick + points earned).
+ */
+export interface BracketMatch {
+  id: string
   phase: MatchPhase
-  matches: Match[]
+  status: MatchStatus
+  kickoffAt: string
+  minute: number | null
+  homeScore: number | null
+  awayScore: number | null
+  advancingTeamId: string | null
+  homeTeam: MatchTeam | null
+  awayTeam: MatchTeam | null
+  feedsIntoMatchId: string | null
+  feedsIntoSlot: BracketSlot | null
+  bracketPosition: number | null
+  myPrediction: BracketPrediction | null
 }
 
 /**

@@ -340,6 +340,57 @@ export interface UpsertPredictionPayload {
   predicted_advancing_team_id?: string | number | null
 }
 
+// ─── Knockout bracket (SCRUM-317) ───────────────────────────────────────────
+
+/**
+ * The viewer's locked pick embedded per bracket match (`PredictionBlueprint`).
+ * HARD-GATED server-side to locked picks: an open future knockout match never
+ * leaks the pick (then `my_prediction` is null). Carries `points_earned` (not
+ * `points`) and the advancing-team pick that drives the green/red signal.
+ */
+export interface BracketPredictionResponse {
+  id: number
+  match_id: number
+  predicted_home_score: number
+  predicted_away_score: number
+  predicted_advancing_team_id: number | null
+  locked_at: string | null
+  locked: boolean
+  points_earned: number
+}
+
+/**
+ * One knockout match in the bracket (`MatchBlueprint` `:bracket` view + the
+ * gated `my_prediction`). Only EXISTING knockout matches come (create-on-resolve,
+ * ADR-0001) — both teams are always resolved; unresolved rounds are absent.
+ * `feeds_into_slot` is the enum key ("home"/"away") or null for the sinks
+ * (final, third_place).
+ */
+export interface BracketMatchResponse {
+  id: number
+  external_id: string | null
+  tournament_id: number
+  kickoff_at: string
+  status: string
+  phase: string
+  group: string | null
+  minute: number | null
+  home_score: number | null
+  away_score: number | null
+  advancing_team_id: number | null
+  home_team: MatchTeamResponse | null
+  away_team: MatchTeamResponse | null
+  feeds_into_match_id: number | null
+  feeds_into_slot: 'home' | 'away' | null
+  bracket_position: number | null
+  my_prediction: BracketPredictionResponse | null
+}
+
+/** `GET /api/v1/tournaments/:id/bracket`. */
+export interface BracketResponse {
+  matches: BracketMatchResponse[]
+}
+
 // ─── Public user profile (SCRUM-305) ─────────────────────────────────────────
 
 /** The viewed user's identity (`GET /users/:id/profile`). */
