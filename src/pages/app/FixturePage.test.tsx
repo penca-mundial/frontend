@@ -15,15 +15,24 @@ vi.mock('@/lib/timezone', () => ({ detectUserTimezone: () => 'UTC' }))
 vi.mock('@/features/matches/hooks/useStandings', () => ({
   useStandings: vi.fn(),
 }))
+// The Eliminación tab renders the bracket, which self-fetches via these hooks.
+vi.mock('@/features/matches/hooks/useBracket', () => ({ useBracket: vi.fn() }))
+vi.mock('@/features/tournament-predictions/hooks/useTournament', () => ({
+  useTournament: vi.fn(),
+}))
 
 import { useMatches } from '@/features/matches/hooks/useMatches'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
 import { useStandings } from '@/features/matches/hooks/useStandings'
+import { useBracket } from '@/features/matches/hooks/useBracket'
+import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
 import type { GroupStandings } from '@/features/matches/types'
 
 const useMatchesMock = vi.mocked(useMatches)
 const usePredictionsMock = vi.mocked(usePredictions)
 const useStandingsMock = vi.mocked(useStandings)
+const useBracketMock = vi.mocked(useBracket)
+const useTournamentMock = vi.mocked(useTournament)
 
 function mockStandings(
   groups: GroupStandings[] | undefined,
@@ -85,6 +94,15 @@ beforeEach(() => {
     data: { predictions: [], totalCount: 0, page: 1, perPage: 100 },
   } as unknown as ReturnType<typeof usePredictions>)
   mockStandings(undefined)
+  useTournamentMock.mockReturnValue({
+    data: { id: '1' },
+    isLoading: false,
+  } as unknown as ReturnType<typeof useTournament>)
+  useBracketMock.mockReturnValue({
+    data: [],
+    isLoading: false,
+    isError: false,
+  } as unknown as ReturnType<typeof useBracket>)
 })
 
 describe('FixturePage date filter default (SCRUM-289)', () => {
@@ -384,16 +402,17 @@ describe('FixturePage', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('shows the elimination empty-state when there are no knockout matches', async () => {
+  it('shows the bracket empty-state on Eliminación when the bracket is empty', async () => {
     const user = userEvent.setup()
     mockQuery({
       data: { matches: [makeMatch()], totalCount: 1, page: 1, perPage: 100 },
     })
+    // Bracket endpoint returns no knockout matches yet (default mock = []).
     renderPage()
 
     await user.click(screen.getByRole('tab', { name: 'Eliminación' }))
     expect(
-      screen.getByText(/Las eliminatorias se publicarán/i),
+      screen.getByText(/Las eliminatorias se publican cuando se confirmen/i),
     ).toBeInTheDocument()
   })
 })

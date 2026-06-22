@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MatchFilters, type TeamFilter } from '@/features/matches/components/MatchFilters'
 import { MatchList } from '@/features/matches/components/MatchList'
@@ -66,14 +65,13 @@ function GruposPlaceholder() {
  *   blended with the user's predictions, flagged by `ProjectedStandingsNote`)
  *   plus collapsible inline-predictable matches; a skeleton while loading, an
  *   error message on failure, placeholder only when empty.
- * - Eliminación: knockout matches as a sub-phase-filterable, inline-predictable
- *   list (default) or the read-only bracket, toggled via `EliminationView`.
+ * - Eliminación: the read-only, data-driven knockout bracket (`EliminationView`).
+ *   Knockout matches are listed and predicted from the Calendario tab.
  *
  * Kickoff times always render in the viewer's browser timezone.
  */
 export function FixturePage() {
   const timezone = detectUserTimezone()
-  const navigate = useNavigate()
 
   const [tab, setTab] = useState<FixtureTab>('calendario')
   // "Desde" defaults to today (user's timezone) so the fixture opens on the
@@ -204,14 +202,7 @@ export function FixturePage() {
           <GruposPlaceholder />
         ))}
 
-      {tab === 'eliminacion' && (
-        <EliminationView
-          matches={allMatches}
-          predictions={predictionsByMatch}
-          timezone={timezone}
-          onSelectMatch={(match) => navigate(`/app/matches/${match.id}`)}
-        />
-      )}
+      {tab === 'eliminacion' && <EliminationView />}
     </div>
   )
 }

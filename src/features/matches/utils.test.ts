@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import type { Match } from '@/features/matches/types'
 import {
   advancingPredictionOutcome,
-  buildBracketRounds,
   getPhaseLabel,
   isKnockoutPhase,
   isMatchLocked,
@@ -75,34 +74,6 @@ describe('isMatchLocked', () => {
       },
     })
     expect(isMatchLocked(match, now)).toBe(true)
-  })
-})
-
-describe('buildBracketRounds', () => {
-  it('drops group-stage matches and orders rounds by progression', () => {
-    const rounds = buildBracketRounds([
-      makeMatch({ id: 'g', phase: 'group_stage' }),
-      makeMatch({ id: 'f', phase: 'final' }),
-      makeMatch({ id: 'r32', phase: 'round_of_32' }),
-    ])
-    expect(rounds.map((r) => r.phase)).toEqual(['round_of_32', 'final'])
-  })
-
-  it('sorts matches within a round by kickoff and drops empty rounds', () => {
-    const rounds = buildBracketRounds([
-      makeMatch({
-        id: 'late',
-        phase: 'round_of_32',
-        kickoffAt: '2099-06-15T19:00:00Z',
-      }),
-      makeMatch({
-        id: 'early',
-        phase: 'round_of_32',
-        kickoffAt: '2099-06-14T19:00:00Z',
-      }),
-    ])
-    expect(rounds).toHaveLength(1)
-    expect(rounds[0].matches.map((m) => m.id)).toEqual(['early', 'late'])
   })
 })
 
