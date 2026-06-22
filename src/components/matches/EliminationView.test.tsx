@@ -1,7 +1,14 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
+import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EliminationView } from '@/components/matches/EliminationView'
 import type { BracketMatch, MatchPhase } from '@/features/matches/types'
+
+/** EliminationView reads `?tournamentId` (dev override) → needs a router. */
+function renderView(ui: ReactElement) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>)
+}
 
 vi.mock('@/features/matches/hooks/useBracket', () => ({ useBracket: vi.fn() }))
 vi.mock('@/features/tournament-predictions/hooks/useTournament', () => ({
@@ -59,7 +66,7 @@ beforeEach(() => {
 describe('EliminationView', () => {
   it('renders the data-driven bracket from the endpoint (no list / toggle)', () => {
     mockBracket({ data: [bracketMatch('r16', 'round_of_16')] })
-    render(<EliminationView />)
+    renderView(<EliminationView />)
 
     expect(screen.getAllByText('Octavos').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Uruguay').length).toBeGreaterThan(0)
@@ -71,19 +78,19 @@ describe('EliminationView', () => {
 
   it('shows a skeleton while the bracket loads', () => {
     mockBracket({ isLoading: true })
-    const { container } = render(<EliminationView />)
+    const { container } = renderView(<EliminationView />)
     expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull()
   })
 
   it('shows an error message on failure', () => {
     mockBracket({ isError: true })
-    render(<EliminationView />)
+    renderView(<EliminationView />)
     expect(screen.getByText(/No pudimos cargar el cuadro/i)).toBeInTheDocument()
   })
 
   it('shows the empty-state when there are no knockout matches yet', () => {
     mockBracket({ data: [] })
-    render(<EliminationView />)
+    renderView(<EliminationView />)
     expect(
       screen.getByText(/Las eliminatorias se publican cuando se confirmen/i),
     ).toBeInTheDocument()

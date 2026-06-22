@@ -58,9 +58,12 @@
   --radius-pill: 9999px;
 
   /* ─── Sombras ─── */
-  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04), 0 1px 1px rgba(28, 25, 23, 0.02);
-  --shadow-md: 0 4px 12px rgba(28, 25, 23, 0.06), 0 1px 3px rgba(28, 25, 23, 0.03);
-  --shadow-lg: 0 12px 32px rgba(28, 25, 23, 0.1), 0 2px 8px rgba(28, 25, 23, 0.04);
+  --shadow-sm:
+    0 1px 2px rgba(28, 25, 23, 0.04), 0 1px 1px rgba(28, 25, 23, 0.02);
+  --shadow-md:
+    0 4px 12px rgba(28, 25, 23, 0.06), 0 1px 3px rgba(28, 25, 23, 0.03);
+  --shadow-lg:
+    0 12px 32px rgba(28, 25, 23, 0.1), 0 2px 8px rgba(28, 25, 23, 0.04);
 
   /* ─── Espaciado (sistema de 4px) ─── */
   --space-0: 0;
@@ -169,9 +172,12 @@
   --radius-full: 9999px;
 
   /* ─── Shadows ─── */
-  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04), 0 1px 1px rgba(28, 25, 23, 0.02);
-  --shadow-md: 0 4px 12px rgba(28, 25, 23, 0.06), 0 1px 3px rgba(28, 25, 23, 0.03);
-  --shadow-lg: 0 12px 32px rgba(28, 25, 23, 0.1), 0 2px 8px rgba(28, 25, 23, 0.04);
+  --shadow-sm:
+    0 1px 2px rgba(28, 25, 23, 0.04), 0 1px 1px rgba(28, 25, 23, 0.02);
+  --shadow-md:
+    0 4px 12px rgba(28, 25, 23, 0.06), 0 1px 3px rgba(28, 25, 23, 0.03);
+  --shadow-lg:
+    0 12px 32px rgba(28, 25, 23, 0.1), 0 2px 8px rgba(28, 25, 23, 0.04);
 
   /* ─── Spacing tokens custom (la escala base de Tailwind sigue disponible) ─── */
   --spacing-density-card: 16px;
@@ -321,3 +327,21 @@
  *   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
  * }
  * ─────────────────────────────────────────────────────────────────────────── */
+
+/* KnockoutBracket (<KnockoutBracket />) — Tailwind no genera estos @keyframes solo. */
+@keyframes pm-bk-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pm-bk-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
