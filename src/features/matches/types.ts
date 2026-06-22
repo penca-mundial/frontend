@@ -94,6 +94,28 @@ export interface BracketMatch {
 }
 
 /**
+ * One Round-of-32 slot of the PROJECTED bracket (`GET .../bracket/projected`):
+ * the cross resolved from the viewer's projected group positions blended with
+ * real results. A team is null ("A definir") when its rank is ambiguous/unknown.
+ */
+export interface ProjectedBracketSlot {
+  bracketPosition: number
+  home: MatchTeam | null
+  away: MatchTeam | null
+  source: 'real' | 'projected'
+}
+
+/**
+ * The projected bracket payload. `projected` is true while any slot is still
+ * projected; once false (the 16 crosses are confirmed) the SPA switches to the
+ * official `BracketMatch[]` tree.
+ */
+export interface ProjectedBracket {
+  projected: boolean
+  roundOf32: ProjectedBracketSlot[]
+}
+
+/**
  * A team's standing row within a group, as the app consumes it (camelCase,
  * from `GET /standings`). Already ordered by `position` by the backend.
  */

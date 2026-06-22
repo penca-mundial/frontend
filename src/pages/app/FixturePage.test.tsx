@@ -17,22 +17,32 @@ vi.mock('@/features/matches/hooks/useStandings', () => ({
 }))
 // The Eliminación tab renders the bracket, which self-fetches via these hooks.
 vi.mock('@/features/matches/hooks/useBracket', () => ({ useBracket: vi.fn() }))
+vi.mock('@/features/matches/hooks/useProjectedBracket', () => ({
+  useProjectedBracket: vi.fn(),
+}))
 vi.mock('@/features/tournament-predictions/hooks/useTournament', () => ({
   useTournament: vi.fn(),
+}))
+vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
+  useCurrentUser: vi.fn(),
 }))
 
 import { useMatches } from '@/features/matches/hooks/useMatches'
 import { usePredictions } from '@/features/predictions/hooks/usePredictions'
 import { useStandings } from '@/features/matches/hooks/useStandings'
 import { useBracket } from '@/features/matches/hooks/useBracket'
+import { useProjectedBracket } from '@/features/matches/hooks/useProjectedBracket'
 import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import type { GroupStandings } from '@/features/matches/types'
 
 const useMatchesMock = vi.mocked(useMatches)
 const usePredictionsMock = vi.mocked(usePredictions)
 const useStandingsMock = vi.mocked(useStandings)
 const useBracketMock = vi.mocked(useBracket)
+const useProjectedBracketMock = vi.mocked(useProjectedBracket)
 const useTournamentMock = vi.mocked(useTournament)
+const useCurrentUserMock = vi.mocked(useCurrentUser)
 
 function mockStandings(
   groups: GroupStandings[] | undefined,
@@ -103,6 +113,15 @@ beforeEach(() => {
     isLoading: false,
     isError: false,
   } as unknown as ReturnType<typeof useBracket>)
+  // Anonymous by default → the bracket uses the official source.
+  useCurrentUserMock.mockReturnValue({
+    currentUser: null,
+  } as unknown as ReturnType<typeof useCurrentUser>)
+  useProjectedBracketMock.mockReturnValue({
+    data: undefined,
+    isLoading: false,
+    isError: false,
+  } as unknown as ReturnType<typeof useProjectedBracket>)
 })
 
 describe('FixturePage date filter default (SCRUM-289)', () => {
