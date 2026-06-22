@@ -1,34 +1,91 @@
 import { KnockoutBracket } from '@/components/matches/KnockoutBracket'
 import { Skeleton } from '@/components/ui/skeleton'
-import { toKnockoutBracket } from '@/features/matches/bracketAdapter'
+import { ProjectedStandingsNote } from '@/features/matches/components/ProjectedStandingsNote'
+import {
+  projectedToKnockoutBracket,
+  toKnockoutBracket,
+} from '@/features/matches/bracketAdapter'
 import { useBracket } from '@/features/matches/hooks/useBracket'
+import { useProjectedBracket } from '@/features/matches/hooks/useProjectedBracket'
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
 import { formatKickoff } from '@/lib/date'
 import { detectUserTimezone } from '@/lib/timezone'
 
+function BracketSkeleton() {
+  return (
+    <div className="flex gap-6" aria-busy="true">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <Skeleton key={index} className="h-72 w-44 rounded-lg" />
+      ))}
+    </div>
+  )
+}
+
+function EmptyState() {
+  return (
+    <p className="text-text-secondary text-body-sm py-8 text-center">
+      Las eliminatorias se publican cuando se confirmen los cruces.
+    </p>
+  )
+}
+
 /**
- * The knockout view: the read-only, data-driven `KnockoutBracket` (its own
- * endpoint). Knockout matches are listed and predicted from the Calendario tab,
- * so the Eliminación tab is the cuadro only — no list / toggle here. Self-fetches
- * via the current tournament; only mounted on the Eliminación tab.
+ * The knockout view (read-only, data-driven). Source switches on the backend
+ * `projected` flag — no manual toggle:
+ *   - signed-in & still projected → the viewer's projected Round-of-32 ("según
+ *     tus pronósticos", blended with real results) + the explanatory note;
+ *   - signed-in & confirmed (projected:false), or anonymous → the official
+ *     `/bracket` tree.
+ * The official query stays disabled until needed, so projected:true is a single
+ * fetch; projected:false is two dependent fetches; anonymous is one.
  */
 export function EliminationView() {
+  const { currentUser } = useCurrentUser()
+  const isAuthed = currentUser !== null
   const tournamentQuery = useTournament()
+  const tournamentId = tournamentQuery.data?.id
   const timezone = detectUserTimezone()
+  // Projected slots carry no kickoff (`''`) — render no date for them.
+  const formatDate = (iso: string) =>
+    iso ? formatKickoff(iso, 'date', timezone) : ''
 
-  const { data, isLoading, isError } = useBracket(tournamentQuery.data?.id)
+  const projectedQuery = useProjectedBracket(tournamentId, { enabled: isAuthed })
+  const showProjected =
+    isAuthed && !projectedQuery.isError && projectedQuery.data?.projected === true
 
-  if (isLoading || tournamentQuery.isLoading) {
+  // Fall back to the official bracket for anonymous viewers, once projected is
+  // confirmed false, or if the projected fetch failed.
+  const officialQuery = useBracket(tournamentId, {
+    enabled:
+      !isAuthed ||
+      projectedQuery.isError ||
+      projectedQuery.data?.projected === false,
+  })
+
+  if (tournamentQuery.isLoading) return <BracketSkeleton />
+  // Still deciding the source for a signed-in viewer.
+  if (isAuthed && projectedQuery.isLoading) return <BracketSkeleton />
+
+  if (showProjected && projectedQuery.data) {
+    const { rounds, thirdPlace } = projectedToKnockoutBracket(
+      projectedQuery.data.roundOf32,
+    )
+    if (rounds[0].matches.length === 0) return <EmptyState />
     return (
-      <div className="flex gap-6" aria-busy="true">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <Skeleton key={index} className="h-72 w-44 rounded-lg" />
-        ))}
+      <div className="flex flex-col gap-3">
+        <ProjectedStandingsNote />
+        <KnockoutBracket
+          rounds={rounds}
+          thirdPlace={thirdPlace}
+          formatDate={formatDate}
+        />
       </div>
     )
   }
 
-  if (isError || !data) {
+  if (officialQuery.isLoading) return <BracketSkeleton />
+  if (officialQuery.isError || !officialQuery.data) {
     return (
       <p className="text-danger text-body">
         No pudimos cargar el cuadro. Intentá de nuevo.
@@ -36,22 +93,14 @@ export function EliminationView() {
     )
   }
 
-  const { rounds, thirdPlace } = toKnockoutBracket(data)
-
-  // Create-on-resolve: no knockout rounds yet → nothing to draw.
-  if (rounds.length === 0) {
-    return (
-      <p className="text-text-secondary text-body-sm py-8 text-center">
-        Las eliminatorias se publican cuando se confirmen los cruces.
-      </p>
-    )
-  }
+  const { rounds, thirdPlace } = toKnockoutBracket(officialQuery.data)
+  if (rounds.length === 0) return <EmptyState />
 
   return (
     <KnockoutBracket
       rounds={rounds}
       thirdPlace={thirdPlace}
-      formatDate={(iso) => formatKickoff(iso, 'date', timezone)}
+      formatDate={formatDate}
     />
   )
 }

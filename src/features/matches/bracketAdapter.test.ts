@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { toKnockoutBracket } from '@/features/matches/bracketAdapter'
+import {
+  projectedToKnockoutBracket,
+  toKnockoutBracket,
+} from '@/features/matches/bracketAdapter'
 import type {
   BracketMatch,
   BracketPrediction,
   MatchPhase,
+  ProjectedBracketSlot,
 } from '@/features/matches/types'
 
 const URU = {
@@ -138,5 +142,46 @@ describe('toKnockoutBracket', () => {
   it('returns empty rounds when there are no knockout matches', () => {
     expect(toKnockoutBracket([]).rounds).toEqual([])
     expect(toKnockoutBracket([]).thirdPlace).toBeNull()
+  })
+})
+
+describe('projectedToKnockoutBracket', () => {
+  function slot(
+    overrides: Partial<ProjectedBracketSlot> & { bracketPosition: number },
+  ): ProjectedBracketSlot {
+    return { home: null, away: null, source: 'projected', ...overrides }
+  }
+
+  it('builds a single Dieciseisavos round ordered by bracket_position', () => {
+    const { rounds, thirdPlace } = projectedToKnockoutBracket([
+      slot({ bracketPosition: 2, home: URU, away: ARG, source: 'real' }),
+      slot({ bracketPosition: 0, home: BRA, away: FRA, source: 'real' }),
+      slot({ bracketPosition: 1 }),
+    ])
+
+    expect(rounds).toHaveLength(1)
+    expect(rounds[0]).toMatchObject({ key: 'r32', label: 'Dieciseisavos', short: '16avos' })
+    expect(thirdPlace).toBeNull()
+    expect(rounds[0].matches.map((m) => m.id)).toEqual(['r32-0', 'r32-1', 'r32-2'])
+    // No feeders in the first (and only) round.
+    expect(rounds[0].matches.every((m) => m.feeds === null)).toBe(true)
+  })
+
+  it('renders teams, "A definir" for null sides, and no kickoff', () => {
+    const { rounds } = projectedToKnockoutBracket([
+      slot({ bracketPosition: 0, home: URU, away: null, source: 'projected' }),
+    ])
+    const m = rounds[0].matches[0]
+
+    expect(m.home).toMatchObject({ code3: 'URU', name: 'Uruguay', flag: 'http://x/uru.png' })
+    // No advance signal on projected slots.
+    expect(m.home?.isAdvancing).toBeUndefined()
+    expect(m.home?.pickOutcome).toBeUndefined()
+    // Null side → "A definir" label, no team.
+    expect(m.away).toBeNull()
+    expect(m.awayLabel).toBe('A definir')
+    expect(m.homeLabel).toBeUndefined()
+    // Projected slots carry no date.
+    expect(m.kickoff).toBe('')
   })
 })

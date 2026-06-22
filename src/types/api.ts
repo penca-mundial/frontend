@@ -391,6 +391,32 @@ export interface BracketResponse {
   matches: BracketMatchResponse[]
 }
 
+// ─── Projected bracket (SCRUM-319) ──────────────────────────────────────────
+
+/**
+ * One Round-of-32 slot of the PROJECTED bracket (`GET .../bracket/projected`,
+ * authenticated). Each side is the team resolved from the viewer's projected
+ * group positions blended with real results, or null ("A definir") when the
+ * rank is ambiguous or unknown. `source` is per slot: "real" once the real
+ * first-round match is anchored, "projected" otherwise.
+ */
+export interface ProjectedBracketSlotResponse {
+  bracket_position: number
+  home: MatchTeamResponse | null
+  away: MatchTeamResponse | null
+  source: 'real' | 'projected'
+}
+
+/**
+ * `GET /api/v1/tournaments/:id/bracket/projected` (authed). `projected` is true
+ * while any slot is still projected; once the 16 crosses are confirmed it flips
+ * to false and the SPA switches to the official `/bracket`.
+ */
+export interface ProjectedBracketResponse {
+  projected: boolean
+  round_of_32: ProjectedBracketSlotResponse[]
+}
+
 // ─── Public user profile (SCRUM-305) ─────────────────────────────────────────
 
 /** The viewed user's identity (`GET /users/:id/profile`). */

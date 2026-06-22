@@ -4,12 +4,16 @@ import type {
   BracketMatchResponse,
   BracketPredictionResponse,
   BracketResponse,
+  ProjectedBracketResponse,
+  ProjectedBracketSlotResponse,
 } from '@/types/api'
 import type {
   BracketMatch,
   BracketPrediction,
   MatchPhase,
   MatchStatus,
+  ProjectedBracket,
+  ProjectedBracketSlot,
 } from '@/features/matches/types'
 
 /** Map the gated pick; ids normalised at the boundary (ADR 0004). */
@@ -56,6 +60,28 @@ export function mapBracketMatch(match: BracketMatchResponse): BracketMatch {
   }
 }
 
+/** Map one projected Round-of-32 slot (teams normalised, null = "A definir"). */
+function mapProjectedSlot(
+  slot: ProjectedBracketSlotResponse,
+): ProjectedBracketSlot {
+  return {
+    bracketPosition: slot.bracket_position,
+    home: mapTeam(slot.home),
+    away: mapTeam(slot.away),
+    source: slot.source,
+  }
+}
+
+/** Map the projected bracket payload to the domain type. */
+export function mapProjectedBracket(
+  payload: ProjectedBracketResponse,
+): ProjectedBracket {
+  return {
+    projected: payload.projected,
+    roundOf32: payload.round_of_32.map(mapProjectedSlot),
+  }
+}
+
 export const bracketApi = {
   /**
    * The knockout bracket (`GET /tournaments/:id/bracket`): existing KO matches
@@ -67,5 +93,17 @@ export const bracketApi = {
       `/tournaments/${tournamentId}/bracket`,
     )
     return response.data.matches.map(mapBracketMatch)
+  },
+
+  /**
+   * The PROJECTED Round-of-32 for the signed-in viewer
+   * (`GET /tournaments/:id/bracket/projected`, authed). `projected` governs
+   * whether the SPA shows this or falls back to the official bracket.
+   */
+  async getProjected(tournamentId: string): Promise<ProjectedBracket> {
+    const response = await apiClient.get<ProjectedBracketResponse>(
+      `/tournaments/${tournamentId}/bracket/projected`,
+    )
+    return mapProjectedBracket(response.data)
   },
 }

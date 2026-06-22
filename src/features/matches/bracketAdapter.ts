@@ -2,6 +2,7 @@ import type {
   BracketMatch as SourceMatch,
   MatchPhase,
   MatchTeam,
+  ProjectedBracketSlot,
 } from '@/features/matches/types'
 import {
   bracketAdvanceOutcome,
@@ -119,5 +120,40 @@ export function toKnockoutBracket(matches: SourceMatch[]): KnockoutBracketData {
   return {
     rounds,
     thirdPlace: thirdPlace ? toNode(thirdPlace, true) : null,
+  }
+}
+
+/** A projected slot's team → the component's compact team (no advance signal). */
+function projectedTeam(team: MatchTeam): BracketTeam {
+  return { code3: team.code3 ?? 'TBD', name: team.name, flag: team.flagUrl ?? '' }
+}
+
+/**
+ * Adapt the PROJECTED Round-of-32 (`GET .../bracket/projected`) to the
+ * `KnockoutBracket` shape: a single "Dieciseisavos" column, ordered by
+ * `bracketPosition`, with no feeders (`feeds: null`) and no later rounds. A null
+ * side renders the "A definir" label; projected slots carry no kickoff
+ * (`kickoff: ''`) and no advance signal. Pure.
+ */
+export function projectedToKnockoutBracket(
+  slots: ProjectedBracketSlot[],
+): KnockoutBracketData {
+  const matches: BracketNode[] = [...slots]
+    .sort((a, b) => a.bracketPosition - b.bracketPosition)
+    .map((slot) => ({
+      id: `r32-${slot.bracketPosition}`,
+      home: slot.home ? projectedTeam(slot.home) : null,
+      away: slot.away ? projectedTeam(slot.away) : null,
+      homeLabel: slot.home ? undefined : 'A definir',
+      awayLabel: slot.away ? undefined : 'A definir',
+      kickoff: '',
+      feeds: null,
+    }))
+
+  return {
+    rounds: [
+      { key: 'r32', label: 'Dieciseisavos', short: '16avos', matches },
+    ],
+    thirdPlace: null,
   }
 }

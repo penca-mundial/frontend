@@ -1,32 +1,39 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EliminationView } from '@/components/matches/EliminationView'
-import type { BracketMatch, MatchPhase } from '@/features/matches/types'
-
-/** EliminationView reads `?tournamentId` (dev override) → needs a router. */
-function renderView(ui: ReactElement) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>)
-}
+import type {
+  BracketMatch,
+  MatchPhase,
+  ProjectedBracket,
+} from '@/features/matches/types'
 
 vi.mock('@/features/matches/hooks/useBracket', () => ({ useBracket: vi.fn() }))
+vi.mock('@/features/matches/hooks/useProjectedBracket', () => ({
+  useProjectedBracket: vi.fn(),
+}))
 vi.mock('@/features/tournament-predictions/hooks/useTournament', () => ({
   useTournament: vi.fn(),
 }))
+vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
+  useCurrentUser: vi.fn(),
+}))
 
 import { useBracket } from '@/features/matches/hooks/useBracket'
+import { useProjectedBracket } from '@/features/matches/hooks/useProjectedBracket'
 import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 
 const useBracketMock = vi.mocked(useBracket)
+const useProjectedBracketMock = vi.mocked(useProjectedBracket)
 const useTournamentMock = vi.mocked(useTournament)
+const useCurrentUserMock = vi.mocked(useCurrentUser)
 
 const URU = { id: '1', name: 'Uruguay', code3: 'URU', flagUrl: null }
 const ARG = { id: '2', name: 'Argentina', code3: 'ARG', flagUrl: null }
 
-function bracketMatch(id: string, phase: MatchPhase): BracketMatch {
+function officialMatch(phase: MatchPhase): BracketMatch {
   return {
-    id,
+    id: 'm1',
     phase,
     status: 'scheduled',
     kickoffAt: '2026-07-04T18:00:00Z',
@@ -43,13 +50,20 @@ function bracketMatch(id: string, phase: MatchPhase): BracketMatch {
   }
 }
 
-function mockBracket(state: {
-  data?: BracketMatch[]
-  isLoading?: boolean
-  isError?: boolean
-}) {
+function projected(value: ProjectedBracket | undefined, isLoading = false) {
+  useProjectedBracketMock.mockReturnValue({
+    data: value,
+    isLoading,
+    isError: false,
+  } as unknown as ReturnType<typeof useProjectedBracket>)
+}
+
+function official(
+  value: BracketMatch[] | undefined,
+  state: { isLoading?: boolean; isError?: boolean } = {},
+) {
   useBracketMock.mockReturnValue({
-    data: state.data,
+    data: value,
     isLoading: state.isLoading ?? false,
     isError: state.isError ?? false,
   } as unknown as ReturnType<typeof useBracket>)
@@ -61,38 +75,63 @@ beforeEach(() => {
     data: { id: '1' },
     isLoading: false,
   } as unknown as ReturnType<typeof useTournament>)
+  useCurrentUserMock.mockReturnValue({
+    currentUser: null,
+  } as unknown as ReturnType<typeof useCurrentUser>)
+  projected(undefined)
+  official([officialMatch('round_of_16')])
 })
 
 describe('EliminationView', () => {
-  it('renders the data-driven bracket from the endpoint (no list / toggle)', () => {
-    mockBracket({ data: [bracketMatch('r16', 'round_of_16')] })
-    renderView(<EliminationView />)
-
+  it('anonymous → renders the official bracket (no projected note)', () => {
+    render(<EliminationView />)
     expect(screen.getAllByText('Octavos').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Uruguay').length).toBeGreaterThan(0)
-    // The old list/cuadro toggle is gone.
-    expect(
-      screen.queryByRole('button', { name: /Ver cuadro|Ver lista/ }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText(/Según tus pronósticos/i)).not.toBeInTheDocument()
   })
 
-  it('shows a skeleton while the bracket loads', () => {
-    mockBracket({ isLoading: true })
-    const { container } = renderView(<EliminationView />)
+  it('signed-in & projected:true → projected R32 + the "según tus pronósticos" note', () => {
+    useCurrentUserMock.mockReturnValue({
+      currentUser: { id: '9' },
+    } as unknown as ReturnType<typeof useCurrentUser>)
+    projected({
+      projected: true,
+      roundOf32: [{ bracketPosition: 0, home: URU, away: null, source: 'projected' }],
+    })
+
+    render(<EliminationView />)
+
+    expect(screen.getByText(/Según tus pronósticos/i)).toBeInTheDocument()
+    expect(screen.getAllByText('Dieciseisavos').length).toBeGreaterThan(0)
+    expect(screen.getByText('Uruguay')).toBeInTheDocument()
+    expect(screen.getAllByText('A definir').length).toBeGreaterThan(0)
+  })
+
+  it('signed-in & projected:false → falls back to the official bracket', () => {
+    useCurrentUserMock.mockReturnValue({
+      currentUser: { id: '9' },
+    } as unknown as ReturnType<typeof useCurrentUser>)
+    projected({ projected: false, roundOf32: [] })
+    official([officialMatch('round_of_16')])
+
+    render(<EliminationView />)
+
+    expect(screen.getAllByText('Octavos').length).toBeGreaterThan(0)
+    expect(screen.queryByText(/Según tus pronósticos/i)).not.toBeInTheDocument()
+  })
+
+  it('shows a skeleton while the signed-in projection is loading', () => {
+    useCurrentUserMock.mockReturnValue({
+      currentUser: { id: '9' },
+    } as unknown as ReturnType<typeof useCurrentUser>)
+    projected(undefined, true)
+
+    const { container } = render(<EliminationView />)
     expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull()
   })
 
-  it('shows an error message on failure', () => {
-    mockBracket({ isError: true })
-    renderView(<EliminationView />)
+  it('shows an error when the official bracket fails (anonymous)', () => {
+    official(undefined, { isError: true })
+    render(<EliminationView />)
     expect(screen.getByText(/No pudimos cargar el cuadro/i)).toBeInTheDocument()
-  })
-
-  it('shows the empty-state when there are no knockout matches yet', () => {
-    mockBracket({ data: [] })
-    renderView(<EliminationView />)
-    expect(
-      screen.getByText(/Las eliminatorias se publican cuando se confirmen/i),
-    ).toBeInTheDocument()
   })
 })
