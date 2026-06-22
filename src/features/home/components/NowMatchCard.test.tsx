@@ -26,15 +26,36 @@ beforeEach(() => vi.clearAllMocks())
 
 describe('NowMatchCard', () => {
   it('renders the live card when a match is in play', () => {
-    useNowMatchMock.mockReturnValue({ match, isLive: true, isLoading: false })
+    useNowMatchMock.mockReturnValue({
+      liveMatches: [match],
+      nextMatch: null,
+      isLoading: false,
+    })
     render(<NowMatchCard />)
 
     expect(screen.getByTestId('live-card')).toHaveTextContent('10')
     expect(screen.queryByTestId('match-card')).not.toBeInTheDocument()
   })
 
+  it('stacks a live card per fixture when matches run concurrently', () => {
+    useNowMatchMock.mockReturnValue({
+      liveMatches: [match, { id: '11' } as Match],
+      nextMatch: null,
+      isLoading: false,
+    })
+    render(<NowMatchCard />)
+
+    const cards = screen.getAllByTestId('live-card')
+    expect(cards).toHaveLength(2)
+    expect(cards.map((c) => c.textContent)).toEqual(['10', '11'])
+  })
+
   it('renders the predictable card under "Próximo partido" for the scheduled fallback', () => {
-    useNowMatchMock.mockReturnValue({ match, isLive: false, isLoading: false })
+    useNowMatchMock.mockReturnValue({
+      liveMatches: [],
+      nextMatch: match,
+      isLoading: false,
+    })
     render(<NowMatchCard />)
 
     expect(
@@ -45,7 +66,11 @@ describe('NowMatchCard', () => {
   })
 
   it('shows an empty note when nothing is live or upcoming', () => {
-    useNowMatchMock.mockReturnValue({ match: null, isLive: false, isLoading: false })
+    useNowMatchMock.mockReturnValue({
+      liveMatches: [],
+      nextMatch: null,
+      isLoading: false,
+    })
     render(<NowMatchCard />)
 
     expect(screen.queryByTestId('match-card')).not.toBeInTheDocument()

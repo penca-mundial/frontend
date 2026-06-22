@@ -4,19 +4,23 @@ import { LIVE_POLL_INTERVAL_MS } from '@/features/matches/hooks/useMatch'
 import type { Match } from '@/features/matches/types'
 
 export interface NowMatch {
-  /** The live match, or the next scheduled one as a fallback, or null. */
-  match: Match | null
-  /** True when `match` is currently in play (drives the live styling/polling). */
-  isLive: boolean
+  /**
+   * Every in-play fixture, ordered by kickoff. Holds more than one when matches
+   * run concurrently (e.g. simultaneous group-stage games) so the home stacks
+   * them all instead of hiding the rest behind the first.
+   */
+  liveMatches: Match[]
+  /** The next scheduled fixture, shown (predictable) only when nothing is live. */
+  nextMatch: Match | null
   isLoading: boolean
 }
 
 /**
- * The "Ahora mismo" match: the in-play fixture if there is one, otherwise the
- * next scheduled one. The live list polls every 12s — both to refresh the live
- * score and to notice a kickoff — while the next fixture is fetched once. When a
- * live match is showing, its prediction/score updates ride the live poll; the
- * `next` query degrades to null until the backend ships `/matches/next`.
+ * The "Ahora mismo" matches: the in-play fixtures if there are any, otherwise
+ * the next scheduled one. The live list polls every 12s — both to refresh live
+ * scores and to notice a kickoff — while the next fixture is fetched once. When
+ * live matches are showing, their prediction/score updates ride the live poll;
+ * the `next` query degrades to null until the backend ships `/matches/next`.
  */
 export function useNowMatch(): NowMatch {
   const liveQuery = useQuery({
@@ -25,8 +29,8 @@ export function useNowMatch(): NowMatch {
     refetchInterval: LIVE_POLL_INTERVAL_MS,
   })
 
-  const live = liveQuery.data ?? []
-  const hasLive = live.length > 0
+  const liveMatches = liveQuery.data ?? []
+  const hasLive = liveMatches.length > 0
 
   const nextQuery = useQuery({
     queryKey: ['matches', 'next'],
@@ -34,8 +38,8 @@ export function useNowMatch(): NowMatch {
   })
 
   return {
-    match: hasLive ? live[0] : (nextQuery.data ?? null),
-    isLive: hasLive,
+    liveMatches,
+    nextMatch: nextQuery.data ?? null,
     isLoading: liveQuery.isLoading || (!hasLive && nextQuery.isLoading),
   }
 }

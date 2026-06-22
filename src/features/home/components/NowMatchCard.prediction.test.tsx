@@ -54,8 +54,8 @@ beforeEach(() => vi.clearAllMocks())
 describe('NowMatchCard — Próximo partido prediction', () => {
   it('renders the existing prediction (Fixture style) when my_prediction is present', () => {
     useNowMatchMock.mockReturnValue({
-      match: scheduledMatch(prediction),
-      isLive: false,
+      liveMatches: [],
+      nextMatch: scheduledMatch(prediction),
       isLoading: false,
     })
 
@@ -70,8 +70,8 @@ describe('NowMatchCard — Próximo partido prediction', () => {
 
   it('shows "Sin pronóstico todavía" + Predecir when there is no prediction', () => {
     useNowMatchMock.mockReturnValue({
-      match: scheduledMatch(null),
-      isLive: false,
+      liveMatches: [],
+      nextMatch: scheduledMatch(null),
       isLoading: false,
     })
 
