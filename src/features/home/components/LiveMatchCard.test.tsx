@@ -105,4 +105,34 @@ describe('LiveMatchCard', () => {
     render(<LiveMatchCard match={liveMatch(null)} timezone="UTC" />)
     expect(screen.queryByText(/Pronosticaste/)).not.toBeInTheDocument()
   })
+
+  it('shows the pending "Tu pick" advance chip for a live knockout match', () => {
+    const prediction: Prediction = {
+      id: 'p1',
+      matchId: '10',
+      predictedHomeScore: 2,
+      predictedAwayScore: 1,
+      predictedAdvancingTeamId: '1', // Inglaterra
+      lockedAt: null,
+      locked: true,
+    }
+    const ko: Match = { ...liveMatch(prediction), phase: 'round_of_32', group: null }
+    render(<LiveMatchCard match={ko} timezone="UTC" />)
+
+    expect(screen.getByText(/Tu pick: Inglaterra pasa/)).toBeInTheDocument()
+  })
+
+  it('does not show the advance chip on a live group-stage match', () => {
+    const prediction: Prediction = {
+      id: 'p1',
+      matchId: '10',
+      predictedHomeScore: 2,
+      predictedAwayScore: 1,
+      predictedAdvancingTeamId: null,
+      lockedAt: null,
+      locked: true,
+    }
+    render(<LiveMatchCard match={liveMatch(prediction)} timezone="UTC" />)
+    expect(screen.queryByText(/Tu pick/)).not.toBeInTheDocument()
+  })
 })

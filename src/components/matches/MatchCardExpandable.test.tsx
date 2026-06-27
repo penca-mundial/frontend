@@ -124,6 +124,18 @@ describe('MatchCardExpandable', () => {
     expect(screen.getByText(/Avance Uruguay/).className).toMatch(/danger-soft/)
   })
 
+  it('shows the pending "Tu pick" advance chip on an upcoming knockout fixture', () => {
+    renderCard({
+      match: makeMatch({
+        phase: 'round_of_32',
+        status: 'scheduled', // upcoming, not played yet
+        advancingTeamId: null,
+      }),
+      prediction: makePrediction({ predictedAdvancingTeamId: '1' }), // Uruguay
+    })
+    expect(screen.getByText(/Tu pick: Uruguay pasa/)).toBeInTheDocument()
+  })
+
   it('no "Avance" chip on a finished group-stage fixture', () => {
     renderCard({
       match: makeMatch({

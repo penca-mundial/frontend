@@ -9,29 +9,44 @@ export interface AdvanceChipProps {
   prediction: Prediction | null
 }
 
+const CHIP_BASE =
+  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap'
+
 /**
- * Post-result chip surfacing the viewer's advancing pick on a finished knockout
- * match — "Avance <team>" in green when right, red when wrong — so the
- * advancing call (worth points) is visible, not just the score. Mirrors the
- * "Tu pronóstico" chip (same shape + green/red tokens). Renders nothing when it
- * doesn't apply (group stage, no pick, match not finished).
+ * Chip surfacing the viewer's advancing pick on a knockout match so the
+ * advancing call (worth points) is visible, not just the score:
+ *   - before the match is decided (live/upcoming) → amber "Tu pick: <team> pasa";
+ *   - once finished → green "Avance <team>" if right, red if wrong.
+ * Mirrors the "Tu pronóstico" chip shape + tokens. Renders nothing when it
+ * doesn't apply (group stage, no pick).
  *
- * Used on the Calendar fixture card and the Home result card. The bracket has
- * its own advance treatment (tinted row) and does NOT use this.
+ * Used on the Calendar fixture card and the Home cards (live / próximo /
+ * result). The bracket has its own advance treatment (tinted row) and does NOT
+ * use this.
  */
 export function AdvanceChip({ match, prediction }: AdvanceChipProps) {
   const pick = advancePick(match, prediction)
   if (!pick) return null
+
+  if (pick.state === 'pending') {
+    return (
+      <span className={cn(CHIP_BASE, 'bg-brand-accent-soft text-[#92400E]')}>
+        Tu pick: {pick.team.name} pasa
+      </span>
+    )
+  }
+
+  const correct = pick.state === 'correct'
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap',
-        pick.correct
+        CHIP_BASE,
+        correct
           ? 'bg-success-soft text-[#166534]'
           : 'bg-danger-soft text-[#991B1B]',
       )}
     >
-      {pick.correct ? (
+      {correct ? (
         <Check size={11} strokeWidth={2.5} />
       ) : (
         <X size={11} strokeWidth={2.5} />

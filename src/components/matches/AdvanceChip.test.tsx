@@ -75,10 +75,34 @@ describe('AdvanceChip', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('renders nothing until the match is finished', () => {
-    const { container } = render(
+  it('shows the amber "Tu pick" pending chip before the match is finished', () => {
+    render(
       <AdvanceChip
         match={match({ status: 'scheduled', advancingTeamId: null })}
+        prediction={pred()}
+      />,
+    )
+    const chip = screen.getByText(/Tu pick: Uruguay pasa/)
+    expect(chip).toBeInTheDocument()
+    expect(chip.className).toMatch(/brand-accent-soft/)
+  })
+
+  it('shows the amber pending chip for a live knockout match', () => {
+    render(
+      <AdvanceChip
+        match={match({ status: 'live', advancingTeamId: null })}
+        prediction={pred()}
+      />,
+    )
+    expect(screen.getByText(/Tu pick: Uruguay pasa/).className).toMatch(
+      /brand-accent-soft/,
+    )
+  })
+
+  it('still renders nothing for a group-stage match (no advance)', () => {
+    const { container } = render(
+      <AdvanceChip
+        match={match({ phase: 'group_stage', status: 'live', advancingTeamId: null })}
         prediction={pred()}
       />,
     )

@@ -8,8 +8,8 @@ import { FixturePage } from '@/pages/app/FixturePage'
 import type { Match } from '@/features/matches/types'
 
 vi.mock('@/features/matches/hooks/useMatches', () => ({ useMatches: vi.fn() }))
-vi.mock('@/features/predictions/hooks/usePredictions', () => ({
-  usePredictions: vi.fn(),
+vi.mock('@/features/predictions/hooks/useAllMyPredictions', () => ({
+  useAllMyPredictions: vi.fn(),
 }))
 vi.mock('@/lib/timezone', () => ({ detectUserTimezone: () => 'UTC' }))
 vi.mock('@/features/matches/hooks/useStandings', () => ({
@@ -28,7 +28,7 @@ vi.mock('@/features/auth/hooks/useCurrentUser', () => ({
 }))
 
 import { useMatches } from '@/features/matches/hooks/useMatches'
-import { usePredictions } from '@/features/predictions/hooks/usePredictions'
+import { useAllMyPredictions } from '@/features/predictions/hooks/useAllMyPredictions'
 import { useStandings } from '@/features/matches/hooks/useStandings'
 import { useBracket } from '@/features/matches/hooks/useBracket'
 import { useProjectedBracket } from '@/features/matches/hooks/useProjectedBracket'
@@ -37,7 +37,7 @@ import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import type { GroupStandings } from '@/features/matches/types'
 
 const useMatchesMock = vi.mocked(useMatches)
-const usePredictionsMock = vi.mocked(usePredictions)
+const useAllMyPredictionsMock = vi.mocked(useAllMyPredictions)
 const useStandingsMock = vi.mocked(useStandings)
 const useBracketMock = vi.mocked(useBracket)
 const useProjectedBracketMock = vi.mocked(useProjectedBracket)
@@ -100,9 +100,9 @@ function renderPage() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  usePredictionsMock.mockReturnValue({
-    data: { predictions: [], totalCount: 0, page: 1, perPage: 100 },
-  } as unknown as ReturnType<typeof usePredictions>)
+  useAllMyPredictionsMock.mockReturnValue({
+    data: new Map(),
+  } as unknown as ReturnType<typeof useAllMyPredictions>)
   mockStandings(undefined)
   useTournamentMock.mockReturnValue({
     data: { id: '1' },
@@ -419,6 +419,42 @@ describe('FixturePage', () => {
     expect(
       screen.queryByText(/Los grupos se mostrarán/i),
     ).not.toBeInTheDocument()
+  })
+
+  it('shows the "Avance" chip from the full predictions set (a pick beyond the old first-100 page)', () => {
+    const koMatch = makeMatch({
+      id: '500',
+      phase: 'round_of_32',
+      status: 'finished',
+      homeScore: 1,
+      awayScore: 0,
+      advancingTeamId: '1', // Uruguay advanced
+      kickoffAt: new Date().toISOString(), // today → passes the date filter
+    })
+    mockQuery({
+      data: { matches: [koMatch], totalCount: 1, page: 1, perPage: 100 },
+    })
+    // useAllMyPredictions returns the pick even though it would have fallen
+    // outside the old usePredictions(1, 100) window — the whole point of the fix.
+    useAllMyPredictionsMock.mockReturnValue({
+      data: new Map([
+        [
+          '500',
+          {
+            id: 'p',
+            matchId: '500',
+            predictedHomeScore: 1,
+            predictedAwayScore: 0,
+            predictedAdvancingTeamId: '1',
+            lockedAt: null,
+            locked: true,
+          },
+        ],
+      ]),
+    } as unknown as ReturnType<typeof useAllMyPredictions>)
+    renderPage()
+
+    expect(screen.getByText(/Avance Uruguay/)).toBeInTheDocument()
   })
 
   it('shows the bracket empty-state on Eliminación when the bracket is empty', async () => {

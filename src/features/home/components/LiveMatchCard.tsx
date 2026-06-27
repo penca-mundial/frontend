@@ -1,3 +1,4 @@
+import { AdvanceChip } from '@/components/matches/AdvanceChip'
 import { DashboardCard } from '@/features/home/components/DashboardCard'
 import { MatchScoreboard } from '@/features/home/components/MatchScoreboard'
 import type { Match } from '@/features/matches/types'
@@ -71,6 +72,8 @@ export function LiveMatchCard({ match, timezone }: LiveMatchCardProps) {
                 </span>
               </span>
             )}
+            {/* KO only: my advancing pick, amber/pending while the match is live. */}
+            <AdvanceChip match={match} prediction={prediction} />
           </div>
         )}
       </div>
