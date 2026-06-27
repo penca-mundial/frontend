@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  isBracketNodePredictable,
   projectedToKnockoutBracket,
   toKnockoutBracket,
 } from '@/features/matches/bracketAdapter'
@@ -9,6 +10,23 @@ import type {
   MatchPhase,
   ProjectedBracketSlot,
 } from '@/features/matches/types'
+import type { Prediction } from '@/features/predictions/types'
+
+const FAR_FUTURE = '2099-07-12T18:00:00Z'
+
+function myPick(
+  overrides: Partial<Prediction> & { matchId: string },
+): Prediction {
+  return {
+    id: 'pred',
+    predictedHomeScore: 3,
+    predictedAwayScore: 1,
+    predictedAdvancingTeamId: null,
+    lockedAt: null,
+    locked: false,
+    ...overrides,
+  }
+}
 
 const URU = {
   id: '1',
@@ -142,6 +160,157 @@ describe('toKnockoutBracket', () => {
   it('returns empty rounds when there are no knockout matches', () => {
     expect(toKnockoutBracket([]).rounds).toEqual([])
     expect(toKnockoutBracket([]).thirdPlace).toBeNull()
+  })
+
+  it('shows the REAL score on a played cross (strong, scoreKind real)', () => {
+    const { rounds } = toKnockoutBracket([
+      bm({
+        id: 'm',
+        phase: 'final',
+        status: 'finished',
+        homeScore: 2,
+        awayScore: 1,
+      }),
+    ])
+    const node = rounds[0].matches[0]
+    expect(node.scoreKind).toBe('real')
+    expect(node.home?.score).toBe(2)
+    expect(node.away?.score).toBe(1)
+  })
+
+  it('shows the PREDICTED score on an OPEN cross from the merged picks', () => {
+    const predictions = new Map<string, Prediction>([
+      ['m', myPick({ matchId: 'm', predictedHomeScore: 3, predictedAwayScore: 0 })],
+    ])
+    const { rounds } = toKnockoutBracket(
+      [
+        bm({
+          id: 'm',
+          phase: 'final',
+          status: 'scheduled',
+          homeScore: null,
+          awayScore: null,
+          kickoffAt: FAR_FUTURE,
+        }),
+      ],
+      predictions,
+    )
+    const node = rounds[0].matches[0]
+    expect(node.scoreKind).toBe('predicted')
+    expect(node.home?.score).toBe(3)
+    expect(node.away?.score).toBe(0)
+  })
+
+  it('REAL score wins over a prediction once the cross is played', () => {
+    const predictions = new Map<string, Prediction>([
+      ['m', myPick({ matchId: 'm', predictedHomeScore: 3, predictedAwayScore: 0 })],
+    ])
+    const { rounds } = toKnockoutBracket(
+      [bm({ id: 'm', phase: 'final', status: 'finished', homeScore: 1, awayScore: 1 })],
+      predictions,
+    )
+    const node = rounds[0].matches[0]
+    expect(node.scoreKind).toBe('real')
+    expect(node.home?.score).toBe(1)
+  })
+
+  it('no score (code3 fallback) on an open cross without a prediction', () => {
+    const { rounds } = toKnockoutBracket([
+      bm({
+        id: 'm',
+        phase: 'final',
+        status: 'scheduled',
+        homeScore: null,
+        awayScore: null,
+        kickoffAt: FAR_FUTURE,
+      }),
+    ])
+    const node = rounds[0].matches[0]
+    expect(node.scoreKind).toBeNull()
+    expect(node.home?.score).toBeNull()
+  })
+
+  it('flags my advancing pick (amber row) on an OPEN cross via the merge', () => {
+    const predictions = new Map<string, Prediction>([
+      ['m', myPick({ matchId: 'm', predictedAdvancingTeamId: '1' })], // picked URU
+    ])
+    const { rounds } = toKnockoutBracket(
+      [
+        bm({
+          id: 'm',
+          phase: 'final',
+          status: 'scheduled',
+          homeScore: null,
+          awayScore: null,
+          kickoffAt: FAR_FUTURE,
+          homeTeam: URU,
+          awayTeam: ARG,
+        }),
+      ],
+      predictions,
+    )
+    const node = rounds[0].matches[0]
+    expect(node.home?.isMyAdvancer).toBe(true)
+    // Not judged (no green/red) until the cross is played.
+    expect(node.home?.pickOutcome).toBeNull()
+    expect(node.away?.isMyAdvancer).toBe(false)
+  })
+
+  it('marks an open, unlocked, fully-resolved cross as predictable', () => {
+    const { rounds } = toKnockoutBracket([
+      bm({
+        id: 'm',
+        phase: 'final',
+        status: 'scheduled',
+        homeScore: null,
+        awayScore: null,
+        kickoffAt: FAR_FUTURE,
+      }),
+    ])
+    expect(rounds[0].matches[0].predictable).toBe(true)
+  })
+
+  it('a finished cross is never predictable', () => {
+    const { rounds } = toKnockoutBracket([
+      bm({ id: 'm', phase: 'final', status: 'finished' }),
+    ])
+    expect(rounds[0].matches[0].predictable).toBe(false)
+  })
+})
+
+describe('isBracketNodePredictable', () => {
+  const open = (over: Partial<BracketMatch> = {}) =>
+    bm({
+      id: 'm',
+      phase: 'round_of_16',
+      status: 'scheduled',
+      homeScore: null,
+      awayScore: null,
+      kickoffAt: FAR_FUTURE,
+      ...over,
+    })
+  const NOW = Date.parse('2026-06-22T12:00:00Z')
+
+  it('true for an open, unlocked cross with both teams', () => {
+    expect(isBracketNodePredictable(open(), null, NOW)).toBe(true)
+  })
+
+  it('false when a team is unresolved', () => {
+    expect(isBracketNodePredictable(open({ awayTeam: null }), null, NOW)).toBe(false)
+  })
+
+  it('false when not scheduled (live/finished)', () => {
+    expect(isBracketNodePredictable(open({ status: 'live' }), null, NOW)).toBe(false)
+  })
+
+  it('false within the 60s lock window before kickoff', () => {
+    const soon = new Date(NOW + 30_000).toISOString()
+    expect(isBracketNodePredictable(open({ kickoffAt: soon }), null, NOW)).toBe(false)
+  })
+
+  it('false when the pick is already server-locked', () => {
+    const locked = myPick({ matchId: 'm', locked: true })
+    expect(isBracketNodePredictable(open(), locked, NOW)).toBe(false)
   })
 })
 

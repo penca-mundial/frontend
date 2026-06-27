@@ -50,6 +50,49 @@ describe('predictionsApi.list', () => {
   })
 })
 
+describe('predictionsApi.listAll', () => {
+  it('pages through until X-Total-Count is covered', async () => {
+    // 3 total, 2 per page (backend caps per_page below what we ask) → 2 pages.
+    const pages: Record<string, PredictionResponse[]> = {
+      '1': [
+        { ...predictionResponse, id: 1, match_id: 11 },
+        { ...predictionResponse, id: 2, match_id: 12 },
+      ],
+      '2': [{ ...predictionResponse, id: 3, match_id: 13 }],
+    }
+    const seen: string[] = []
+    server.use(
+      http.get('*/predictions/me', ({ request }) => {
+        const page = new URL(request.url).searchParams.get('page') ?? '1'
+        seen.push(page)
+        return HttpResponse.json(pages[page] ?? [], {
+          headers: { 'X-Total-Count': '3' },
+        })
+      }),
+    )
+
+    const all = await predictionsApi.listAll()
+    expect(all.map((p) => p.matchId)).toEqual(['11', '12', '13'])
+    expect(seen).toEqual(['1', '2'])
+  })
+
+  it('stops after a single page when the total fits', async () => {
+    const seen: string[] = []
+    server.use(
+      http.get('*/predictions/me', ({ request }) => {
+        seen.push(new URL(request.url).searchParams.get('page') ?? '1')
+        return HttpResponse.json([predictionResponse], {
+          headers: { 'X-Total-Count': '1' },
+        })
+      }),
+    )
+
+    const all = await predictionsApi.listAll()
+    expect(all).toHaveLength(1)
+    expect(seen).toEqual(['1'])
+  })
+})
+
 describe('predictionsApi.upsert', () => {
   it('PUTs the payload and maps the result', async () => {
     server.use(
