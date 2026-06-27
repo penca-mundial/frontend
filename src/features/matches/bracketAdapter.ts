@@ -1,5 +1,6 @@
 import type {
   BracketMatch as SourceMatch,
+  Match,
   MatchPhase,
   MatchTeam,
   ProjectedBracketSlot,
@@ -8,11 +9,63 @@ import {
   bracketAdvanceOutcome,
   buildBracketTree,
 } from '@/features/matches/bracket'
+import { isMatchLocked } from '@/features/matches/utils'
+import type { Prediction } from '@/features/predictions/types'
 import type {
   BracketMatch as BracketNode,
   BracketRound,
   BracketTeam,
 } from '@/components/matches/KnockoutBracket'
+
+/** The viewer's picks indexed by match id (from `/predictions/me`, ungated). */
+export type PredictionsByMatch = ReadonlyMap<string, Prediction>
+
+const EMPTY_PREDICTIONS: PredictionsByMatch = new Map()
+
+/**
+ * A bracket match as a plain `Match`, with the viewer's (ungated) pick attached.
+ * Lets the rest of the app treat a bracket cross like any fixture — feeding the
+ * shared `PredictionEditor` and `isMatchLocked` without bespoke bracket logic.
+ */
+export function bracketMatchToMatch(
+  match: SourceMatch,
+  prediction: Prediction | null,
+): Match {
+  return {
+    id: match.id,
+    externalId: null,
+    // The bracket payload carries no tournament id per match; the editor and
+    // lock logic don't use it (the upsert keys off match id).
+    tournamentId: '',
+    kickoffAt: match.kickoffAt,
+    status: match.status,
+    phase: match.phase,
+    group: null,
+    minute: match.minute,
+    homeScore: match.homeScore,
+    awayScore: match.awayScore,
+    advancingTeamId: match.advancingTeamId,
+    homeTeam: match.homeTeam,
+    awayTeam: match.awayTeam,
+    myPrediction: prediction,
+  }
+}
+
+/**
+ * Whether a bracket cross can be predicted from the cuadro. The gate (matches
+ * the Calendar, server-authoritative via the 422 on save): a real, official
+ * cross with both teams resolved, still `scheduled`, and not locked. Projected
+ * slots never reach here. `now` is injectable for testing.
+ */
+export function isBracketNodePredictable(
+  match: SourceMatch,
+  prediction: Prediction | null,
+  now: number = Date.now(),
+): boolean {
+  if (!match.homeTeam || !match.awayTeam) return false
+  if (match.status !== 'scheduled') return false
+  return !isMatchLocked(bracketMatchToMatch(match, prediction), now)
+}
 
 /** Per-phase labels for the `KnockoutBracket` columns (long + mobile short). */
 const PHASE_META: Partial<
@@ -51,7 +104,10 @@ function slotRank(match: SourceMatch): number {
  *   (`pickOutcome` green/red) from `bracketAdvanceOutcome`. `third_place` is the
  *   loose `thirdPlace` card.
  */
-export function toKnockoutBracket(matches: SourceMatch[]): KnockoutBracketData {
+export function toKnockoutBracket(
+  matches: SourceMatch[],
+  predictionsByMatch: PredictionsByMatch = EMPTY_PREDICTIONS,
+): KnockoutBracketData {
   const { columns, thirdPlace } = buildBracketTree(matches)
 
   // child → parent inverted into parent → [children], slot-ordered (home, away).
@@ -75,20 +131,53 @@ export function toKnockoutBracket(matches: SourceMatch[]): KnockoutBracketData {
     advancingTeamId: string | null,
     myPick: string | null,
     outcome: 'correct' | 'incorrect' | null,
+    score: number | null,
   ): BracketTeam | null => {
     if (!team) return null
+    const isMyAdvancer = myPick !== null && team.id === myPick
     return {
       code3: team.code3 ?? 'TBD',
       name: team.name,
       flag: team.flagUrl ?? '',
       isAdvancing: advancingTeamId !== null && team.id === advancingTeamId,
-      pickOutcome: myPick !== null && team.id === myPick ? outcome : null,
+      // The team I picked to advance: amber row until the match is played, then
+      // green/red once `pickOutcome` can be judged.
+      isMyAdvancer,
+      pickOutcome: isMyAdvancer ? outcome : null,
+      score,
     }
   }
 
   const toNode = (match: SourceMatch, isFirstRound: boolean): BracketNode => {
     const outcome = bracketAdvanceOutcome(match)
-    const myPick = match.myPrediction?.predictedAdvancingTeamId ?? null
+    const prediction = predictionsByMatch.get(match.id) ?? null
+    // My advancing pick: from the ungated /predictions merge (covers OPEN
+    // crosses, where /bracket withholds it) or the gated bracket pick.
+    const myPick =
+      prediction?.predictedAdvancingTeamId ??
+      match.myPrediction?.predictedAdvancingTeamId ??
+      null
+
+    // The score shown on each team's row: the REAL result once the match is
+    // played (live/finished), else the viewer's PREDICTED score on an open
+    // cross. They must never be confused — `scoreKind` drives the tint + tag.
+    const played =
+      (match.status === 'live' || match.status === 'finished') &&
+      match.homeScore !== null &&
+      match.awayScore !== null
+    let homeScore: number | null = null
+    let awayScore: number | null = null
+    let scoreKind: 'real' | 'predicted' | null = null
+    if (played) {
+      homeScore = match.homeScore
+      awayScore = match.awayScore
+      scoreKind = 'real'
+    } else if (prediction) {
+      homeScore = prediction.predictedHomeScore
+      awayScore = prediction.predictedAwayScore
+      scoreKind = 'predicted'
+    }
+
     const children = childrenByParent.get(match.id) ?? []
     const feeds: [string, string] | null =
       isFirstRound || children.length < 2
@@ -96,10 +185,12 @@ export function toKnockoutBracket(matches: SourceMatch[]): KnockoutBracketData {
         : [children[0].id, children[1].id]
     return {
       id: match.id,
-      home: toTeam(match.homeTeam, match.advancingTeamId, myPick, outcome),
-      away: toTeam(match.awayTeam, match.advancingTeamId, myPick, outcome),
+      home: toTeam(match.homeTeam, match.advancingTeamId, myPick, outcome, homeScore),
+      away: toTeam(match.awayTeam, match.advancingTeamId, myPick, outcome, awayScore),
       kickoff: match.kickoffAt,
       feeds,
+      scoreKind,
+      predictable: isBracketNodePredictable(match, prediction),
     }
   }
 

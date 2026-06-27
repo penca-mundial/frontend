@@ -65,8 +65,15 @@ function TeamStepper({
 }) {
   return (
     <div className="flex flex-col items-center gap-2.5">
-      {/* Flag only — the country code under the flag was redundant here. */}
-      <TeamFlag team={team} size={40} />
+      {/* Flag when we have it; otherwise the code at the same size/weight as the
+          fixture card's team name (TeamSide) so the editor matches the card. */}
+      {team?.flagUrl ? (
+        <TeamFlag team={team} size={40} />
+      ) : (
+        <span className="text-base font-semibold md:text-lg">
+          {teamCode(team)}
+        </span>
+      )}
       <PredictionStepper
         label={teamName(team)}
         value={value}
@@ -116,7 +123,9 @@ export function PredictionEditor({
       {isSheet ? (
         <div className="border-border mb-3.5 flex items-center justify-between border-b pb-3">
           <div>
-            <SectionLabel className="block">Tu pronóstico</SectionLabel>
+            <SectionLabel size="sm" className="block">
+              Tu pronóstico
+            </SectionLabel>
             <div className="mt-0.5 flex items-center gap-1.5 text-body-sm font-semibold">
               <span>{teamCode(match.homeTeam)}</span>
               <span className="text-text-disabled">vs</span>
@@ -133,7 +142,9 @@ export function PredictionEditor({
           </button>
         </div>
       ) : (
-        <SectionLabel className="mb-2.5 block">Tu pronóstico</SectionLabel>
+        <SectionLabel size="sm" className="mb-2.5 block">
+          Tu pronóstico
+        </SectionLabel>
       )}
 
       <div className="bg-surface-muted grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-xl p-3.5">
@@ -156,16 +167,34 @@ export function PredictionEditor({
 
       {knockout && (
         <fieldset className="mt-3.5">
-          <SectionLabel as="legend" tone="secondary" className="mb-2">
+          <SectionLabel
+            as="legend"
+            size="sm"
+            tone="secondary"
+            className="mb-2 block w-full text-center"
+          >
             ¿Quién pasa de ronda?
           </SectionLabel>
           <div
             role="radiogroup"
             aria-label="¿Quién pasa de ronda?"
-            className="grid grid-cols-2 gap-2"
+            // Two equal-width chips (both sized to the longer name), centered as
+            // a group — not full-width bars, not pinned to the margins. Capped at
+            // the available width so a very long name (e.g. "Bosnia and
+            // Herzegovina") can't overflow: it then truncates (flag still IDs it).
+            className="mx-auto grid w-fit max-w-full grid-cols-2 gap-3"
           >
             {[match.homeTeam, match.awayTeam].map((team, index) => {
               const selected = team !== null && advancing === team.id
+              const isHome = index === 0
+              const flag = (
+                <span className="shrink-0">
+                  <TeamFlag team={team} size={20} />
+                </span>
+              )
+              const name = (
+                <span className="min-w-0 truncate">{teamName(team)}</span>
+              )
               return (
                 <button
                   key={team?.id ?? index}
@@ -174,15 +203,26 @@ export function PredictionEditor({
                   aria-checked={selected}
                   disabled={team === null || saving}
                   onClick={() => team && setAdvancing(team.id)}
+                  // Flag + name sit together; flags point OUTWARD (home left /
+                  // away right), mirroring the scoreboard above.
                   className={cn(
-                    'inline-flex items-center justify-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2.5 text-body-sm font-semibold transition-colors disabled:opacity-50',
+                    'flex w-full min-w-0 items-center justify-center gap-2 rounded-[10px] border-[1.5px] px-4 py-2 text-body-sm font-semibold transition-colors disabled:opacity-50',
                     selected
                       ? 'border-brand-primary bg-brand-primary-soft text-brand-primary-hover'
                       : 'border-border bg-surface text-text-primary hover:bg-surface-muted',
                   )}
                 >
-                  <TeamFlag team={team} size={16} />
-                  {teamCode(team)}
+                  {isHome ? (
+                    <>
+                      {flag}
+                      {name}
+                    </>
+                  ) : (
+                    <>
+                      {name}
+                      {flag}
+                    </>
+                  )}
                 </button>
               )
             })}

@@ -1,14 +1,24 @@
+import * as React from 'react'
+import {
+  BracketPredictionForm,
+  BracketPredictionSheet,
+} from '@/components/matches/BracketPrediction'
 import { KnockoutBracket } from '@/components/matches/KnockoutBracket'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProjectedStandingsNote } from '@/features/matches/components/ProjectedStandingsNote'
 import {
+  bracketMatchToMatch,
   projectedToKnockoutBracket,
   toKnockoutBracket,
 } from '@/features/matches/bracketAdapter'
 import { useBracket } from '@/features/matches/hooks/useBracket'
 import { useProjectedBracket } from '@/features/matches/hooks/useProjectedBracket'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
+import { useAllMyPredictions } from '@/features/predictions/hooks/useAllMyPredictions'
 import { useTournament } from '@/features/tournament-predictions/hooks/useTournament'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
+import type { Match } from '@/features/matches/types'
+import type { Prediction } from '@/features/predictions/types'
 import { formatKickoff } from '@/lib/date'
 import { detectUserTimezone } from '@/lib/timezone'
 
@@ -43,6 +53,7 @@ function EmptyState() {
 export function EliminationView() {
   const { currentUser } = useCurrentUser()
   const isAuthed = currentUser !== null
+  const isDesktop = useMediaQuery('(min-width: 768px)')
   const tournamentQuery = useTournament()
   const tournamentId = tournamentQuery.data?.id
   const timezone = detectUserTimezone()
@@ -62,6 +73,28 @@ export function EliminationView() {
       projectedQuery.isError ||
       projectedQuery.data?.projected === false,
   })
+
+  // The viewer's own picks (ungated, all pages) — merged into the official tree
+  // so open crosses show the PREDICTED score the gated /bracket payload omits,
+  // and the editor pre-fills. Authed only.
+  const predictionsQuery = useAllMyPredictions({ enabled: isAuthed })
+  const predictionsByMatch = predictionsQuery.data
+
+  // Which open cross has its prediction sheet open.
+  const [predictMatchId, setPredictMatchId] = React.useState<string | null>(null)
+
+  // matchId → { Match, existing pick } for the official tree, to feed the editor.
+  const predictionTargets = React.useMemo(() => {
+    const map = new Map<string, { match: Match; prediction: Prediction | null }>()
+    for (const match of officialQuery.data ?? []) {
+      const prediction = predictionsByMatch?.get(match.id) ?? null
+      map.set(match.id, {
+        match: bracketMatchToMatch(match, prediction),
+        prediction,
+      })
+    }
+    return map
+  }, [officialQuery.data, predictionsByMatch])
 
   if (tournamentQuery.isLoading) return <BracketSkeleton />
   // Still deciding the source for a signed-in viewer.
@@ -93,14 +126,46 @@ export function EliminationView() {
     )
   }
 
-  const { rounds, thirdPlace } = toKnockoutBracket(officialQuery.data)
+  const { rounds, thirdPlace } = toKnockoutBracket(
+    officialQuery.data,
+    predictionsByMatch,
+  )
   if (rounds.length === 0) return <EmptyState />
 
+  // Mobile opens a bottom sheet (tracked by id); desktop pops the editor out of
+  // the card via a popover. Only authed viewers predict — anonymous is read-only.
+  const sheetTarget =
+    !isDesktop && predictMatchId ? predictionTargets.get(predictMatchId) : null
+
   return (
-    <KnockoutBracket
-      rounds={rounds}
-      thirdPlace={thirdPlace}
-      formatDate={formatDate}
-    />
+    <>
+      <KnockoutBracket
+        rounds={rounds}
+        thirdPlace={thirdPlace}
+        formatDate={formatDate}
+        onPredict={isAuthed && !isDesktop ? setPredictMatchId : undefined}
+        renderPredict={
+          isAuthed && isDesktop
+            ? (matchId, close) => {
+                const target = predictionTargets.get(matchId)
+                return target ? (
+                  <BracketPredictionForm
+                    match={target.match}
+                    initial={target.prediction}
+                    onClose={close}
+                  />
+                ) : null
+              }
+            : undefined
+        }
+      />
+      {sheetTarget && (
+        <BracketPredictionSheet
+          match={sheetTarget.match}
+          initial={sheetTarget.prediction}
+          onClose={() => setPredictMatchId(null)}
+        />
+      )}
+    </>
   )
 }

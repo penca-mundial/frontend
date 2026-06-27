@@ -49,6 +49,26 @@ export const predictionsApi = {
   },
 
   /**
+   * Every prediction of the current user, across all pages. `/predictions/me`
+   * is paginated; we page through until `X-Total-Count` is covered (and stop on
+   * an empty page) so callers — e.g. the bracket merging picks into open
+   * knockout crosses — get the complete set, not just the first 20. Pages are
+   * fetched sequentially; the per-user total is small and bounded.
+   */
+  async listAll(): Promise<Prediction[]> {
+    const PER_PAGE = 100
+    const all: Prediction[] = []
+    for (let page = 1; ; page += 1) {
+      const result = await predictionsApi.list(page, PER_PAGE)
+      all.push(...result.predictions)
+      if (result.predictions.length === 0 || all.length >= result.totalCount) {
+        break
+      }
+    }
+    return all
+  },
+
+  /**
    * Create or update the current user's prediction for a match
    * (`PUT /predictions`, idempotent upsert). Rejects with the axios error on
    * validation failure; callers read it via `getApiError`.

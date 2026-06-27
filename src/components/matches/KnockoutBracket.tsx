@@ -1,5 +1,10 @@
 import * as React from 'react'
-import { ChevronLeft, ChevronRight, Info } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Info, Target } from 'lucide-react'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { cn } from '@/lib/cn'
 
 /* ============================================================================
@@ -23,8 +28,12 @@ export interface BracketTeam {
   flag: string // URL de la bandera ('' si no hay)
   /** El equipo que efectivamente avanzó (negrita). */
   isAdvancing?: boolean
+  /** Si este equipo es MI pick de avance (fila amber hasta que se juega). */
+  isMyAdvancer?: boolean
   /** Si este equipo es MI pick de avance: verde/rojo una vez jugado; null si no. */
   pickOutcome?: 'correct' | 'incorrect' | null
+  /** Marcador a mostrar a la derecha (real o pronosticado). null/undefined → code3. */
+  score?: number | null
 }
 
 export interface BracketMatch {
@@ -38,6 +47,10 @@ export interface BracketMatch {
   kickoff: string // ISO
   /** ids de los 2 matches de la ronda previa que alimentan a este. null en 1ª ronda. */
   feeds?: [string, string] | null
+  /** Si el marcador mostrado es el resultado REAL o MI pronóstico. Pinta el tinte + tag. */
+  scoreKind?: 'real' | 'predicted' | null
+  /** Cruce real, abierto y NO locked → se puede pronosticar desde el cuadro. */
+  predictable?: boolean
 }
 
 export interface BracketRound {
@@ -53,6 +66,17 @@ export interface KnockoutBracketProps {
   className?: string
   /** Formateador de fecha (default: dd mmm). */
   formatDate?: (iso: string) => string
+  /**
+   * Mobile: abre el pronóstico (un sheet, manejado afuera) para un cruce
+   * predecible. El botón sólo aparece en el nodo enfocado y predecible.
+   */
+  onPredict?: (matchId: string) => void
+  /**
+   * Desktop: contenido del pronóstico que sale en un popover ANCLADO a la card
+   * del cruce (no un modal/panel). Recibe el id y un `close`. Si se provee, el
+   * botón "Predecir" abre ese popover en vez de llamar a `onPredict`.
+   */
+  renderPredict?: (matchId: string, close: () => void) => React.ReactNode
 }
 
 const CARD_W = 190
@@ -105,6 +129,8 @@ export function KnockoutBracket({
   thirdPlace,
   className,
   formatDate = defaultFmt,
+  onPredict,
+  renderPredict,
 }: KnockoutBracketProps) {
   const [activeRound, setActiveRound] = React.useState(0)
   const [focusedId, setFocusedId] = React.useState<string | null>(null)
@@ -271,6 +297,8 @@ export function KnockoutBracket({
                 setFocusedId((f) => (f === node.id ? null : node.id))
                 setActiveRound(node.round)
               }}
+              onPredict={onPredict}
+              renderPredict={renderPredict}
             />
           ))}
 
@@ -279,7 +307,14 @@ export function KnockoutBracket({
             <ThirdPlaceCard
               finalNode={finalNode}
               match={thirdPlace}
-              dim={!!lineage}
+              dim={lineage ? !lineage.has(thirdPlace.id) : false}
+              focused={focusedId === thirdPlace.id}
+              onClick={() => {
+                setFocusedId((f) => (f === thirdPlace.id ? null : thirdPlace.id))
+                setActiveRound(rounds.length - 1)
+              }}
+              onPredict={onPredict}
+              renderPredict={renderPredict}
               formatDate={formatDate}
             />
           )}
@@ -287,13 +322,16 @@ export function KnockoutBracket({
       </div>
 
       {/* Leyenda */}
-      <div className="text-text-secondary mt-3 flex justify-center gap-4 text-[11px]">
-        <span className="inline-flex items-center gap-1.5">
-          <Info size={12} /> Solo lectura — predecí desde el Calendario
-        </span>
+      <div className="text-text-secondary mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[11px]">
         <span className="inline-flex items-center gap-1.5">
           <span className="bg-brand-primary h-0.5 w-3.5 rounded-sm" />
           Tocá un partido para ver su camino
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Info size={12} />
+          {onPredict || renderPredict
+            ? 'Pronosticá los cruces abiertos desde el cuadro'
+            : 'Solo lectura — predecí desde el Calendario'}
         </span>
       </div>
     </div>
@@ -359,81 +397,157 @@ function Connectors({
 }
 
 /* --- Card de partido ---------------------------------------------------- */
-const ROUND_LABEL: Record<string, string> = {
-  r32: '16avos',
-  r16: 'Octavos',
-  qf: 'Cuartos',
-  sf: 'Semis',
-  final: '★ Final',
-}
-
 function BracketNode({
   node,
   dim,
   focused,
   onClick,
+  onPredict,
+  renderPredict,
   formatDate,
 }: {
   node: LayoutNode
   dim: boolean
   focused: boolean
   onClick: () => void
+  onPredict?: (matchId: string) => void
+  renderPredict?: (matchId: string, close: () => void) => React.ReactNode
   formatDate: (iso: string) => string
 }) {
   const m = node.match
+  const predicted = m.scoreKind === 'predicted'
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={focused}
-      className="absolute cursor-pointer text-left transition-[opacity,transform] duration-[250ms] ease-out"
+    <div
+      className="absolute transition-opacity duration-[250ms] ease-out"
       style={{
         left: node.x,
         top: node.y,
         width: CARD_W,
         opacity: dim ? 0.32 : 1,
-        transform: focused ? 'scale(1.04)' : 'scale(1)',
-        transformOrigin: 'center',
         zIndex: focused ? 3 : 2,
       }}
     >
-      <div
-        className={cn(
-          'bg-surface overflow-hidden rounded-[10px] border',
-          '[animation:pm-bk-fade_0.45s_cubic-bezier(.4,0,.2,1)_both] motion-reduce:animate-none',
-          focused
-            ? 'border-brand-primary shadow-md'
-            : 'border-border shadow-sm',
-        )}
-        style={{ animationDelay: `${node.round * 0.08 + node.index * 0.03}s` }}
+      {/* La card es el botón que togglea el camino. El botón "Predecir" va aparte
+          (afuera) para no anidar <button> dentro de <button>. */}
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={focused}
+        className="block w-full cursor-pointer text-left transition-transform duration-[250ms] ease-out"
+        style={{
+          transform: focused ? 'scale(1.04)' : 'scale(1)',
+          transformOrigin: 'center',
+        }}
       >
         <div
           className={cn(
-            'border-border flex items-center justify-between border-b px-2.5 py-[3px]',
-            node.roundKey === 'final'
-              ? 'bg-brand-accent-soft'
-              : 'bg-surface-muted',
+            'bg-surface overflow-hidden rounded-[10px] border',
+            '[animation:pm-bk-fade_0.45s_cubic-bezier(.4,0,.2,1)_both] motion-reduce:animate-none',
+            focused
+              ? 'border-brand-primary shadow-md'
+              : 'border-border shadow-sm',
           )}
+          style={{ animationDelay: `${node.round * 0.08 + node.index * 0.03}s` }}
         >
-          <span
+          <div
             className={cn(
-              'text-[9px] font-bold tracking-[0.06em] uppercase',
+              'border-border flex items-center gap-1 border-b px-2.5 py-[3px]',
               node.roundKey === 'final'
-                ? 'text-[#92400E]'
-                : 'text-text-secondary',
+                ? 'bg-brand-accent-soft'
+                : 'bg-surface-muted',
             )}
           >
-            {ROUND_LABEL[node.roundKey] ?? node.roundKey}
-          </span>
-          <span className="text-text-disabled font-mono text-[9px]">
-            {formatDate(m.kickoff)}
-          </span>
+            {predicted && <PickTag />}
+            <span className="text-text-disabled ml-auto font-mono text-[9px]">
+              {formatDate(m.kickoff)}
+            </span>
+          </div>
+          <NodeSlot team={m.home} label={m.homeLabel} scoreKind={m.scoreKind} />
+          <div className="bg-border h-px" />
+          <NodeSlot team={m.away} label={m.awayLabel} scoreKind={m.scoreKind} />
         </div>
-        <NodeSlot team={m.home} label={m.homeLabel} />
-        <div className="bg-border h-px" />
-        <NodeSlot team={m.away} label={m.awayLabel} />
-      </div>
+      </button>
+
+      <PredictAffordance
+        matchId={m.id}
+        predictable={m.predictable}
+        focused={focused}
+        onPredict={onPredict}
+        renderPredict={renderPredict}
+      />
+    </div>
+  )
+}
+
+/**
+ * The "Predecir" affordance shown on a focused, predictable node: on desktop the
+ * editor pops out ANCHORED to the card (a popover from the pill); on mobile the
+ * pill just signals and the sheet opens elsewhere. Shared by the regular nodes
+ * and the third-place card.
+ */
+function PredictAffordance({
+  matchId,
+  predictable,
+  focused,
+  onPredict,
+  renderPredict,
+}: {
+  matchId: string
+  predictable?: boolean
+  focused: boolean
+  onPredict?: (matchId: string) => void
+  renderPredict?: (matchId: string, close: () => void) => React.ReactNode
+}) {
+  const [open, setOpen] = React.useState(false)
+  if (!focused || !predictable || (!onPredict && !renderPredict)) return null
+  if (renderPredict) {
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <PredictPill />
+        </PopoverTrigger>
+        <PopoverContent
+          align="center"
+          sideOffset={6}
+          className="bg-surface w-[480px] max-w-[calc(100vw-2rem)] p-4"
+        >
+          {renderPredict(matchId, () => setOpen(false))}
+        </PopoverContent>
+      </Popover>
+    )
+  }
+  return <PredictPill onClick={() => onPredict?.(matchId)} />
+}
+
+/**
+ * The "Predecir" pill — identical to the Calendar's (MatchCardExpandable): same
+ * Target icon, soft-teal fill + hover-teal text — floated below the card so it
+ * reads as a control over the canvas. `forwardRef` so it can be a Popover
+ * trigger.
+ */
+const PredictPill = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<'button'>
+>(function PredictPill(props, ref) {
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className="bg-brand-primary-soft text-brand-primary-hover absolute left-1/2 top-full z-[1] inline-flex -translate-x-1/2 -translate-y-1.5 cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm"
+      {...props}
+    >
+      <Target size={11} strokeWidth={2} aria-hidden="true" />
+      Predecir
     </button>
+  )
+})
+
+/** Tag amber "Pronóstico" — distingue el marcador pronosticado del real. */
+function PickTag() {
+  return (
+    <span className="bg-brand-accent-soft rounded px-1 py-px text-[8px] font-bold tracking-[0.04em] text-[#92400E] uppercase">
+      Pronóstico
+    </span>
   )
 }
 
@@ -441,35 +555,77 @@ function ThirdPlaceCard({
   finalNode,
   match,
   dim,
+  focused,
+  onClick,
+  onPredict,
+  renderPredict,
   formatDate,
 }: {
   finalNode: LayoutNode
   match: BracketMatch
   dim: boolean
+  focused: boolean
+  onClick: () => void
+  onPredict?: (matchId: string) => void
+  renderPredict?: (matchId: string, close: () => void) => React.ReactNode
   formatDate: (iso: string) => string
 }) {
   const top = finalNode.y + CARD_H + 42
+  const predicted = match.scoreKind === 'predicted'
   return (
     <div
-      className="absolute z-[2] transition-opacity duration-[250ms] ease-out"
-      style={{ left: finalNode.x, top, width: CARD_W, opacity: dim ? 0.5 : 1 }}
+      className="absolute transition-opacity duration-[250ms] ease-out"
+      style={{
+        left: finalNode.x,
+        top,
+        width: CARD_W,
+        opacity: dim ? 0.32 : 1,
+        zIndex: focused ? 3 : 2,
+      }}
     >
-      <div
-        className="border-border bg-surface [animation:pm-bk-fade_0.45s_cubic-bezier(.4,0,.2,1)_both] overflow-hidden rounded-[10px] border shadow-sm motion-reduce:animate-none"
-        style={{ animationDelay: '0.5s' }}
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={focused}
+        className="block w-full cursor-pointer text-left transition-transform duration-[250ms] ease-out"
+        style={{
+          transform: focused ? 'scale(1.04)' : 'scale(1)',
+          transformOrigin: 'center',
+        }}
       >
-        <div className="border-border bg-surface-muted flex items-center justify-between border-b px-2.5 py-[3px]">
-          <span className="text-text-secondary text-[9px] font-bold tracking-[0.06em] uppercase">
-            3er puesto
-          </span>
-          <span className="text-text-disabled font-mono text-[9px]">
-            {formatDate(match.kickoff)}
-          </span>
+        <div
+          className={cn(
+            'bg-surface [animation:pm-bk-fade_0.45s_cubic-bezier(.4,0,.2,1)_both] overflow-hidden rounded-[10px] border motion-reduce:animate-none',
+            focused
+              ? 'border-brand-primary shadow-md'
+              : 'border-border shadow-sm',
+          )}
+          style={{ animationDelay: '0.5s' }}
+        >
+          <div className="border-border bg-surface-muted flex items-center justify-between gap-1 border-b px-2.5 py-[3px]">
+            <span className="text-text-secondary text-[9px] font-bold tracking-[0.06em] uppercase">
+              3er puesto
+            </span>
+            <span className="flex items-center gap-1">
+              {predicted && <PickTag />}
+              <span className="text-text-disabled font-mono text-[9px]">
+                {formatDate(match.kickoff)}
+              </span>
+            </span>
+          </div>
+          <NodeSlot team={match.home} label={match.homeLabel} scoreKind={match.scoreKind} />
+          <div className="bg-border h-px" />
+          <NodeSlot team={match.away} label={match.awayLabel} scoreKind={match.scoreKind} />
         </div>
-        <NodeSlot team={match.home} label={match.homeLabel} />
-        <div className="bg-border h-px" />
-        <NodeSlot team={match.away} label={match.awayLabel} />
-      </div>
+      </button>
+
+      <PredictAffordance
+        matchId={match.id}
+        predictable={match.predictable}
+        focused={focused}
+        onPredict={onPredict}
+        renderPredict={renderPredict}
+      />
     </div>
   )
 }
@@ -477,12 +633,16 @@ function ThirdPlaceCard({
 function NodeSlot({
   team,
   label,
+  scoreKind,
 }: {
   team: BracketTeam | null
   label?: string
+  scoreKind?: 'real' | 'predicted' | null
 }) {
   const pending = !team
   const outcome = team?.pickOutcome ?? null
+  const myAdvancer = team?.isMyAdvancer ?? false
+  const hasScore = !!team && team.score != null
   return (
     <div
       className={cn(
@@ -496,6 +656,11 @@ function NodeSlot({
           'bg-gradient-to-b from-success-soft via-success-soft/30 to-surface',
         outcome === 'incorrect' &&
           'bg-gradient-to-b from-danger-soft via-danger-soft/30 to-surface',
+        // Antes de jugarse: el equipo que elegí para avanzar va en amber (mismo
+        // token que el tag "Pronóstico").
+        !outcome &&
+          myAdvancer &&
+          'bg-gradient-to-b from-brand-accent-soft via-brand-accent-soft/30 to-surface',
       )}
     >
       {pending || !team.flag ? (
@@ -517,9 +682,24 @@ function NodeSlot({
       >
         {team ? team.name : (label ?? 'Por definir')}
       </span>
-      <span className="text-text-disabled font-mono text-[9.5px]">
-        {team ? team.code3 : 'TBD'}
-      </span>
+      {hasScore ? (
+        // Marcador REAL → números neutros fuertes. PRONOSTICADO → amber tenue,
+        // para que nunca se confunda con el resultado real.
+        <span
+          className={cn(
+            'shrink-0 text-xs tabular-nums',
+            scoreKind === 'predicted'
+              ? 'font-semibold text-[#92400E]'
+              : 'text-text-primary font-bold',
+          )}
+        >
+          {team.score}
+        </span>
+      ) : (
+        <span className="text-text-disabled font-mono text-[9.5px]">
+          {team ? team.code3 : 'TBD'}
+        </span>
+      )}
     </div>
   )
 }
