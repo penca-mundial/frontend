@@ -94,6 +94,50 @@ describe('MatchCardExpandable', () => {
     expect(screen.getByText('Dieciseisavos')).toBeInTheDocument()
   })
 
+  it('shows a green "Avance" chip on a finished knockout where the pick landed', () => {
+    renderCard({
+      match: makeMatch({
+        phase: 'round_of_32',
+        status: 'finished',
+        homeScore: 1,
+        awayScore: 0,
+        advancingTeamId: '1', // Uruguay advanced
+      }),
+      prediction: makePrediction({ predictedAdvancingTeamId: '1', locked: true }),
+    })
+    const chip = screen.getByText(/Avance Uruguay/)
+    expect(chip).toBeInTheDocument()
+    expect(chip.className).toMatch(/success-soft/)
+  })
+
+  it('shows a red "Avance" chip when the advancing pick missed', () => {
+    renderCard({
+      match: makeMatch({
+        phase: 'round_of_32',
+        status: 'finished',
+        homeScore: 0,
+        awayScore: 1,
+        advancingTeamId: '2', // Argentina advanced, but we picked Uruguay
+      }),
+      prediction: makePrediction({ predictedAdvancingTeamId: '1', locked: true }),
+    })
+    expect(screen.getByText(/Avance Uruguay/).className).toMatch(/danger-soft/)
+  })
+
+  it('no "Avance" chip on a finished group-stage fixture', () => {
+    renderCard({
+      match: makeMatch({
+        status: 'finished',
+        homeScore: 1,
+        awayScore: 0,
+        group: 'A',
+        advancingTeamId: null,
+      }),
+      prediction: makePrediction({ locked: true }),
+    })
+    expect(screen.queryByText(/Avance/)).not.toBeInTheDocument()
+  })
+
   it('shows the group letter as the eyebrow when present', () => {
     renderCard({ match: makeMatch({ group: 'A' }) })
     expect(screen.getByText('Grupo A')).toBeInTheDocument()
