@@ -92,6 +92,24 @@ describe('ResultCard', () => {
     expect(screen.queryByText(/Pronosticaste/)).not.toBeInTheDocument()
   })
 
+  it('shows the green "Avance" chip on a knockout result where the advancing pick landed', () => {
+    const pred: Prediction = {
+      ...prediction(2, 1, 8),
+      predictedAdvancingTeamId: '1', // picked Uruguay
+    }
+    const ko: Match = {
+      ...finished(pred),
+      phase: 'round_of_32',
+      group: null,
+      advancingTeamId: '1', // Uruguay actually advanced
+    }
+    render(<ResultCard match={ko} timezone="UTC" />)
+
+    const chip = screen.getByText(/Avance Uruguay/)
+    expect(chip).toBeInTheDocument()
+    expect(chip.className).toMatch(/success-soft/)
+  })
+
   it('badges a live match and stays neutral (no outcome colour for a non-final score)', () => {
     const live: Match = { ...finished(prediction(1, 0, 3)), status: 'live', minute: 67 }
     render(<ResultCard match={live} timezone="UTC" />)

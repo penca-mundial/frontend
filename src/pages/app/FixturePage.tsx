@@ -7,7 +7,7 @@ import { GroupStandingsCard } from '@/features/matches/components/GroupStandings
 import { ProjectedStandingsNote } from '@/features/matches/components/ProjectedStandingsNote'
 import { EliminationView } from '@/components/matches/EliminationView'
 import { useMatches } from '@/features/matches/hooks/useMatches'
-import { usePredictions } from '@/features/predictions/hooks/usePredictions'
+import { useAllMyPredictions } from '@/features/predictions/hooks/useAllMyPredictions'
 import { useStandings } from '@/features/matches/hooks/useStandings'
 import type { Match, MatchTeam } from '@/features/matches/types'
 import type { Prediction } from '@/features/predictions/types'
@@ -82,17 +82,16 @@ export function FixturePage() {
   const [teamId, setTeamId] = useState<TeamFilter>('all')
 
   const { data, isLoading, isError } = useMatches({})
-  const { data: predictionData } = usePredictions(1, 100)
+  // ALL of the user's predictions (paged in full, like the bracket) — not just
+  // the first 100 — so the chip shows on matches past the first prediction page.
+  const { data: allPredictions } = useAllMyPredictions()
 
   const allMatches = useMemo(() => data?.matches ?? [], [data])
   const teamOptions = useMemo(() => collectTeams(allMatches), [allMatches])
-  const predictionsByMatch = useMemo(() => {
-    const map = new Map<string, Prediction>()
-    for (const prediction of predictionData?.predictions ?? []) {
-      map.set(prediction.matchId, prediction)
-    }
-    return map
-  }, [predictionData])
+  const predictionsByMatch = useMemo(
+    () => allPredictions ?? new Map<string, Prediction>(),
+    [allPredictions],
+  )
 
   const visibleMatches = useMemo(
     () =>

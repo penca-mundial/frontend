@@ -1,4 +1,5 @@
-import type { Match, MatchPhase } from '@/features/matches/types'
+import type { Match, MatchPhase, MatchTeam } from '@/features/matches/types'
+import type { Prediction } from '@/features/predictions/types'
 
 /**
  * The live-match card treatment: a red border + soft red glow. Single source
@@ -96,4 +97,41 @@ export function isMatchLocked(match: Match, now: number = Date.now()): boolean {
     return true
   }
   return new Date(match.kickoffAt).getTime() - now <= PREDICTION_LOCK_THRESHOLD_MS
+}
+
+/** The viewer's advancing pick on a knockout match, for the "Avance" chip. */
+export interface AdvancePick {
+  /** The team the viewer picked to advance. */
+  team: MatchTeam
+  /**
+   * `pending` before the match is decided (live/upcoming) → amber "Tu pick";
+   * `correct`/`incorrect` once finished → green/red, comparing the pick against
+   * the real `advancing_team_id`.
+   */
+  state: 'pending' | 'correct' | 'incorrect'
+}
+
+/**
+ * The viewer's advancing pick for the "Avance" chip: the chosen team plus its
+ * state. Returns null when it doesn't apply — group stage, no pick, or the
+ * picked team isn't in the match. Pending until the match is finished; then
+ * green/red. The pick is passed in explicitly so it works whether it rides the
+ * match payload (Home cards) or a separate predictions fetch (Calendar).
+ */
+export function advancePick(
+  match: Match,
+  prediction: Prediction | null,
+): AdvancePick | null {
+  const pickedId = prediction?.predictedAdvancingTeamId ?? null
+  if (pickedId === null) return null
+  if (!isKnockoutPhase(match.phase)) return null
+  const team = [match.homeTeam, match.awayTeam].find((t) => t?.id === pickedId)
+  if (!team) return null
+  if (match.status !== 'finished' || match.advancingTeamId === null) {
+    return { team, state: 'pending' }
+  }
+  return {
+    team,
+    state: pickedId === match.advancingTeamId ? 'correct' : 'incorrect',
+  }
 }

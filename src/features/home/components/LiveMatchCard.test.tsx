@@ -105,4 +105,44 @@ describe('LiveMatchCard', () => {
     render(<LiveMatchCard match={liveMatch(null)} timezone="UTC" />)
     expect(screen.queryByText(/Pronosticaste/)).not.toBeInTheDocument()
   })
+
+  it('shows the pending "<team> avanza" advance chip for a live knockout match', () => {
+    const prediction: Prediction = {
+      id: 'p1',
+      matchId: '10',
+      predictedHomeScore: 2,
+      predictedAwayScore: 1,
+      predictedAdvancingTeamId: '1', // Inglaterra
+      lockedAt: null,
+      locked: true,
+    }
+    const ko: Match = { ...liveMatch(prediction), phase: 'round_of_32', group: null }
+    const { container } = render(<LiveMatchCard match={ko} timezone="UTC" />)
+
+    // The amber advance pill is just the picked team name (Inglaterra), distinct
+    // from the "Pronosticaste …" pill that shares the amber token.
+    const advancePill = [
+      ...container.querySelectorAll('.bg-brand-accent-soft'),
+    ].find((el) => el.textContent?.trim() === 'Inglaterra')
+    expect(advancePill).toBeTruthy()
+  })
+
+  it('does not show the advance chip on a live group-stage match', () => {
+    const prediction: Prediction = {
+      id: 'p1',
+      matchId: '10',
+      predictedHomeScore: 2,
+      predictedAwayScore: 1,
+      predictedAdvancingTeamId: null,
+      lockedAt: null,
+      locked: true,
+    }
+    const { container } = render(
+      <LiveMatchCard match={liveMatch(prediction)} timezone="UTC" />,
+    )
+    const advancePill = [
+      ...container.querySelectorAll('.bg-brand-accent-soft'),
+    ].find((el) => el.textContent?.trim() === 'Inglaterra')
+    expect(advancePill).toBeFalsy()
+  })
 })

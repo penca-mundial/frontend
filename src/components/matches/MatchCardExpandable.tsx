@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Check, Target, X } from 'lucide-react'
+import { AdvanceChip } from '@/components/matches/AdvanceChip'
 import { PredictionEditor } from '@/components/matches/PredictionEditor'
 import { PredictionSheet } from '@/components/matches/PredictionSheet'
 import { getApiError } from '@/api/auth.api'
@@ -220,13 +221,17 @@ function CardFace({
       </div>
 
       <div className="border-border flex items-center justify-between gap-2 border-t border-dashed pt-1.5">
-        {prediction ? (
-          <PredictionChip prediction={prediction} match={match} />
-        ) : (
-          <span className="text-text-secondary text-xs">
-            {locked ? 'Sin pronóstico' : 'Sin pronóstico todavía'}
-          </span>
-        )}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {prediction ? (
+            <PredictionChip prediction={prediction} match={match} />
+          ) : (
+            <span className="text-text-secondary text-xs">
+              {locked ? 'Sin pronóstico' : 'Sin pronóstico todavía'}
+            </span>
+          )}
+          {/* KO only, post-result: did the advancing pick land. */}
+          <AdvanceChip match={match} prediction={prediction} />
+        </div>
         {!prediction && !locked && (
           <span className="bg-brand-primary-soft text-brand-primary-hover inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold">
             <Target size={11} strokeWidth={2} />

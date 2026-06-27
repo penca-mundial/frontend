@@ -1,3 +1,4 @@
+import { AdvanceChip } from '@/components/matches/AdvanceChip'
 import type { Match, MatchTeam } from '@/features/matches/types'
 import { getPhaseLabel } from '@/features/matches/utils'
 import { predictionResultStatus } from '@/features/predictions/utils'
@@ -136,12 +137,16 @@ export function ResultCard({
       </div>
 
       {prediction && (
-        <div className="flex items-center justify-between gap-2">
-          <span className="bg-surface/70 text-text-secondary inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide uppercase">
-            {predictionLabel}
-            <span className="text-text-primary font-bold">
-              {prediction.predictedHomeScore} – {prediction.predictedAwayScore}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className="bg-surface/70 text-text-secondary inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide uppercase">
+              {predictionLabel}
+              <span className="text-text-primary font-bold">
+                {prediction.predictedHomeScore} – {prediction.predictedAwayScore}
+              </span>
             </span>
+            {/* KO only, post-result: did the advancing pick land. */}
+            <AdvanceChip match={match} prediction={prediction} />
           </span>
           {points != null && (
             <span className="bg-surface/70 text-text-primary inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums">

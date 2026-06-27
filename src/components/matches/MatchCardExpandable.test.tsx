@@ -94,6 +94,64 @@ describe('MatchCardExpandable', () => {
     expect(screen.getByText('Dieciseisavos')).toBeInTheDocument()
   })
 
+  it('shows a green "Avance" chip on a finished knockout where the pick landed', () => {
+    renderCard({
+      match: makeMatch({
+        phase: 'round_of_32',
+        status: 'finished',
+        homeScore: 1,
+        awayScore: 0,
+        advancingTeamId: '1', // Uruguay advanced
+      }),
+      prediction: makePrediction({ predictedAdvancingTeamId: '1', locked: true }),
+    })
+    const chip = screen.getByText(/Avance Uruguay/)
+    expect(chip).toBeInTheDocument()
+    expect(chip.className).toMatch(/success-soft/)
+  })
+
+  it('shows a red "Avance" chip when the advancing pick missed', () => {
+    renderCard({
+      match: makeMatch({
+        phase: 'round_of_32',
+        status: 'finished',
+        homeScore: 0,
+        awayScore: 1,
+        advancingTeamId: '2', // Argentina advanced, but we picked Uruguay
+      }),
+      prediction: makePrediction({ predictedAdvancingTeamId: '1', locked: true }),
+    })
+    expect(screen.getByText(/Avance Uruguay/).className).toMatch(/danger-soft/)
+  })
+
+  it('shows the pending advance pill (just the team) on an upcoming knockout fixture', () => {
+    const { container } = renderCard({
+      match: makeMatch({
+        phase: 'round_of_32',
+        status: 'scheduled', // upcoming, not played yet
+        advancingTeamId: null,
+      }),
+      prediction: makePrediction({ predictedAdvancingTeamId: '1' }), // Uruguay
+    })
+    // The amber pill is unique to the advance chip here, and is just the team.
+    const advancePill = container.querySelector('.bg-brand-accent-soft')
+    expect(advancePill?.textContent?.trim()).toBe('Uruguay')
+  })
+
+  it('no "Avance" chip on a finished group-stage fixture', () => {
+    renderCard({
+      match: makeMatch({
+        status: 'finished',
+        homeScore: 1,
+        awayScore: 0,
+        group: 'A',
+        advancingTeamId: null,
+      }),
+      prediction: makePrediction({ locked: true }),
+    })
+    expect(screen.queryByText(/Avance/)).not.toBeInTheDocument()
+  })
+
   it('shows the group letter as the eyebrow when present', () => {
     renderCard({ match: makeMatch({ group: 'A' }) })
     expect(screen.getByText('Grupo A')).toBeInTheDocument()
