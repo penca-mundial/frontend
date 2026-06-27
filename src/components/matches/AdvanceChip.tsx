@@ -15,7 +15,7 @@ const CHIP_BASE =
 /**
  * Chip surfacing the viewer's advancing pick on a knockout match so the
  * advancing call (worth points) is visible, not just the score:
- *   - before the match is decided (live/upcoming) → amber "Tu pick: <team> pasa";
+ *   - before the match is decided (live/upcoming) → amber pill with the team;
  *   - once finished → green "Avance <team>" if right, red if wrong.
  * Mirrors the "Tu pronóstico" chip shape + tokens. Renders nothing when it
  * doesn't apply (group stage, no pick).
@@ -29,9 +29,11 @@ export function AdvanceChip({ match, prediction }: AdvanceChipProps) {
   if (!pick) return null
 
   if (pick.state === 'pending') {
+    // Amber "pending" pill — same size/font as the "Pronosticaste" pill it sits
+    // next to: just the team the viewer picked to advance.
     return (
-      <span className={cn(CHIP_BASE, 'bg-brand-accent-soft text-[#92400E]')}>
-        Tu pick: {pick.team.name} pasa
+      <span className="bg-brand-accent-soft inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide text-[#854D0E] uppercase">
+        {pick.team.name}
       </span>
     )
   }

@@ -64,6 +64,8 @@ export function LiveMatchCard({ match, timezone }: LiveMatchCardProps) {
                 {prediction.predictedHomeScore} – {prediction.predictedAwayScore}
               </span>
             </span>
+            {/* KO only: my advancing pick, amber/pending while the match is live. */}
+            <AdvanceChip match={match} prediction={prediction} />
             {prediction.points != null && (
               <span className="text-text-secondary text-body-sm">
                 Si termina así,{' '}
@@ -72,8 +74,6 @@ export function LiveMatchCard({ match, timezone }: LiveMatchCardProps) {
                 </span>
               </span>
             )}
-            {/* KO only: my advancing pick, amber/pending while the match is live. */}
-            <AdvanceChip match={match} prediction={prediction} />
           </div>
         )}
       </div>

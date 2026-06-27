@@ -124,8 +124,8 @@ describe('MatchCardExpandable', () => {
     expect(screen.getByText(/Avance Uruguay/).className).toMatch(/danger-soft/)
   })
 
-  it('shows the pending "Tu pick" advance chip on an upcoming knockout fixture', () => {
-    renderCard({
+  it('shows the pending advance pill (just the team) on an upcoming knockout fixture', () => {
+    const { container } = renderCard({
       match: makeMatch({
         phase: 'round_of_32',
         status: 'scheduled', // upcoming, not played yet
@@ -133,7 +133,9 @@ describe('MatchCardExpandable', () => {
       }),
       prediction: makePrediction({ predictedAdvancingTeamId: '1' }), // Uruguay
     })
-    expect(screen.getByText(/Tu pick: Uruguay pasa/)).toBeInTheDocument()
+    // The amber pill is unique to the advance chip here, and is just the team.
+    const advancePill = container.querySelector('.bg-brand-accent-soft')
+    expect(advancePill?.textContent?.trim()).toBe('Uruguay')
   })
 
   it('no "Avance" chip on a finished group-stage fixture', () => {
