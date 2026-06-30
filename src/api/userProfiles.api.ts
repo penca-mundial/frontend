@@ -77,10 +77,10 @@ export function mapUserProfile(profile: UserProfileResponse): PublicUserProfile 
 }
 
 /**
- * Adapt the compact pick projection (`{predicted_*_score, points}`) to the
- * domain `Prediction` the `ResultCard` consumes. The feed is locked by
- * construction, so the lock fields are synthesised; only the scores and points
- * carry real data.
+ * Adapt the compact pick projection (scores, advancing team, points) to the
+ * domain `Prediction` the `ResultCard` consumes — including the advancing pick
+ * so the KO "Avance" chip shows on profiles. The feed is locked by construction,
+ * so the lock fields are synthesised; the rest carries real data.
  */
 function mapPick(
   pick: ProfilePredictionPickResponse,
@@ -91,7 +91,10 @@ function mapPick(
     matchId,
     predictedHomeScore: pick.predicted_home_score,
     predictedAwayScore: pick.predicted_away_score,
-    predictedAdvancingTeamId: null,
+    predictedAdvancingTeamId:
+      pick.predicted_advancing_team_id === null
+        ? null
+        : String(pick.predicted_advancing_team_id),
     lockedAt: null,
     locked: true,
     points: pick.points,
