@@ -485,12 +485,14 @@ export interface UserProfileResponse {
 
 /**
  * The compact pick projection on a profile predictions entry (`UserScoreboard`
- * relabels its `my_prediction` to `prediction`): only the picked score and the
- * points it earns at the match's current score — no id/lock fields.
+ * relabels its `my_prediction` to `prediction`): the picked score, the picked
+ * advancing team (knockouts), and the points it earns at the match's current
+ * score — no id/lock fields.
  */
 export interface ProfilePredictionPickResponse {
   predicted_home_score: number
   predicted_away_score: number
+  predicted_advancing_team_id: number | null
   points: number
 }
 

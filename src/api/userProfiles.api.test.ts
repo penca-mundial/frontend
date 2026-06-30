@@ -215,6 +215,7 @@ describe('mapUserPredictionsPage', () => {
           prediction: {
             predicted_home_score: 2,
             predicted_away_score: 1,
+            predicted_advancing_team_id: null, // group stage → no advance
             points: 5,
           },
         },
@@ -242,5 +243,39 @@ describe('mapUserPredictionsPage', () => {
       locked: true,
       points: 5,
     })
+  })
+
+  it('maps the viewed user advancing pick on a knockout entry (id as string)', () => {
+    const page = mapUserPredictionsPage({
+      entries: [
+        {
+          id: 600,
+          external_id: null,
+          tournament_id: 1,
+          kickoff_at: '2026-07-04T19:00:00Z',
+          status: 'finished',
+          phase: 'round_of_32',
+          group: null,
+          minute: null,
+          home_score: 1,
+          away_score: 0,
+          advancing_team_id: 10, // Argentina advanced
+          home_team: { id: 10, name: 'Argentina', code3: 'ARG', flag_url: null },
+          away_team: { id: 11, name: 'Brasil', code3: 'BRA', flag_url: null },
+          prediction: {
+            predicted_home_score: 1,
+            predicted_away_score: 0,
+            predicted_advancing_team_id: 10, // picked Argentina to advance
+            points: 8,
+          },
+        },
+      ],
+      page: 1,
+      has_more: false,
+    })
+
+    const [match] = page.entries
+    expect(match.advancingTeamId).toBe('10')
+    expect(match.myPrediction?.predictedAdvancingTeamId).toBe('10')
   })
 })
